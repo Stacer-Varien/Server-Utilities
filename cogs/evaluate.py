@@ -19,7 +19,7 @@ class evaluatecog(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash(description="Changes the bot's play activity")
+    @slash(description="Changes the bot's play activity", guild_ids=[925790259160166460])
     @is_owner()
     async def activity(self, interaction: Interaction, activitytype=SlashOption(description="Choose an activity type", choices=['listen', 'play'], required=True), activity=SlashOption(description="What is the new activity")):
         await interaction.response.defer()
@@ -30,7 +30,7 @@ class evaluatecog(Cog):
             await self.bot.change_presence(activity=Game(name=activity))
             await interaction.followup.send(f"Bot's activity changed to `playing {activity}`")
 
-    @slash(description="Restart me to be updated")
+    @slash(description="Restart me to be updated", guild_ids=[925790259160166460])
     @is_owner()
     async def update(self, interaction: Interaction):
         await interaction.response.defer()
@@ -39,7 +39,7 @@ class evaluatecog(Cog):
         await msg.delete()
         restart_bot()
 
-    @slash(description="Evaluates a code")
+    @slash(description="Evaluates a code", guild_ids=[925790259160166460])
     @is_owner()
     async def evaluate(self, interaction: Interaction):
             await interaction.response.defer()

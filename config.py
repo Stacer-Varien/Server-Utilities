@@ -6,6 +6,8 @@ load_dotenv()
 TOKEN=getenv("token")
 HA_WEBHOOK=getenv("ha_webhook")
 HAZE_WEBHOOK = getenv("haze_webhook")
+SHU=getenv("safety_webhhook_unlimited")
+SHC=getenv("safety_webhhook_community")
 
 db=connect('database.db')
 

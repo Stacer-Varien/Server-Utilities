@@ -10,16 +10,18 @@ class plan_updater_cog(Cog):
         self.bot = bot
         self.update_plans.start()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
     async def update_plans(self):
-        planlog = await self.bot.fetch_channel(956554797060866058)
-        plan_msg = await planlog.fetch_message(956648242655920178)
-        cur = db.execute(f"SELECT * FROM planData")
+        ha_planlog = await self.bot.fetch_channel(956554797060866058)
+        ha_plan_msg = await ha_planlog.fetch_message(956648242655920178)
+
+        cur = db.execute(
+            f"SELECT * FROM planData where server_id = ?", (925790259160166460,))
         results = cur.fetchall()
 
         if results ==None:
             planned = Embed(description="No Plans as of yet")
-            await plan_msg.edit(embed=planned)
+            await ha_plan_msg.edit(embed=planned)
 
         else:
             planned = Embed(description="**Current plans**", color=Color.blue())
@@ -32,8 +34,8 @@ class plan_updater_cog(Cog):
                 plan_id= i[5]
 
                 planned.add_field(
-                    name=member, value=f"**Plan Started:** {plan_start}\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** {ending}\n**Plan ID:** {plan_id}")
-            await plan_msg.edit(embed=planned)
+                    name=member, value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
+            await ha_plan_msg.edit(embed=planned)
 
 
 def setup(bot):

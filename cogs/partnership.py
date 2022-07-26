@@ -14,7 +14,7 @@ class partner(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash(description='Main Partner Command')
+    @slash(description='Main Partner Command', guild_ids=[925790259160166460])
     async def partner(self, ctx:Interaction):
         pass
 
@@ -35,10 +35,16 @@ class partner(Cog):
                     content = "".join(f.readlines())
 
             await ctx.user.send(content)
-            await ctx.user.send("We have given you our ad. Now, you have 3 minutes to post our ad to your server and send a FULL screenshot as proof in a media link. This is just to avoid partnership scams\n\nIf you don't know how to do it, send the proof as it is, right click on it and select copy link and send the link here.")
+            await ctx.user.send("We have given you our ad. Now, you have 3 minutes to post our ad to your server and send a FULL screenshot as proof. This is just to avoid partnership scams")
 
             try:
-                proof = await self.bot.wait_for('message', check=check, timeout=180)
+                def check_image(m):
+                    return m.author == ctx.user and m.attachments
+
+                proof = await self.bot.wait_for('message', check=check_image, timeout=180)
+
+                image_urls = [x.url for x in msg.attachments]
+                image_urls = "\n".join(image_urls)
 
                 await ctx.user.send("Partnership is now complete. Please wait for a response from us that your partnership request is accepted or denied")
 
@@ -52,7 +58,7 @@ class partner(Cog):
                     text=f"Partner ID: {msg.id} requested by {ctx.user}")
                 
                 await partnerchannel.send(
-                    f"Proof they have posted our ad : {proof.content}", embed=request)
+                    f"Proof they have posted our ad : {proof}", embed=request)
             except TimeoutError:
                 await ctx.user.send("You have ran out of time. Please try again later")
         except TimeoutError:
@@ -75,17 +81,21 @@ class partner(Cog):
                     content = "".join(f.readlines())
 
             await ctx.user.send(content)
-            await ctx.user.send("We have given you our ad. Now, you have 3 minutes to post our ad to your server and send a FULL screenshot as proof in a media link. This is just to avoid partnership scams\n\nIf you don't know how to do it, send the proof as it is, right click on it and select copy link and send the link here.")
+            await ctx.user.send("We have given you our ad. Now, you have 3 minutes to post our ad to your server and send a FULL screenshot as proof. This is just to avoid partnership scams.")
 
             try:
-                proof = await self.bot.wait_for('message', check=check, timeout=180)
+                def check_image(m):
+                    return m.author == ctx.user and m.attachments
 
-                await ctx.user.send("Partnership is now complete. Please wait for a response from us that your partnership request is accepted or denied")
+                proof = await self.bot.wait_for('message', check=check_image, timeout=180)
+
+                image_urls = [x.url for x in msg.attachments]
+                image_urls = "\n".join(image_urls)
 
                 partnerchannel = self.bot.get_channel(981877384192094279)
                 msg = await partnerchannel.send(ad.content)
 
-                db.execute("INSERT OR IGNORE INTO partnerData (msg_id, user_id) VALUES (?,?,?)",(msg.id, ctx.user.id))
+                db.execute("INSERT OR IGNORE INTO partnerData (msg_id, user_id) VALUES (?,?)",(msg.id, ctx.user.id))
                 db.commit()
 
                 request = Embed(title=f"Partnership for HAZE Advertising from {ctx.user}",
@@ -94,7 +104,7 @@ class partner(Cog):
                     text=f"Partner ID: {msg.id} requested by Applier: {ctx.user.id}")
                 
                 await partnerchannel.send(
-                    f"Proof they have posted our ad : {proof.content}", embed=request)
+                    f"Proof they have posted our ad : {proof}", embed=request)
             except TimeoutError:
                 await ctx.user.send("You have ran out of time. Please try again later")
         except TimeoutError:
@@ -120,6 +130,7 @@ class partner(Cog):
             await ctx.followup.send("Partnership approved and given role")
 
     @partner.subcommand(description='Deny a partnership')
+    @has_any_role(partner_manager, admins, owner)
     async def deny(self, ctx: Interaction, partner_id=SlashOption(required=True), reason=SlashOption(required=True)):
         await ctx.response.defer()
         partnerchannel = self.bot.get_channel(981877384192094279)

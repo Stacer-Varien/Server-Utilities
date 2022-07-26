@@ -23,7 +23,7 @@ class warncog(Cog):
                         await ctx.followup.send(embed=failed)
                 
                 else:
-                    await ctx.followup.send("Why are they being warned?\nPlease do:\nCHANNEL WERE IT WAS DELETED - REASON per every channel it was deleted\n\nPlease note you have 6 minutes to type")
+                    reasons = await ctx.followup.send("Why are they being warned?\nPlease do:\nCHANNEL WERE IT WAS DELETED - REASON per every channel it was deleted\n\nPlease note you have 6 minutes to type", ephemeral=True)
 
                     def check(m):
                         return m.author == ctx.user and m.content
@@ -54,7 +54,7 @@ class warncog(Cog):
 
                         embed = Embed(
                             title="You have been warned", color=0xFF0000)
-                        embed.add_field(name="Reason for warn", value=reason.content, inline=False)
+                        embed.add_field(name="Reason for warn (Channel were it was deleted and reason of delete)", value=reason.content, inline=False)
                         embed.add_field(
                             name="Warn ID", value=warn_id, inline=True)
                         embed.add_field(name="Warn Points", value=warn_point, inline=True)
@@ -94,7 +94,8 @@ class warncog(Cog):
                             text="If you feel this warn was a mistake, please use `/appeal WARN_ID`")
                         embed.set_thumbnail(url=member.display_avatar)
                         await adwarn_channel.send(member.mention, embed=embed)
-                        await ctx.followup.send(f"Warning sent. Check {adwarn_channel.mention}")
+                        await ctx.followup.send(f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True)
+                        await reasons.delete()
                     except TimeoutError:
                         await ctx.followup.send("Timeout", ephemeral=True)
                     
