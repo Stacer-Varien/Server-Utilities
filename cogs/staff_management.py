@@ -5,6 +5,7 @@ from nextcord import slash_command as slash
 from nextcord.ext.commands import Cog
 from nextcord import *
 from nextcord.ext.application_checks import has_any_role
+from assets.confirm_buttoms import Confirmation
 from config import db
 
 ha_admin = 925790259319558157
@@ -162,6 +163,75 @@ class staff_mngm(Cog):
             else:
                 await ctx.followup.send("You are not on break. Please request for a break first.", delete_after=10.0)
 
+    @slash(description="Fire staff from LOA", guild_ids=[704888699590279221])
+    async def fire_loa_staff(self, ctx: Interaction, member: Member = SlashOption(required=True), role: Role = SlashOption(required=True), reason=SlashOption(required=True), kick=SlashOption(description="Should they be kicked out? (in case of full resignation)", choices=["True", "False"], required=False)):
+        await ctx.response.defer()
+        staff_server = self.bot.get_guild(841671029066956831)
+        if member == ctx.user:
+            await ctx.followup.send("You can't fire yourself...")
+
+        elif member.top_role >= ctx.user.top_role:
+            await ctx.followup.send("You can't fire someone who has a higher role than you...")
+
+        else:
+
+            if role.id == 709677053926178859:
+                head_pm = ctx.guild.get_role(982205041551233024)
+                r = [role, head_pm]
+
+            elif role.id == 779331514466172970:
+                support = staff_server.get_role(847393379666100226)
+                r = [role, support]
+
+            elif role.id == 849904285286006794:
+                mod = staff_server.get_role(977866566916014111)
+                r = [role, mod]
+
+        if kick == None:
+            await member.remove_roles(*r, reason=reason)
+            await staff_server.kick(member, reason=reason)
+            channel = self.bot.get_channel(925790262104580104)
+            await channel.send("{} was fired\nPosition: {}\nReason: {}".format(member, role.name, reason))
+
+    @slash(description="Main strike command", guild_ids=[704888699590279221])
+    async def strike(self, ctx:Interaction):
+        pass
+
+    @strike.subcommand(description="Give a strike to a staff member for bad performance")
+    @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
+    async def give(self, ctx:Interaction, member:Member = SlashOption(required=True), department = SlashOption(choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True), reason=SlashOption(required=True)):
+
+        channel= self.bot.get_channel(841672405444591657)
+        view=Confirmation()
+
+        cur=db.execute("INSERT OR IGNORE INTO strikeData (user_id, strikes, department) VALUES (?, ?, ?)", (member.id, 1, department,))
+
+        if cur.rowcount==0:
+            db.execute("UPDATE strikeData SET strikes = strikes + ? WHERE user_id = ? AND department = ?", (1, member.id, department,))
+        
+        db.commit()
+
+        strikes = db.execute(
+            "SELECT strikes FROM strikeData WHERE user_id = ? AND department = ?", (member.id, department,)).fetchone()
+
+        if strikes[0] == 3:
+            await ctx.followup.send(f"{member} has reached the 3 strike quota. Should they be kicked out of this server?", view=view)
+            await view.wait()
+
+            if view.value == None:
+                await ctx.edit_original_message("Timed out")
+            
+            elif view.value == True:
+                await member.kick(reason="Staff member recieved 3 strikes")
+                await ctx.edit_original_message("")
+
+            elif view.value == False:
+                await ctx.edit_original_message("Kick cancelled. Might recommend firing them for the department")
+        
+        else:
+            pass
+        embed=Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count", value=strikes[0], inline=True).add_field(name="Reason", value=reason, inline=True)
+        await channel.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(staff_mngm(bot))

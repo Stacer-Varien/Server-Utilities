@@ -1,12 +1,14 @@
+import imp
 from nextcord import *
 from nextcord.ext.commands import Cog
+from config import db
 
 
 WELCOME_CHANNEL_ID = 925790259877412877
 HAZE_ADS = 925790259160166460
 
 
-class staff(Cog):
+class member(Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -39,9 +41,34 @@ class staff(Cog):
                 await channel.send(bye)
             except Exception as e:
                 raise e
+
+        elif member.guild.id == 841671029066956831:
+            channel = self.bot.get_channel(841672222136991757)
+            try:
+                check_resignation_data=db.execute("SELECT accepted FROM resignData WHERE user_id = ?", (member.id)).fetchone() #checks for their user ID in the database if it exists
+
+                if check_resignation_data == None: #if they just left without requesting for resigning
+                    no_resign=Embed(description=f"{member} ({member.id}) left the server without a proper resignation!",color=Color.red()).add_field(name="Position", value=member.top_role)
+                    await channel.send(embed=no_resign)
+
+                elif check_resignation_data[0] == 0: #if they left without an accepted resignation
+                    not_accepted = Embed(description=f"{member} ({member.id}) left the server without an accepted resignation!", color=Color.red(
+                    )).add_field(name="Position", value=member.top_role)
+                    await channel.send(embed=not_accepted)
+                
+                elif check_resignation_data[0] == 1: #if their resignation has been accepted and they were kicked out
+                    db.execute("DELETE FROM resignData WHERE user_id = ?", (member.id,))
+                    accepted = Embed(description=f"{member} ({member.id}) has resigned.", color=Color.green(
+                    )).add_field(name="Position", value=member.top_role)
+                    await channel.send(embed=accepted)
+                
+            except:
+                pass
         else:
             pass
 
+        
+
 
 def setup(bot):
-    bot.add_cog(staff(bot))
+    bot.add_cog(member(bot))
