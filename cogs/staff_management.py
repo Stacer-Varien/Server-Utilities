@@ -12,6 +12,8 @@ ha_admin = 925790259319558157
 ha_hr = 925790259319558156
 ha_mod = 925790259319558154
 ha_trial_mod = 925790259294396455
+loa_hr_head = 949147158572056636
+om = 841671956999045141
 
 
 class staff_mngm(Cog):
@@ -163,36 +165,6 @@ class staff_mngm(Cog):
             else:
                 await ctx.followup.send("You are not on break. Please request for a break first.", delete_after=10.0)
 
-    @slash(description="Fire staff from LOA", guild_ids=[704888699590279221])
-    async def fire_loa_staff(self, ctx: Interaction, member: Member = SlashOption(required=True), role: Role = SlashOption(required=True), reason=SlashOption(required=True), kick=SlashOption(description="Should they be kicked out? (in case of full resignation)", choices=["True", "False"], required=False)):
-        await ctx.response.defer()
-        staff_server = self.bot.get_guild(841671029066956831)
-        if member == ctx.user:
-            await ctx.followup.send("You can't fire yourself...")
-
-        elif member.top_role >= ctx.user.top_role:
-            await ctx.followup.send("You can't fire someone who has a higher role than you...")
-
-        else:
-
-            if role.id == 709677053926178859:
-                head_pm = ctx.guild.get_role(982205041551233024)
-                r = [role, head_pm]
-
-            elif role.id == 779331514466172970:
-                support = staff_server.get_role(847393379666100226)
-                r = [role, support]
-
-            elif role.id == 849904285286006794:
-                mod = staff_server.get_role(977866566916014111)
-                r = [role, mod]
-
-        if kick == None:
-            await member.remove_roles(*r, reason=reason)
-            await staff_server.kick(member, reason=reason)
-            channel = self.bot.get_channel(925790262104580104)
-            await channel.send("{} was fired\nPosition: {}\nReason: {}".format(member, role.name, reason))
-
     @slash(description="Main strike command", guild_ids=[704888699590279221])
     async def strike(self, ctx:Interaction):
         pass
@@ -200,7 +172,7 @@ class staff_mngm(Cog):
     @strike.subcommand(description="Give a strike to a staff member for bad performance")
     @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
     async def give(self, ctx:Interaction, member:Member = SlashOption(required=True), department = SlashOption(choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True), reason=SlashOption(required=True)):
-
+        await ctx.response.defer(ephemeral=True)
         channel= self.bot.get_channel(841672405444591657)
         view=Confirmation()
 
@@ -223,15 +195,113 @@ class staff_mngm(Cog):
             
             elif view.value == True:
                 await member.kick(reason="Staff member recieved 3 strikes")
-                await ctx.edit_original_message("")
+                await ctx.edit_original_message("{} has been kicked due to recieving 3 strikes")
+                await channel.send("{} has been kicked due to recieving 3 strikes")
 
             elif view.value == False:
-                await ctx.edit_original_message("Kick cancelled. Might recommend firing them for the department")
+                await ctx.edit_original_message("Kick cancelled. Might recommend firing them from the department")
         
         else:
-            pass
-        embed=Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count", value=strikes[0], inline=True).add_field(name="Reason", value=reason, inline=True)
-        await channel.send(embed=embed)
+            embed=Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count", value=strikes[0],  inline=True).add_field(name="Department", value=department, inline=True).add_field(name="Reason", value=reason, inline=True)
+            await channel.send(embed=embed)
+            await ctx.followup.send("Strike given to {}".format(member))
+
+    @strike.subcommand(description="Remove a strike if a staff member has shown improvement")
+    @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
+    async def remove(self, ctx: Interaction, member: Member = SlashOption(required=True), department=SlashOption(choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True), reason=SlashOption(required=True)):
+        await ctx.response.defer(ephemeral=True)
+        channel = self.bot.get_channel(841672405444591657)
+
+        data=db.execute("SELECT strikes FROM strikeData WHERE user_id = ? and department = ?", (member.id, department)).fetchone()
+
+        if data == None:
+            await ctx.followup.send("{} has no strikes in this department".format(member))
+        
+        else:
+
+            db.execute(
+                "UPDATE strikeData SET strikes = strikes - ? WHERE user_id = ? AND department = ?", (1, member.id, department,))
+            db.commit()
+
+            strikes = db.execute(
+                "SELECT strikes FROM strikeData WHERE user_id = ? AND department = ?", (member.id, department,)).fetchone()
+            
+
+            if strikes[0] == 0:
+                db.execute("DELETE FROM strikeData WHERE user_id = ? AND department = ?", (member.id, department,))
+                db.commit()
+
+                await ctx.followup.send("{}'s strike has been removed".format(member))
+
+            embed = Embed(title="Your strike has been removed", color=Color.green()).add_field(
+                name="Strike count", value=strikes[0],  inline=True).add_field(name="Reason", value=reason,inline=True)
+            await channel.send(embed=embed)
+            await ctx.followup.send("Strike given to {}".format(member))
+
+    @slash(description="Main resignation command", guild_ids=[704888699590279221])
+    async def resign(self, ctx:Interaction):
+        pass
+
+    @resign.subcommand(name="apply", description="Apply for resignation")
+    async def _apply_(self, ctx:Interaction, department=SlashOption(description="Department you are working in",required=True), reason=SlashOption(required=True)):
+        await ctx.response.defer(ephemeral=True)
+        db.execute("INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)", (ctx.user.id, 0))
+        db.commit()
+
+        channel=self.bot.get_channel(1002513633760260166)
+
+        request=Embed(title="Resignation request of {} | {}".format(ctx.user, ctx.user.id), color=ctx.user.color)
+        request.add_field(name="Department", value=department, inline=False)
+        request.add_field(name="Reason of Resigning", value=reason, inline=False)
+        request.set_footer(
+            text="To accept or deny the resignation, use `/resign approve USER_ID`")
+
+        await ctx.followup.send("Your resignation has been requested")
+        await channel.send(embed=request)
+
+    @resign.subcommand(name="approve", description="Approve a resignation")
+    @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
+    async def __approve__(self, ctx:Interaction, user_id=SlashOption(required=True), department=SlashOption(required=True), kick=SlashOption(description="Only use it if the member is planning on a full resignation (leaving the staff team)",choices=[True, False], required=False)):
+        await ctx.response.defer(ephemeral=True)
+        member=ctx.guild.get_member(user_id)
+        channel = self.bot.get_channel(841672222136991757)
+        data=db.execute("SELECT * FROM resignData WHERE user_id = ?", (user_id,)).fetchone()
+
+        if data == None:
+            await ctx.followup.send("Invalid User ID")
+        
+        elif data[0] == ctx.user.id:
+            await ctx.followup.send("You can't approve your own resignation")
+        
+        elif member.top_role >= ctx.user.top_role:
+            await ctx.followup.send("You cannot approve a resignation from someone who has a higher role than you")
+        
+        else:
+            db.execute("UPDATE resignData SET accepted = ? WHERE user_id = ?", (1, user_id,))
+            db.commit()
+            
+            if kick == True:
+                try:
+                    try:
+                        await member.send("Your resignation has been approved. Thank you for working with us.")
+                    except:
+                        pass
+                    await member.kick(reason="Resigned from LOA Staff")
+                    await channel.send("{} has left the Staff Team".format(member))
+                    
+                except:
+                    await ctx.followup.send("{} couldn't be kicked out due to role hierarchy. Please do it manually if you can")
+                    await channel.send("{} has left the Staff Team. Thank you for working with us".format(member))
+
+            elif kick == None:
+                await channel.send("{} has resigned from {}".format(member.mention, department))
+
+            elif kick == False:
+                await channel.send("{} has resigned from {}".format(member.mention, department))
+        
+        await ctx.followup.send("Accepted resignation of {}".format(member))
+
+
 
 def setup(bot):
     bot.add_cog(staff_mngm(bot))
