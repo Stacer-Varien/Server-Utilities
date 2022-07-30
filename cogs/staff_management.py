@@ -11,9 +11,12 @@ from config import db
 ha_admin = 925790259319558157
 ha_hr = 925790259319558156
 ha_mod = 925790259319558154
-ha_trial_mod = 925790259294396455
-loa_hr_head = 949147158572056636
-om = 841671956999045141
+core_team= 841671779394781225 #both
+coo = 955722820464283658 #strike + resign
+chr = 949147158572056636  # strike + resign
+team_leader = 841682891599773767 #strike
+staff_supervisor = 962628294627438682 #strike
+om = 841671956999045141 #break
 
 
 class staff_mngm(Cog):
@@ -81,7 +84,7 @@ class staff_mngm(Cog):
                 db.commit()
 
     @staff_break.subcommand(name="approve", description="Approve the break")
-    @has_any_role(995151171004137492, 841671779394781225)
+    @has_any_role(core_team, om)
     async def _approve(self, ctx: Interaction, break_id=SlashOption(required=True)):
         await ctx.response.defer()
         data = db.execute("SELECT * FROM breakData WHERE break_id = ? AND guild_id = ?", (break_id, ctx.guild.id,)).fetchone()
@@ -126,7 +129,7 @@ class staff_mngm(Cog):
                 db.commit()
 
     @staff_break.subcommand(name="deny", description="Deny the break")
-    @has_any_role(995151171004137492, 841671779394781225)
+    @has_any_role(core_team, om)
     async def _deny(self, ctx: Interaction, break_id=SlashOption(required=True)):
         await ctx.response.defer()
         if ctx.guild.id == 841671029066956831:
@@ -170,7 +173,7 @@ class staff_mngm(Cog):
         pass
 
     @strike.subcommand(description="Give a strike to a staff member for bad performance")
-    @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
+    @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def give(self, ctx:Interaction, member:Member = SlashOption(required=True), department = SlashOption(choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True), reason=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
         channel= self.bot.get_channel(841672405444591657)
@@ -200,6 +203,10 @@ class staff_mngm(Cog):
 
             elif view.value == False:
                 await ctx.edit_original_message("Kick cancelled. Might recommend firing them from the department")
+                embed = Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count", value=strikes[0],  inline=True).add_field(
+                    name="Department", value=department, inline=True).add_field(name="Reason", value=reason, inline=True)
+                await channel.send(embed=embed)
+                await ctx.followup.send("Strike given to {}".format(member))
         
         else:
             embed=Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count", value=strikes[0],  inline=True).add_field(name="Department", value=department, inline=True).add_field(name="Reason", value=reason, inline=True)
@@ -207,12 +214,12 @@ class staff_mngm(Cog):
             await ctx.followup.send("Strike given to {}".format(member))
 
     @strike.subcommand(description="Remove a strike if a staff member has shown improvement")
-    @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
+    @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def remove(self, ctx: Interaction, member: Member = SlashOption(required=True), department=SlashOption(choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True), reason=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672405444591657)
 
-        data=db.execute("SELECT strikes FROM strikeData WHERE user_id = ? and department = ?", (member.id, department)).fetchone()
+        data=db.execute("SELECT strikes FROM strikeData WHERE user_id = ? and department = ?", (member.id, department,)).fetchone()
 
         if data == None:
             await ctx.followup.send("{} has no strikes in this department".format(member))
@@ -260,7 +267,7 @@ class staff_mngm(Cog):
         await channel.send(embed=request)
 
     @resign.subcommand(name="approve", description="Approve a resignation")
-    @has_any_role(841671779394781225, 841671956999045141, 979940400561262642)
+    @has_any_role(core_team, chr, coo)
     async def __approve__(self, ctx:Interaction, user_id=SlashOption(required=True), department=SlashOption(required=True), kick=SlashOption(description="Only use it if the member is planning on a full resignation (leaving the staff team)",choices=[True, False], required=False)):
         await ctx.response.defer(ephemeral=True)
         member=ctx.guild.get_member(user_id)
