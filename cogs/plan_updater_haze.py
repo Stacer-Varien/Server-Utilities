@@ -1,8 +1,8 @@
-from nextcord.ext.commands import Cog
 from nextcord import *
 from nextcord.ext import tasks
+from nextcord.ext.commands import Cog
+
 from config import db
-from datetime import *
 
 
 class plan_updater_cog(Cog):
@@ -19,7 +19,7 @@ class plan_updater_cog(Cog):
             f"SELECT * FROM planData where server_id = ?", (925790259160166460,))
         results = cur.fetchall()
 
-        if results ==None:
+        if results == None:
             planned = Embed(description="No Plans as of yet")
             await ha_plan_msg.edit(embed=planned)
 
@@ -31,10 +31,11 @@ class plan_updater_cog(Cog):
                 ending = i[2]
                 plan = i[3]
                 setter = await self.bot.fetch_user(i[4])
-                plan_id= i[5]
+                plan_id = i[5]
 
                 planned.add_field(
-                    name=member, value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
+                    name=member,
+                    value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
             await ha_plan_msg.edit(embed=planned)
 
 

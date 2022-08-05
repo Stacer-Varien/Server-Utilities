@@ -1,18 +1,19 @@
-from sqlite3 import connect
-from dotenv import load_dotenv
 from os import getenv
+from sqlite3 import connect
+
+from dotenv import load_dotenv
 
 load_dotenv()
-TOKEN=getenv("token")
-HA_WEBHOOK=getenv("ha_webhook")
+TOKEN = getenv("token")
+HA_WEBHOOK = getenv("ha_webhook")
 HAZE_WEBHOOK = getenv("haze_webhook")
-SHU=getenv("safety_webhhook_unlimited")
-SHC=getenv("safety_webhhook_community")
+SHU = getenv("safety_webhhook_unlimited")
+SHC = getenv("safety_webhhook_community")
 
-db=connect('database.db')
+db = connect('database.db')
 
-#server
-hazead=925790259160166460
+# server
+hazead = 925790259160166460
 
-#owner
-varien=597829930964877369
+# owner
+varien = 597829930964877369

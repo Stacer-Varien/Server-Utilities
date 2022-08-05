@@ -1,8 +1,8 @@
-from nextcord.ext.commands import Cog
 from nextcord import *
 from nextcord.ext import tasks
+from nextcord.ext.commands import Cog
+
 from config import db
-from datetime import *
 
 
 class plan_updater_cog_loa(Cog):
@@ -34,7 +34,8 @@ class plan_updater_cog_loa(Cog):
                 plan_id = i[5]
 
                 planned.add_field(
-                    name=member, value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
+                    name=member,
+                    value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
             await loa_plan_msg.edit(embed=planned)
 
 

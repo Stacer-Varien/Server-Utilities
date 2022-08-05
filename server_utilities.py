@@ -1,6 +1,8 @@
 from os import listdir
+
 from nextcord import Intents
 from nextcord.ext.commands import AutoShardedBot as Bot
+
 from config import TOKEN
 
 intents = Intents().all()
@@ -14,20 +16,20 @@ bot = Bot(intents=intents)
 bot.remove_command('help')
 
 for filename in listdir('./cogs'):
-  if filename.endswith('.py'):
-    bot.load_extension(f'cogs.{filename[:-3]}')
-    print(f"{filename} loaded")
-    
-  else:
-    print(f'Unable to load {filename[:-3]}')
-    
+    if filename.endswith('.py'):
+        bot.load_extension(f'cogs.{filename[:-3]}')
+        print(f"{filename} loaded")
+
+    else:
+        print(f'Unable to load {filename[:-3]}')
+
 for filename in listdir('./admod'):
-  if filename.endswith('.py'):
-    bot.load_extension(f'admod.{filename[:-3]}')
-    print(f"{filename} loaded")
-    
-  else:
-    print(f'Unable to load {filename[:-3]}')    
+    if filename.endswith('.py'):
+        bot.load_extension(f'admod.{filename[:-3]}')
+        print(f"{filename} loaded")
+
+    else:
+        print(f'Unable to load {filename[:-3]}')
 
 
 @bot.event
