@@ -7,7 +7,7 @@ from nextcord import slash_command as slash
 from nextcord.ext.application_checks import has_any_role
 from nextcord.ext.commands import Cog
 
-from assets.confirm_buttoms import Confirmation
+from assets.functions import check_strike_id, fetch_striked_staff, get_strikes, revoke_strike, strike_staff
 from assets.strike_modal import Start_Appeal
 from config import db
 
@@ -57,13 +57,43 @@ class staff_mngm(Cog):
         await ctx.response.defer()
 
         break_role = ctx.guild.get_role(841682795277713498)
+        channel = await self.bot.fetch_channel(841676953613631499)
 
         if break_role in ctx.user.roles:
             await ctx.followup.send("You are already on break")
+        
+        elif ctx.user.id == 533792698331824138:
+            break_log = await self.bot.fetch_channel(1001053890277556235)
+            
+            if duration_type == "Until further notice":
+                duration = "Until further notice"
+
+            elif duration_type == "Timed (1h, 1h30m, etc)":
+                a = datetime.now() + timedelta(seconds=parse_timespan(duration))
+                b = round(a.timestamp())
+                duration = "<t:{}:D>".format(b)
+            own_break=Embed(description="You are now on break", color=Color.blue())
+            own_break.add_field(name="Duration", value=duration, inline=False)
+
+            await ctx.user.add_roles(break_role, reason="Owner on break")        
+            await channel.send(ctx.user.mention, embed=own_break)
+
+            auto_break = Embed(title="Break Automatically Given")
+            auto_break.add_field(
+                name="Staff Member", value=ctx.user, inline=False)
+            auto_break.add_field(
+                name="Role", value=ctx.user.top_role, inline=False)
+            auto_break.add_field(
+                name="Duration", value=duration, inline=False)
+            auto_break.add_field(
+                name="Reason", value=reason, inline=False)
+            auto_break.add_field(
+                name="User who approved it", value=ctx.user, inline=False)
+            
+            await break_log.send(embed=auto_break)
 
         else:
 
-            channel = await self.bot.fetch_channel(841676953613631499)
             break_id = randint(1, 99999)
 
             requested_break = Embed(title="New Break Request")
@@ -71,28 +101,36 @@ class staff_mngm(Cog):
                 name="Staff Member", value=ctx.user, inline=False)
             requested_break.add_field(
                 name="Role", value=ctx.user.top_role, inline=False)
+
             if duration_type == "Until further notice":
                 duration = "Until further notice"
-            else:
+
+            elif duration_type == "Timed (1h, 1h30m, etc)":
                 a = datetime.now() + timedelta(seconds=parse_timespan(duration))
                 b = round(a.timestamp())
                 duration = "<t:{}:D>".format(b)
-                requested_break.add_field(
+            requested_break.add_field(
                     name="Duration", value=duration, inline=False)
-                requested_break.add_field(
+            requested_break.add_field(
                     name="Reason", value=reason, inline=False)
-                requested_break.add_field(
+            requested_break.add_field(
                     name="Break ID", value=break_id, inline=False)
-                requested_break.set_footer(
+            requested_break.set_footer(
                     text="To approve or deny this request, use `/staff_break approve BREAK_ID` or `/staff_break deny BREAK_ID`")
 
-                msg = await channel.send(embed=requested_break)
-                await ctx.followup.send("Break successfully requested", delete_after=10.0)
+            msg = await channel.send(embed=requested_break)
+            await ctx.followup.send("Break successfully requested", delete_after=10.0)
 
-                db.execute(
+            db.execute(
                     "INSERT OR IGNORE INTO breakData (user_id, guild_id, msg_id, break_id, duration, reason) VALUES (?,?,?,?,?,?)",
                     (ctx.user.id, ctx.guild.id, msg.id, break_id, duration, reason,))
-                db.commit()
+            db.commit()
+
+    @Cog.listener()
+    async def on_application_command_error(self, ctx:Interaction, error):
+        if isinstance(error, ApplicationInvokeError):
+            embed=Embed(description=error, color=Color.red())
+            await ctx.send(embed=embed, delete_after=10)
 
     @staff_break.subcommand(name="approve", description="Approve the break")
     @has_any_role(core_team, om)
@@ -106,7 +144,7 @@ class staff_mngm(Cog):
 
         elif data[0] == ctx.user.id:
             await ctx.followup.send("You can't approve your own break request....", delete_after=10.0)
-
+        
         else:
             break_channel = await self.bot.fetch_channel(841676953613631499)
             break_log = await self.bot.fetch_channel(1001053890277556235)
@@ -187,97 +225,53 @@ class staff_mngm(Cog):
     @strike.subcommand(description="Give a strike to a staff member for bad performance")
     @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def give(self, ctx: Interaction, member: Member = SlashOption(required=True), department=SlashOption(
-        choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True),
+        choices=["Management", "Human Resources", "Moderation", "Marketing"], required=True),
                    reason=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672405444591657)
-        view = Confirmation()
+        CT=ctx.guild.get_role(core_team)
 
-        cur = db.execute(
-            "INSERT OR IGNORE INTO strikeData (user_id, strikes, department) VALUES (?, ?, ?)",
-            (member.id, 1, department,))
+        if CT in member.roles:
+            await ctx.followup.send("You can't strike someone from the Core Team since they have been granted strike immunity", ephemeral=True)
 
-        if cur.rowcount == 0:
-            db.execute("UPDATE strikeData SET strikes = strikes + ? WHERE user_id = ? AND department = ?",
-                       (1, member.id, department,))
+        else: 
+            strike_id = randint(0, 99999)
+            appeal_id = randint(0, 99999)
+            strike_staff(department, member.id, strike_id, appeal_id)
+            strikes=len(get_strikes(department, member.id))
 
-        db.commit()
-
-        strikedata = db.execute(
-            "SELECT strikes FROM strikeData WHERE user_id = ? AND department = ?", (member.id, department,)).fetchone()
-
-        if strikedata == None:
-            strikes = 1
-
-        else:
-            strikes = strikedata[0]
-
-        if strikes == 3:
-            await ctx.followup.send(
-                f"{member} has reached the 3 strike quota. Should they be kicked out of this server?", view=view)
-            await view.wait()
-
-            if view.value == None:
-                await ctx.edit_original_message("Timed out")
-
-            elif view.value == True:
-                await member.kick(reason="Staff member recieved 3 strikes")
-                await ctx.edit_original_message("{} has been kicked due to recieving 3 strikes")
-                await channel.send("{} has been kicked due to recieving 3 strikes")
-
-            elif view.value == False:
-                await ctx.edit_original_message("Kick cancelled. Might recommend firing them from the department")
-                embed = Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count",
-                                                                                          value=strikes[0],
-                                                                                          inline=True).add_field(
-                    name="Department", value=department, inline=True).add_field(name="Reason", value=reason,
-                                                                                inline=True)
-                await channel.send(member.mention, embed=embed)
-                await ctx.followup.send("Strike given to {}".format(member))
-        else:
-            embed = Embed(title="You have been striked", color=Color.red()).add_field(name="Strike count",
-                                                                                      value=strikes,
-                                                                                      inline=True).add_field(
-                name="Department", value=department, inline=True).add_field(name="Reason", value=reason, inline=True)
+            embed = Embed(title="You have been striked", color=Color.red())
+            embed.add_field(name="Strike count",value=strikes, inline=True)
+            embed.add_field(name="Department", value=department, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=True)
+            embed.add_field(name="Strike ID", value=strike_id)
+            embed.set_footer(text="To appeal for your strike, please do `/strike appeal STRIKE ID`")
             await channel.send(member.mention, embed=embed)
             await ctx.followup.send("Strike given to {}".format(member))
 
     @strike.subcommand(description="Remove a strike if a staff member has shown improvement")
     @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
-    async def remove(self, ctx: Interaction, member: Member = SlashOption(required=True), department=SlashOption(
-        choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"], required=True),
+    async def remove(self, ctx: Interaction, strike_id = SlashOption(required=True), department=SlashOption(
+        choices=["Management", "Human Resources", "Moderation", "Marketing"], required=True),
                      reason=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672405444591657)
 
-        data = db.execute("SELECT strikes FROM strikeData WHERE user_id = ? and department = ?",
-                          (member.id, department,)).fetchone()
+        check=check_strike_id(strike_id, department)
 
-        if data == None:
-            await ctx.followup.send("{} has no strikes in this department".format(member))
-
+        if check==None:
+            await ctx.followup.send("Strike ID does not exist")
         else:
-
-            db.execute(
-                "UPDATE strikeData SET strikes = strikes - ? WHERE user_id = ? AND department = ?",
-                (1, member.id, department,))
-            db.commit()
-
-            strikes = db.execute(
-                "SELECT strikes FROM strikeData WHERE user_id = ? AND department = ?",
-                (member.id, department,)).fetchone()
-
-            if strikes[0] == 0:
-                db.execute(
-                    "DELETE FROM strikeData WHERE user_id = ? AND department = ?", (member.id, department,))
-                db.commit()
-
-                await ctx.followup.send("{}'s strike has been removed".format(member))
-
+            member = check[1]
+            revoke_strike(department, strike_id)
+            strikes=len(get_strikes(department, member,))
+            m=await self.bot.fetch_user(member)
+            
             embed = Embed(title="Your strike has been removed", color=Color.green()).add_field(
-                name="Strike count", value=strikes[0], inline=True).add_field(name="Reason", value=reason, inline=True)
-            await channel.send(member.mention, embed=embed)
-            await ctx.followup.send("Strike given to {}".format(member))
+                name="Strike count", value=strikes, inline=True).add_field(name="Reason", value=reason, inline=True)
+            await channel.send(m.mention, embed=embed)
+            
+            await ctx.followup.send("Strike removed from {}".format(m))
 
     @slash(description="Main resignation command", guild_ids=[841671029066956831])
     async def resign(self, ctx: Interaction):
@@ -353,55 +347,45 @@ class staff_mngm(Cog):
         await ctx.followup.send("Accepted resignation of {}".format(member))
 
     @strike.subcommand(description="Appeal your strike")
-    async def appeal(self, ctx: Interaction):
-        view = Start_Appeal(self.bot)
+    async def appeal(self, ctx: Interaction, strike_id=SlashOption(description="Enter the strike ID here", required=True), department=SlashOption(choices=["Management", "Human Resources", "Moderation", "Marketing"])):
+        view = Start_Appeal(self.bot, strike_id, department)
         msg = """
-        Before you start appealing your strike, please make sure:
-        1. Your reason is valid and accurate
-        2. You have proof in media links if necessary
+Before you start appealing your strike, please make sure:
+    1. Your reason is valid and accurate
+    2. You have proof in media links if necessary
         
-        If you feel it meets those conditions, click the button below."""
+If you feel it meets those conditions, click the button below.
+Also just to let you know, your user ID is logged when doing this application so if you troll, we will take actions."""
 
-        await ctx.send(msg, view=view)
+        await ctx.send(msg, view=view, ephemeral=True)
 
     @strike.subcommand(description="Approve or deny a strike")
     @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
-    async def verdict(self, ctx: Interaction, strike_appeal_id=SlashOption(required=True),
-                      department=SlashOption(
-                          choices=["Core Team", "Management", "Human Resources", "Moderation", "Marketing"],
-                          required=True),
-                      appealled=SlashOption(name="verdict?", choices=["accept", "deny"], required=True),
-                      reason=SlashOption(required=False)):
+    async def verdict(self, ctx: Interaction, strike_appeal_id=SlashOption(required=True),department=SlashOption(choices=["Management", "Human Resources", "Moderation", "Marketing"],required=True),verdict=SlashOption(choices=["accept", "deny"], required=True)):
         await ctx.response.defer()
         channel = self.bot.get_channel(841672405444591657)
-        user = db.execute("SELECT * FROM strikeData WHERE strike_appeal_id = ? AND department = ?",
-                          (strike_appeal_id, department,)).fetchone()
+        user = fetch_striked_staff(strike_appeal_id, department)
 
         if user == None:
             await ctx.followup.send("Invalid Strike Appeal ID passed", delete_after=5)
 
-        elif user[2] != department:
+        elif user[0] != department:
             await ctx.followup.send("Invalid department entered", delete_after=5)
 
         else:
-            if appealled == "accept":
-                user_data = user[0]
-                db.execute("DELETE FROM strike_appeal_data WHERE strike_appeal_id = ?, user_id = ? AND department = ?",
-                           (strike_appeal_id, user_data, department,))
-                db.execute("UPDATE strikeData SET strikes = strikes - ? WHERE user_id = ? AND ")
+            if verdict == "accept":
+                revoke_strike(department, user[2])
+                
+                strikes=get_strikes(department, user[1])
 
-                strikes = db.execute("SELECT strikes FROM strikeData WHERE user_id = ? and department = ?",
-                                     (user_data, department,))
-                staff_member = ctx.guild.get_member(user_data)
+                staff_member = ctx.guild.get_member(user[1])
                 msg = "{}, your appeal for your strike has been appealled. You now have {} strikes".format(
-                    staff_member.mention, strikes)
+                    staff_member.mention, len(strikes))
 
-            elif appealled == "deny":
-                user_data = user[0]
-                db.execute("DELETE FROM strike_appeal_data WHERE strike_appeal_id = ?, user_id = ? AND department = ?",
-                           (strike_appeal_id, user_data, department,))
-                staff_member = ctx.guild.get_member(user_data)
-                msg = "{}, your appeal for your strike has been denied."
+            elif verdict == "deny":
+                staff_member = ctx.guild.get_member(user[1])
+                msg = "{}, your appeal for your strike has been denied.".format(
+                    staff_member.mention)
 
             db.commit()
 
