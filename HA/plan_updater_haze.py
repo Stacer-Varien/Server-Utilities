@@ -1,12 +1,12 @@
 from nextcord import *
 from nextcord.ext import tasks
-from nextcord.ext.commands import Cog
-
+from nextcord.ext.commands import Cog, Bot
+from datetime import *
 from config import db
 
 
 class plan_updater_cog(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.update_plans.start()
 
@@ -36,8 +36,9 @@ class plan_updater_cog(Cog):
                 planned.add_field(
                     name=member,
                     value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
+                if int(ending) > int(round(datetime.now().timestamp())):
+                    await ha_planlog.send("{}, {} has ended".format(setter.mention, plan_id))
             await ha_plan_msg.edit(embed=planned)
 
-
-def setup(bot):
+def setup(bot: Bot):
     bot.add_cog(plan_updater_cog(bot))

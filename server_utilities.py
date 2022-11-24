@@ -15,17 +15,24 @@ intents.scheduled_events = False
 bot = Bot(intents=intents)
 bot.remove_command('help')
 
-for filename in listdir('./cogs'):
+for filename in listdir('./HA'):
     if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}')
+        bot.load_extension(f'HA.{filename[:-3]}')
+        print(f"{filename} loaded")
+    else:
+        print(f'Unable to load {filename[:-3]}')
+
+for filename in listdir('./LOA'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'LOA.{filename[:-3]}')
         print(f"{filename} loaded")
 
     else:
         print(f'Unable to load {filename[:-3]}')
 
-for filename in listdir('./admod'):
+for filename in listdir('./shared'):
     if filename.endswith('.py'):
-        bot.load_extension(f'admod.{filename[:-3]}')
+        bot.load_extension(f'shared.{filename[:-3]}')
         print(f"{filename} loaded")
 
     else:
@@ -36,6 +43,9 @@ for filename in listdir('./admod'):
 async def on_ready():
     print('Connected to bot: {}'.format(bot.user.name))
     print('Bot ID: {}'.format(bot.user.id))
+
+    # 1045316538657423360
+
 
 
 bot.run(TOKEN)

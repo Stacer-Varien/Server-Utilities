@@ -4,14 +4,14 @@ from time import time
 
 from nextcord import *
 from nextcord import slash_command as slash, __version__ as discord_version
-from nextcord.ext.commands import Cog
+from nextcord.ext.commands import Cog, Bot
 
 format = "%a, %d %b %Y | %H:%M:%S"
 start_time = time()
 
 
 class slashinfo(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     @slash(description="See the bot's status from development to now")
@@ -43,5 +43,5 @@ class slashinfo(Cog):
         await ctx.followup.send(embed=embed)
 
 
-def setup(bot):
+def setup(bot: Bot):
     bot.add_cog(slashinfo(bot))
