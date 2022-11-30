@@ -5,7 +5,7 @@ from nextcord import slash_command as slash
 from nextcord.ext.application_checks import *
 from nextcord.ext.commands import Cog, Bot
 
-from assets.functions import add_partnership_request, get_partnership_request, remove_partnership_request
+from assets.functions import get_partnership_request, remove_partnership_request
 from config import HA_WEBHOOK, HAZE_WEBHOOK
 
 partner_manager = 925790259319558155
@@ -34,7 +34,7 @@ class partner(Cog):
         try:
             ad: Message = await self.bot.wait_for('message', check=check, timeout=180)
 
-            with open("HA/orleans.txt") as f:
+            with open("HA/orleans.txt", 'r') as f:
                 content = "".join(f.readlines())
 
             await ctx.user.send(content)
@@ -72,11 +72,11 @@ class partner(Cog):
         except TimeoutError:
             await ctx.user.send("You have ran out of time. Please try again later")
 
-    @partner.subcommand(description='Parter with HAZE Advetrising')
-    async def haze_advertising(self, ctx: Interaction):
+    @partner.subcommand(description='Partner with HAZE Advetrising')
+    async def hazeads(self, ctx: Interaction):
         await ctx.response.defer()
         dm_link = await ctx.user.send(
-            "Please send your ad. Make sure the invite is permanent and is not a vanity URL or custom url, not in codeblock and does not have custom emojis. If not, your partnership will be revoked due to an expired invite.")
+            "Please send your ad. Make sure the invite is permanent and is not a vanity URL or custom url, not in codeblock and does not have custom emojis. If not, your partnership will be revoked due to an expired invite or use of custom emojis.")
         await ctx.followup.send(f"Please go to your [DMs]({dm_link.jump_url}) to proceed with the partnership")
 
         def check(m: Message):
@@ -85,7 +85,7 @@ class partner(Cog):
         try:
             ad: Message = await self.bot.wait_for('message', check=check, timeout=180)
 
-            with open("HA/hazead.txt") as f:
+            with open("HA/hazead.txt", 'r') as f:
                 content = "".join(f.readlines())
 
             await ctx.user.send(content)
@@ -110,7 +110,7 @@ class partner(Cog):
                 partnerchannel = self.bot.get_channel(981877384192094279)
                 msg = await partnerchannel.send("```{}```".format(ad.content))
 
-                request = Embed(title="Partnership for Orleans",
+                request = Embed(title="Partnership for HAZE Advertising",
                                 description="To approve or deny the partnership, use `/partner approve ID` or `/partner deny ID REASON`",
                                 color=Color.blue())
                 request.set_footer(
@@ -134,7 +134,7 @@ class partner(Cog):
             if request == None:
                 await ctx.followup.send("User did not apply for partnership for this server.")
             else:
-                if request[0] is member.id and request[1] is 740584420645535775:
+                if request[0] == member.id and request[1] == 740584420645535775:
                     webhook = SyncWebhook.from_url(HAZE_WEBHOOK)
                     with open("partnerships/orleans/{}.txt".format(member.id), 'r') as f:
                         content = "".join(f.readlines())
@@ -150,7 +150,7 @@ class partner(Cog):
             else:
                 if request[0] is member.id and request[1] is 740584420645535775:
                     webhook = SyncWebhook.from_url(HA_WEBHOOK)
-                    with open("partnerships/orleans/{}.txt".format(member.id), 'r') as f:
+                    with open("partnerships/hazeads/{}.txt".format(member.id), 'r') as f:
                         content = "".join(f.readlines())
                     webhook.send(content=content)
                     partner_role = ctx.guild.get_role(950354444669841428)
@@ -167,8 +167,17 @@ class partner(Cog):
         for i in ids:
             try:
                 remove_partnership_request(member.id, i)
+                if id == ctx.guild.id:
+                    os.remove('partnerships/hazeads/{}.txt'.format(member.id))
+                else:
+                    continue
+                
+                if id == 740584420645535775:
+                    os.remove('partnerships/orleans/{}.txt'.format(member.id))
+                else:
+                    continue
             except:
-                pass
+                continue
         try:
             await member.send(
                 f"Your partnership request was denied because:\n{reason}\n\nPlease note that it is denied in both servers applicable")
