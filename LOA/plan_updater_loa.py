@@ -13,32 +13,31 @@ class plan_updater_cog_loa(Cog):
     @tasks.loop(minutes=1)
     async def update_plans_loa(self):
         loa_plan_log = await self.bot.fetch_channel(990246941029990420)
-        loa_plan_msg = await loa_plan_log.fetch_message(991288734408507442)
 
         cur = db.execute(
             f"SELECT * FROM planData where server_id = ?", (704888699590279221,))
         results = cur.fetchall()
 
         if results == None:
-            planned = Embed(description="No Plans as of yet")
-            await loa_plan_msg.edit(embed=planned)
+            pass
 
         else:
-            planned = Embed(description='Current Plans', color=Color.blue())
             for i in results:
-                member = await self.bot.fetch_user(i[0])
-                plan_start = i[1]
+                buyer=await self.bot.fetch_user(i[0])
                 ending = i[2]
-                plan = i[3]
+                plan=i[3]
                 setter = await self.bot.fetch_user(i[4])
                 plan_id = i[5]
 
-                planned.add_field(
-                    name=member,
-                    value=f"**Plan Started:** <t:{plan_start}:R>\n**Plan:** {plan}\n**Made by:** {setter}\n**Ends when:** <t:{ending}:F>\n**Plan ID:** {plan_id}")
                 if int(ending) > int(round(datetime.now().timestamp())):
-                    await loa_plan_log.send("{}, {} has ended".format(setter.mention, plan_id))
-            await loa_plan_msg.edit(embed=planned)
+                    embed=Embed(title="Plan")
+                    embed.add_field(name="Buyer", value=buyer, inline=False)
+                    embed.add_field(name="Product", value=plan, inline=False)
+                    await loa_plan_log.send("{}, {} has ended".format(setter.mention, plan_id), embed=embed)
+                    db.execute(
+                        'DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, 704888699590279221,))
+                    db.commit()
+                    
 
 
 def setup(bot: Bot):

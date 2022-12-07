@@ -45,7 +45,7 @@ class partner(Cog):
                 def check_image(m: Message):
                     return m.author == ctx.user and m.attachments
 
-                proof = await self.bot.wait_for('message', check=check_image, timeout=180)
+                proof:Message = await self.bot.wait_for('message', check=check_image, timeout=180)
 
                 image_urls = [x.url for x in proof.attachments]
                 images = "\n".join(image_urls)

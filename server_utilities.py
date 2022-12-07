@@ -1,7 +1,7 @@
 from os import listdir
 
 from nextcord import Intents
-from nextcord.ext.commands import AutoShardedBot as Bot
+from nextcord.ext.commands import Bot
 
 from config import TOKEN
 

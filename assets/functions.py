@@ -1,6 +1,6 @@
 from datetime import *
 
-from nextcord import Embed, Member
+from nextcord import Embed, Member, TextChannel
 
 from assets.not_allowed import no_invites, no_pings
 from config import db
@@ -21,36 +21,26 @@ def check_illegal_mentions(message, channel: int):
         else:
             return (False)
 
-def give_adwarn_auto(channel, member: int, moderator: int, warn_id: int, appeal_id:int):
+def give_adwarn_auto(channel:TextChannel, member: int, moderator: int, warn_id: int, appeal_id:int):
     data = db.execute("SELECT * FROM bankData WHERE user_id = ?", (member,)).fetchone()
     current_time = datetime.now()
     next_warn = current_time + timedelta(hours=1)
 
-    reason = f"Incorrectly advertising in {channel}"
-    try:
-        if data == None:
-            db.execute(
+    reason = f"Incorrectly advertising in {channel.mention}"
+    if data == None:
+        db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
                 (member, moderator, reason, warn_id, appeal_id,))
 
-            db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
+        db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
                        (member, 1, round(next_warn.timestamp())))
-
-        else:
-            cursor = db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
-                (member, moderator, reason, warn_id, appeal_id,))
-
-            if cursor.rowcount == 0:
-                if data[2] < round(current_time.timestamp()):
-                    db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
-                               (1, round(next_warn.timestamp()), member,))
-                else:
-                    db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
-                               (1, round(next_warn.timestamp()), member,))
-            db.commit()
         return True
-    except:
+
+    elif data[2] < round(current_time.timestamp()):
+        db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?", (1, round(next_warn.timestamp()), member,))
+        db.commit()
+        return True
+    else:
         return False
 
 
@@ -58,40 +48,32 @@ def give_adwarn(channel, member: int, moderator: int, reason: str, warn_id:int, 
     data = db.execute("SELECT * FROM bankData WHERE user_id = ?", (member,)).fetchone()
     current_time = datetime.now()
     next_warn = current_time + timedelta(hours=1)
-
-    try:
-        if data == None:
-            db.execute(
+    if data == None:
+        db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
                 (member, moderator, '{} - {}'.format(channel, reason), warn_id, appeal_id,))
 
-            db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
+        db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
                        (member, 1, next_warn))
-
-
-        else:
-            cursor = db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
-                (member, moderator, reason, warn_id, appeal_id,))
-
-            if cursor.rowcount == 0:
-                if data[2] < round(current_time.timestamp()):
-                    db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
-                               (1, round(next_warn.timestamp()), member,))
-                else:
-                    db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
-                               (1, round(next_warn.timestamp()), member,))
-            db.commit()
         return True
-    except:
+
+    elif data[2] < round(current_time.timestamp()):
+        db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?", (1, round(next_warn.timestamp()), member,))
+        db.commit()
+        return True
+    else:
         return False
+                
 
 
 def get_warn_points(member: int) -> int:
-    warnpointdata = db.execute(
-        "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (member,)).fetchone()
-    db.commit()
-    return warnpointdata
+    try:
+        warnpointdata = db.execute(
+            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (member,)).fetchone()
+        db.commit()
+        return warnpointdata[0]
+    except:
+        return 1
 
 
 def get_warn_id(member: int):

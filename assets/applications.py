@@ -1,43 +1,17 @@
-from nextcord import ui, ButtonStyle, Interaction
+from nextcord import *
 
 
-class AppButtons(ui.View):
+class invite_button(ui.View):
     def __init__(self):
-        super().__init__(timeout=1000)
-        self.value = None
+        super().__init__()
 
-    @ui.button(label="Moderator", style=ButtonStyle.red)
-    async def mod(self, button: ui.Button, ctx: Interaction):
-        self.value = "mod"
-        self.stop()
-
-    @ui.button(label="Partnership Manager", style=ButtonStyle.green)
-    async def pm(self, button: ui.Button, ctx: Interaction):
-        self.value = "pm"
-        self.stop()
-
-    @ui.button(label="Security Officer", style=ButtonStyle.green)
-    async def secure(self, button: ui.Button, ctx: Interaction):
-        self.value = "secure"
-        self.stop()
-
-    @ui.button(label="Human Resources", style=ButtonStyle.green)
-    async def hr(self, button: ui.Button, ctx: Interaction):
-        self.value = "hr"
-        self.stop()
-
-
-class StartApp(ui.View):
-    def __init__(self):
-        super().__init__(timeout=600)
-        self.value = None
-
-    @ui.button(label="Yes", style=ButtonStyle.green)
-    async def confirm(self, button: ui.Button, ctx: Interaction):
-        self.value = True
-        self.stop()
-
-    @ui.button(label="No", style=ButtonStyle.red)
-    async def cancel(self, button: ui.Button, ctx: Interaction):
-        self.value = False
-        self.stop()
+        self.add_item(ui.Button(style=ButtonStyle.url,
+                      label="Moderator", url="https://forms.gle/ws7d8CE5jnzqASGN8"))
+        self.add_item(ui.Button(style=ButtonStyle.url,
+                      label="Marketer", url="https://forms.gle/J1mDj3UYXWPkpdKT9"))
+        self.add_item(ui.Button(style=ButtonStyle.url,
+                      label="Partnership Manager", url="https://forms.gle/Dc3V9DmMCTszi3T89"))
+        self.add_item(ui.Button(style=ButtonStyle.url,
+                      label="Security Manager", url="https://forms.gle/g6Pa9uFBEEz12a6z8"))
+        self.add_item(ui.Button(style=ButtonStyle.url,
+                      label="Human Resources", url="https://forms.gle/NEbjtQcL9nhh3PaCA"))

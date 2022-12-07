@@ -18,9 +18,13 @@ class plancog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @slash(description='Add a plan a member claimed')
+    @slash(description="Make plan command")
+    async def plan(self, ctx:Interaction):
+        pass
+
+    @plan.subcommand(description='Add a plan a member claimed')
     @has_any_role(planmanager, operationmanager, loa_staff_team)
-    async def addplan(self, ctx: Interaction, member: Member = SlashOption(required=True),
+    async def add(self, ctx: Interaction, member: Member = SlashOption(required=True),
                        ends=SlashOption(description="Example: 1m (1 minute), 3w (3 weeks), 2y (2 years)",
                                         required=True), plan=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
@@ -41,11 +45,23 @@ class plancog(Cog):
 
         db.commit()
 
-        await ctx.followup.send("Plan added and will be updated in plan logs")
+        ha_planlog = await self.bot.fetch_channel(956554797060866058)
+        loa_planlog = await self.bot.fetch_channel(990246941029990420)
+        planned=Embed(title="New plan", color=Color.blue())
+        planned.add_field(
+            name=member,
+            value=f"**Plan Started:** <t:{round(today.timestamp())}:R>\n**Plan:** {plan}\n**Made by:** {ctx.user}\n**Ends when:** <t:{round(ending_time.timestamp())}:F>\n**Plan ID:** {plan_id}")
+        if ctx.guild.id == 925790259160166460:
+            await ha_planlog.send(embed=planned)
+            await ctx.followup.send("Plan added to {}".format(ha_planlog.mention), ephemeral=True)
+        else:
+            await loa_planlog.send(embed=planned)
+            await ctx.followup.send("Plan added to {}".format(loa_planlog.mention), ephemeral=True)
 
-    @slash(description='End a plan a member claimed if expired')
+
+    @plan.subcommand(description='End a plan a member cancelled if earlier')
     @has_any_role(planmanager, operationmanager, loa_staff_team)
-    async def endplan(self, ctx: Interaction, plan_id=SlashOption(required=True)):
+    async def end(self, ctx: Interaction, plan_id=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
         if ctx.guild.id == 925790259160166460:
             guild = 925790259160166460
