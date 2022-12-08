@@ -29,16 +29,17 @@ class plan_updater_cog(Cog):
                 setter = await self.bot.fetch_user(i[4])
                 plan_id = i[5]
 
-                if int(ending) > int(round(datetime.now().timestamp())):
+                if int(round(datetime.now().timestamp())) > int(ending):
                     embed = Embed(title="Plan")
                     embed.add_field(name="Buyer", value=buyer, inline=False)
                     embed.add_field(name="Product", value=plan, inline=False)
+                    embed.add_field(name="Ending", value=ending, inline=False)
                     await ha_planlog.send("{}, {} has ended".format(setter.mention, plan_id), embed=embed)
                     db.execute(
                         'DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, 925790259160166460,))
                     db.commit()
-                    
-                    
+                else:
+                    pass
 
 def setup(bot: Bot):
     bot.add_cog(plan_updater_cog(bot))

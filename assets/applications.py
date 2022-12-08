@@ -1,9 +1,9 @@
 from nextcord import *
 
 
-class invite_button(ui.View):
+class AppButtons(ui.View):
     def __init__(self):
-        super().__init__()
+        super().__init__(timeout=180)
 
         self.add_item(ui.Button(style=ButtonStyle.url,
                       label="Moderator", url="https://forms.gle/ws7d8CE5jnzqASGN8"))

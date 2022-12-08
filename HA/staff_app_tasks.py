@@ -3,7 +3,7 @@ from nextcord import slash_command as slash
 from nextcord.ext.commands import Cog, Bot
 from nextcord.ext import tasks
 
-from assets.applications import AppButtons, StartApp
+from assets.applications import AppButtons
 
 HAZE_ADS = 925790259160166460
 
