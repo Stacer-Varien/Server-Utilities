@@ -16,7 +16,7 @@ class warncog(Cog):
 
     @slash(description="Adwarn someone for violating the ad rules", guild_ids=[hazead])
     @has_guild_permissions(kick_members=True)
-    async def warn(self, ctx: Interaction, member: Member, channel:abc.GuildChannel=SlashOption(channel_types=[ChannelType.text], required=True), reason=SlashOption(choices=['NSFW server', 'Invite reward server', 'Server has no description (less than 20 characters)', 'Server violates ToS', 'Advertising in wrong channel', 'Back to back advertising (not waiting for another person to advertise)', 'Custom reason'], required=True), custom=SlashOption(description="Write your own reason (only if you picked custom reason)", required=False), belongsto:abc.GuildChannel=SlashOption(description="Which channel should the ad go to? (only if you selected wrong channel option)", channel_types=[ChannelType.text],required=False)):
+    async def adwarn(self, ctx: Interaction, member: Member, channel:abc.GuildChannel=SlashOption(channel_types=[ChannelType.text], required=True), reason=SlashOption(choices=['NSFW server', 'Invite reward server', 'Server has no description (less than 20 characters)', 'Server violates ToS', 'Advertising in wrong channel', 'Back to back advertising (not waiting for another person to advertise)', 'Custom reason'], required=True), custom=SlashOption(description="Write your own reason (only if you picked custom reason)", required=False), belongsto:abc.GuildChannel=SlashOption(description="Which channel should the ad go to? (only if you selected wrong channel option)", channel_types=[ChannelType.text],required=False)):
         await ctx.response.defer(ephemeral=True)
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
