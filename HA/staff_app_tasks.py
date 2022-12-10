@@ -25,8 +25,5 @@ class application(Cog):
 
         await msg.edit(embed=embed, view=view)
 
-
-
-
 def setup(bot: Bot):
     bot.add_cog(application(bot))

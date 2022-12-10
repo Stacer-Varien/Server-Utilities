@@ -7,7 +7,6 @@ from config import TOKEN
 
 intents = Intents().all()
 intents.presences = False
-intents.webhooks = False
 intents.voice_states = False
 intents.reactions = False
 intents.scheduled_events = False
@@ -50,9 +49,5 @@ for filename in listdir('./shared'):
 async def on_ready():
     print('Connected to bot: {}'.format(bot.user.name))
     print('Bot ID: {}'.format(bot.user.id))
-
-    # 1045316538657423360
-
-
 
 bot.run(TOKEN)

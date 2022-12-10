@@ -18,7 +18,7 @@ class plancog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @slash(description="Make plan command")
+    @slash(description="Make plan command", guild_ids=[925790259160166460, 704888699590279221, 841671029066956831])
     async def plan(self, ctx:Interaction):
         pass
 

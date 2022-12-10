@@ -24,8 +24,7 @@ class appealcog(Cog):
             await ctx.followup.send(f"Invalid warn ID")
 
         else:
-            cur.execute(
-            f"SELECT warn_id FROM warnDATA WHERE user_id = {ctx.user.id}")
+            cur.execute("SELECT warn_id FROM warnDATA WHERE user_id = ?", (ctx.user.id,))
             
             appeal_log = ctx.guild.get_channel(951783773006073906)
 
@@ -75,7 +74,7 @@ class appealcog(Cog):
                 except TimeoutError:
                     await ctx.user.send("You have ran out of time. Please try again.")
             except:
-                dmopen=await ctx.send("Please open your DMs to start the appeal process", delete_after=5.0)
+                await ctx.send("Please open your DMs to start the appeal process", delete_after=5.0)
 
             
 
@@ -83,10 +82,10 @@ class appealcog(Cog):
     @slash(description="Approve or deny an appeal", guild_ids=[hazead])
     async def verdict(self, ctx: Interaction, appeal_id, verdict=SlashOption(choices=["Approve", "Deny"])):
         await ctx.response.defer()
-        if ctx.permissions.administrator is True:
+        if ctx.permissions.administrator == True:
             cur = db.cursor()
             cur.execute(
-                f"SELECT * FROM warnData WHERE appeal_id = {appeal_id}")
+                f"SELECT * FROM warnData WHERE appeal_id = ?", (appeal_id,))
             record = cur.fetchone()
             member_id=record[0]
             warn_id=record[3]
@@ -98,9 +97,9 @@ class appealcog(Cog):
             else:
                 if verdict == "Approve":
                     cur.execute(
-                        f"DELETE FROM warnData WHERE appeal_id = {appeal_id}")
+                        "DELETE FROM warnData WHERE appeal_id = ?", (appeal_id,))
 
-                    cur.execute(f"UPDATE warnDATA_v2 SET warn_point = warn_point - 1 where user_id = {member_id}")
+                    cur.execute("UPDATE warnDATA_v2 SET warn_point = warn_point - ? where user_id = ?", (1, member_id,))
                     db.commit()
 
                     try:
@@ -115,10 +114,10 @@ class appealcog(Cog):
                         
                         await ctx.followup.send("Do you have anything to say why it won't be revoked? Type 'Y' for yes and 'N' for no.")
 
-                        def check(m):
+                        def check(m:Message):
                             return m.author == ctx.user and m.content
 
-                        confirm = await self.bot.wait_for('message', check=check, timeout=60)
+                        confirm:Message = await self.bot.wait_for('message', check=check, timeout=60)
 
                         if 'Y' in confirm.content:
                             await ctx.followup.send("Please type what you have to say why it won't be revoked.\nYou have 60 seconds")
@@ -136,5 +135,5 @@ class appealcog(Cog):
                     await ctx.followup.send("Warning not revoked and message sent to member")
                 
 
-def setup(bot):
+def setup(bot:Bot):
     bot.add_cog(appealcog(bot))
