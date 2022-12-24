@@ -44,6 +44,14 @@ for filename in listdir('./shared'):
     else:
         print(f'Unable to load {filename[:-3]}')
 
+for filename in listdir('./VHF'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'VHF.{filename[:-3]}')
+        print(f"{filename} loaded")
+
+    else:
+        print(f'Unable to load {filename[:-3]}')
+
 
 @bot.event
 async def on_ready():

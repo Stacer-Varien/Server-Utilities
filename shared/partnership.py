@@ -1,12 +1,9 @@
 import os
-
 from nextcord import *
 from nextcord import slash_command as slash
 from nextcord.ext.application_checks import *
 from nextcord.ext.commands import Cog, Bot
-
-from assets.functions import get_partnership_request, remove_partnership_request
-from config import HA_WEBHOOK, HAZE_WEBHOOK
+from assets.functions import check_partnership
 
 #ha
 partner_manager = 925790259319558155
@@ -93,17 +90,19 @@ class partner(Cog):
     async def approve(self, ctx: Interaction, member: Member = SlashOption(required=True)):
         await ctx.response.defer()
         if ctx.guild.id == 740584420645535775:
-            partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
-            partner_role = ctx.guild.get_role(1051047558224543844)
-            with open("partnerships/orleans/{}.txt".format(member.id), 'r') as f:
-                content = "".join(f.readlines())
-            os.remove("partnerships/orleans/{}.txt".format(member.id))
+            if check_partnership(ctx.guild.id, ctx.user.id) == True:
+                partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
+                partner_role = ctx.guild.get_role(1051047558224543844)
+                with open("partnerships/orleans/{}.txt".format(member.id), 'r') as f:
+                    content = "".join(f.readlines())
+                os.remove("partnerships/orleans/{}.txt".format(member.id))
         elif ctx.guild.id == 925790259160166460:
-            partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
-            partner_role = ctx.guild.get_role(950354444669841428)
-            with open("partnerships/hazeads/{}.txt".format(member.id), 'r') as f:
-                content = "".join(f.readlines())
-            os.remove("partnerships/hazeads/{}.txt".format(member.id))
+            if check_partnership(ctx.guild.id, ctx.user.id) == True:
+                partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
+                partner_role = ctx.guild.get_role(950354444669841428)
+                with open("partnerships/hazeads/{}.txt".format(member.id), 'r') as f:
+                    content = "".join(f.readlines())
+                os.remove("partnerships/hazeads/{}.txt".format(member.id))
         
         if partner_role in member.roles:
             pass
@@ -117,9 +116,11 @@ class partner(Cog):
     async def deny(self, ctx: Interaction, member: Member = SlashOption(required=True),
                    reason=SlashOption(required=True)):
         if ctx.guild.id == 740584420645535775:
-            os.remove("partnerships/orleans/{}.txt".format(member.id))
+            if check_partnership(ctx.guild.id, ctx.user.id) == True:
+                os.remove("partnerships/orleans/{}.txt".format(member.id))
         elif ctx.guild.id == 925790259160166460:
-            os.remove("partnerships/orleans/{}.txt".format(member.id))
+            if check_partnership(ctx.guild.id, ctx.user.id) == True:
+                os.remove("partnerships/orleans/{}.txt".format(member.id))
         try:
             await member.send(
                 f"Your partnership request was denied because:\n{reason}")

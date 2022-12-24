@@ -1,5 +1,5 @@
 from datetime import *
-
+import os
 from nextcord import Embed, Member, TextChannel
 
 from assets.not_allowed import no_invites, no_pings
@@ -182,3 +182,26 @@ def get_partnership_request(user: int, server: int):
 def remove_partnership_request(user: int, server: int):
     db.execute("DELETE FROM partnerData WHERE WHERE user_id = ? and guild_id = ?", (user, server,))
     db.commit()
+
+def check_partnership(server:int, user:int)->bool:
+    if server == 740584420645535775:
+        path="/partnerships/orleans/{}.txt".format(user)
+        check=os.path.exists(path)
+    
+    elif server == 925790259160166460:
+        path = "/partnerships/hazeads/{}.txt".format(user)
+        check = os.path.exists(path)
+    
+    return check
+
+def add_verification_request(user:int):
+    db.execute("INSERT OR IGNORE INTO verificationData (user) VALUES (?)", (user,))
+    db.commit()
+
+def check_verification_request(user:int) -> (int|None):
+    a=db.execute("SELECT user FROM verificatioData WHERE user=?", (user,)).fetchone()
+    db.commit()
+    if a==None:
+        return None
+    else:
+        return a[0]
