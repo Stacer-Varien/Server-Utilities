@@ -1,6 +1,6 @@
 from datetime import *
 import os
-from nextcord import Embed, Member, TextChannel
+from nextcord import Embed, Member, TextChannel, User
 
 from assets.not_allowed import no_invites, no_pings
 from config import db
@@ -17,12 +17,12 @@ def check_illegal_mentions(message, channel: int):
     pings = ['@everyone', '@here']
     if any(word in message for word in pings):
         if channel in no_pings:
-            return (True)
+            return True
         else:
-            return (False)
+            return False
 
 def give_adwarn_auto(channel:TextChannel, member: int, moderator: int, warn_id: int, appeal_id:int):
-    data = db.execute("SELECT * FROM bankData WHERE user_id = ?", (member,)).fetchone()
+    data = db.execute("SELECT * FROM warnData WHERE user_id = ?", (member,)).fetchone()
     current_time = datetime.now()
     next_warn = current_time + timedelta(hours=1)
 
@@ -34,18 +34,16 @@ def give_adwarn_auto(channel:TextChannel, member: int, moderator: int, warn_id: 
 
         db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
                        (member, 1, round(next_warn.timestamp())))
-        return True
+        db.commit()
 
     elif data[2] < round(current_time.timestamp()):
         db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?", (1, round(next_warn.timestamp()), member,))
-        db.commit()
-        return True
-    else:
+        
+    elif data[2] > round(current_time.timestamp()):
         return False
 
-
 def give_adwarn(channel, member: int, moderator: int, reason: str, warn_id:int, appeal_id:int):
-    data = db.execute("SELECT * FROM bankData WHERE user_id = ?", (member,)).fetchone()
+    data = db.execute("SELECT * FROM warnData WHERE user_id = ?", (member,)).fetchone()
     current_time = datetime.now()
     next_warn = current_time + timedelta(hours=1)
     if data == None:
@@ -55,17 +53,15 @@ def give_adwarn(channel, member: int, moderator: int, reason: str, warn_id:int, 
 
         db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
                        (member, 1, next_warn))
-        return True
+        db.commit()
 
     elif data[2] < round(current_time.timestamp()):
         db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?", (1, round(next_warn.timestamp()), member,))
         db.commit()
-        return True
-    else:
+        
+    elif data[2] > round(current_time.timestamp()):
         return False
                 
-
-
 def get_warn_points(member: int) -> int:
     try:
         warnpointdata = db.execute(
@@ -183,25 +179,108 @@ def remove_partnership_request(user: int, server: int):
     db.execute("DELETE FROM partnerData WHERE WHERE user_id = ? and guild_id = ?", (user, server,))
     db.commit()
 
-def check_partnership(server:int, user:int)->bool:
+def check_partnership(server:int, user:int):
     if server == 740584420645535775:
         path="/partnerships/orleans/{}.txt".format(user)
         check=os.path.exists(path)
+        if check == True:
+            return True
+        else:
+            return "Partnership request not found!"    
     
     elif server == 925790259160166460:
         path = "/partnerships/hazeads/{}.txt".format(user)
         check = os.path.exists(path)
+        if check == True:
+            return True
+        else:
+            return "Partnership request not found!"
     
-    return check
+    
 
 def add_verification_request(user:int):
     db.execute("INSERT OR IGNORE INTO verificationData (user) VALUES (?)", (user,))
     db.commit()
 
-def check_verification_request(user:int) -> (int|None):
+def check_verification_request(user:int):
     a=db.execute("SELECT user FROM verificatioData WHERE user=?", (user,)).fetchone()
     db.commit()
     if a==None:
-        return None
+        return False
     else:
         return a[0]
+
+def check_loa_breaks():
+    data = db.execute(
+        "SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
+    db.commit()
+    return data
+
+def remove_loa_break(member:Member):
+    db.execute("DELETE FROM breakData WHERE user_id = ?", (member.id,))
+    db.commit()
+
+def check_plans(server:int):
+    data = db.execute(
+            "SELECT * FROM planData where server_id = ?", (server,)).fetchall()
+    db.commit()
+    return data
+
+def remove_plan(plan_id:int, server:int):
+    db.execute(
+        'DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, server,))
+    db.commit()
+
+def add_break_request(user:User, server:int, break_id:int, duration:str, reason:str, accepted:int, start:int, ends:int):
+    db.execute("INSERT OR IGNORE INTO breakData (user_id, guild_id, break_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?,?)", (user.id, server, break_id, duration, reason, accepted, start, ends,))
+    db.commit()
+
+def fetch_break_id(break_id:int, server:int):
+    data = db.execute("SELECT * FROM breakData WHERE break_id = ? AND guild_id = ?",
+                      (break_id, server,)).fetchone()
+    if data == None:
+        return None
+    else:
+        return data
+
+def approve_break(member:User, server:int, start:int, ends:int)
+        db.execute("UPDATE breakData SET accepted = ? WHERE user_id = ? and guild_id = ?",
+                           (1, member.id, server,))
+        db.execute("UPDATE breakData SET start = ? WHERE user_id = ? and guild_id = ?",
+                           (start, member.id, server,))
+        db.execute("UPDATE breakData SET ends = ? WHERE user_id = ? and guild_id = ?",
+                           (ends, member.id, server,))
+        db.commit()
+
+def deny_break(break_id:int, server:int):
+    db.execute("DELETE FROM breakData WHERE break_id = ? and guild_id = ?", (break_id, server,))
+    db.commit()
+
+def end_break(member:User, server:int):
+    db.execute("DELETE FROM breakData WHERE user_id = ? and guild_id = ?", (member.id, server,))
+    db.commit()
+
+def resign_apply(user:User):
+    db.execute(
+            "INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)", (user.id, 0))
+    db.commit()
+
+def check_resign(member:User):
+    data = db.execute(
+        "SELECT * FROM resignData WHERE user_id = ?", (member.id,)).fetchone()
+    db.commit()
+    
+    if data==None:
+        return None
+    else:
+        return data
+
+def approve_resign(member:User):
+    db.execute("UPDATE resignData SET accepted = ? WHERE user_id = ?", (1, member.id,))
+    db.commit()
+
+
+def deny_resign(member: User):
+    db.execute(
+        "DELETE FROM resignData WHERE WHERE user_id = ?", (member.id,))
+    db.commit()

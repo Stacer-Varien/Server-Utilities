@@ -48,7 +48,7 @@ class owner(Cog):
         await ctx.response.defer()
         await ctx.followup.send("Insert your code.\nType 'cancel' if you don't want to evaluate")
 
-        def check(m):
+        def check(m:Message):
             return m.author == ctx.user and m.content
 
         code = await self.bot.wait_for('message', check=check)

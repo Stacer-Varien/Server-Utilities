@@ -1,5 +1,5 @@
 from datetime import *
-
+from assets.functions import check_loa_breaks, remove_loa_break
 from nextcord.ext import tasks
 from nextcord.ext.commands import Cog, Bot
 
@@ -13,7 +13,7 @@ class break_updater(Cog):
 
     @tasks.loop(seconds=5)
     async def check_break(self):
-        check_breaks = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
+        check_breaks = check_loa_breaks()
         loa = await self.bot.fetch_guild(841671029066956831)
         break_role = loa.get_role(841682795277713498)
         break_channel = await loa.fetch_channel(841676953613631499)
@@ -25,11 +25,11 @@ class break_updater(Cog):
 
                     await member.remove_roles(break_role, reason="Break has ended")
 
-                    db.execute("DELETE FROM breakData WHERE user_id = ?", (member.id,))
-                    db.commit()
+                    remove_loa_break(member)
+
                     await break_channel.send("{}, your break has ended".format(member.mention))
             except:
-                pass
+                continue
 
 
 def setup(bot: Bot):

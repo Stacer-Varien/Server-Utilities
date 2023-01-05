@@ -59,7 +59,7 @@ class plancog(Cog):
             await ctx.followup.send("Plan added to {}".format(loa_planlog.mention), ephemeral=True)
 
 
-    @plan.subcommand(description='End a plan a member cancelled if earlier')
+    @plan.subcommand(description='End a plan a member cancelled')
     @has_any_role(planmanager, operationmanager, loa_staff_team)
     async def end(self, ctx: Interaction, plan_id=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)

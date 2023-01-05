@@ -13,7 +13,7 @@ class application(Cog):
         self.bot = bot
         self.reload_apps.start()
     
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=3)
     async def reload_apps(self):
         embed=Embed()
         embed.description="Click on the available (grey buttons) positions that you wish to apply for"

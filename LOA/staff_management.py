@@ -8,9 +8,9 @@ from nextcord import slash_command as slash
 from nextcord.ext.application_checks import has_any_role
 from nextcord.ext.commands import Cog, Bot
 
-from assets.functions import check_strike_id, fetch_striked_staff, get_strikes, revoke_strike, strike_staff
+from assets.functions import *
 from assets.strike_modal import Start_Appeal
-from config import db
+
 
 ha_admin = 925790259319558157
 ha_hr = 925790259319558156
@@ -47,83 +47,71 @@ class staff_mngm(Cog):
 
         if break_role in ctx.user.roles:
             await ctx.followup.send("You are already on break")
-
-        elif ctx.user.id == 533792698331824138:
-            break_log = await self.bot.fetch_channel(1001053890277556235)
-
-            if duration_type == "Until further notice":
-                duration = "Until further notice"
-                db.execute(
-                    "INSERT OR IGNORE INTO breakData (user_id, guild_id, break_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?,?)",
-                    (533792698331824138, ctx.guild.id, break_id, duration, reason, 1,
-                     (round(datetime.now().timestamp()), 999999999999999,)))
-                db.commit()
-
-
-            elif duration_type == "Timed (1h, 1h30m, etc)":
-                time = round(
-                    (datetime.now() + timedelta(seconds=parse_timespan(duration))).timestamp())
-                duration = "<t:{}:D>".format(time)
-
-                db.execute(
-                    "INSERT OR IGNORE INTO breakData (user_id, guild_id, break_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?,?)",
-                    (533792698331824138, ctx.guild.id, break_id, duration, reason, 1,
-                     (round(datetime.now().timestamp()), time,)))
-                db.commit()
-
-            own_break = Embed(description="You are now on break", color=Color.blue())
-            own_break.add_field(name="Duration", value=duration, inline=False)
-
-            await ctx.user.add_roles(break_role, reason="Owner on break")
-            await channel.send(ctx.user.mention, embed=own_break)
-
-            auto_break = Embed(title="Break Automatically Given")
-            auto_break.add_field(
-                name="Staff Member", value=ctx.user, inline=False)
-            auto_break.add_field(
-                name="Role", value=ctx.user.top_role, inline=False)
-            auto_break.add_field(
-                name="Duration", value=duration, inline=False)
-            auto_break.add_field(
-                name="Reason", value=reason, inline=False)
-
-            await break_log.send(embed=auto_break)
-
         else:
-            requested_break = Embed(title="New Break Request")
-            requested_break.add_field(
-                name="Staff Member", value=ctx.user, inline=False)
-            requested_break.add_field(
-                name="Role", value=ctx.user.top_role, inline=False)
+            if ctx.user.id == 533792698331824138:
+                break_log = await self.bot.fetch_channel(1001053890277556235)
 
-            if duration_type == "Until further notice":
-                duration = "Until further notice"
+                if duration_type == "Until further notice":
+                    duration = "Until further notice"
+                    add_break_request(ctx.user, ctx.guild.id, break_id, duration, reason, 1, round(
+                        datetime.now().timestamp()), 99999999999)
+                    
+                elif duration_type == "Timed (1h, 1h30m, etc)":
+                    time = round(
+                        (datetime.now() + timedelta(seconds=parse_timespan(duration))).timestamp())
+                    duration = "<t:{}:D>".format(time)
+                    add_break_request(ctx.user, ctx.guild.id, break_id, duration, reason, 1, round(
+                        datetime.now().timestamp()), time)
 
-            elif duration_type == "Timed (1h, 1h30m, etc)":
-                parse_timespan(duration)
-                duration = duration
-            requested_break.add_field(
-                name="Duration", value=duration, inline=False)
-            requested_break.add_field(
-                name="Reason", value=reason, inline=False)
-            requested_break.add_field(
-                name="Break ID", value=break_id, inline=False)
-            requested_break.set_footer(
-                text="To approve or deny this request, use `/staff_break approve BREAK_ID` or `/staff_break deny BREAK_ID`")
-            db.execute(
-                "INSERT OR IGNORE INTO breakData (user_id, guild_id, break_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?,?)",
-                (ctx.user.id, ctx.guild.id, break_id, duration, reason, 0, 0, 0,))
-            db.commit()
+                own_break = Embed(description="You are now on break", color=Color.blue())
+                own_break.add_field(name="Duration", value=duration, inline=False)
 
-            await channel.send(embed=requested_break)
-            await ctx.followup.send("Break successfully requested", delete_after=10.0)
+                await ctx.user.add_roles(break_role, reason="Owner on break")
+                await channel.send(ctx.user.mention, embed=own_break)
+
+                auto_break = Embed(title="Break Automatically Given")
+                auto_break.add_field(
+                    name="Staff Member", value=ctx.user, inline=False)
+                auto_break.add_field(
+                    name="Role", value=ctx.user.top_role, inline=False)
+                auto_break.add_field(
+                    name="Duration", value=duration, inline=False)
+                auto_break.add_field(
+                    name="Reason", value=reason, inline=False)
+
+                await break_log.send(embed=auto_break)
+
+            else:
+                requested_break = Embed(title="New Break Request")
+                requested_break.add_field(
+                    name="Staff Member", value=ctx.user, inline=False)
+                requested_break.add_field(
+                    name="Role", value=ctx.user.top_role, inline=False)
+
+                if duration_type == "Until further notice":
+                    duration = "Until further notice"
+
+                elif duration_type == "Timed (1h, 1h30m, etc)":
+                    parse_timespan(duration)
+                    duration = duration
+                requested_break.add_field(
+                    name="Duration", value=duration, inline=False)
+                requested_break.add_field(
+                    name="Reason", value=reason, inline=False)
+                requested_break.add_field(
+                    name="Break ID", value=break_id, inline=False)
+                requested_break.set_footer(
+                    text="To approve or deny this request, use `/staff_break approve BREAK_ID` or `/staff_break deny BREAK_ID`")
+                add_break_request(ctx.user, ctx.guild.id, break_id, duration, reason, 0,0,0,)
+
+                await channel.send(embed=requested_break)
+                await ctx.followup.send("Break successfully requested", delete_after=10.0)
 
     @staff_break.subcommand(name="approve", description="Approve the break")
     @has_any_role(core_team, om)
     async def _approve(self, ctx: Interaction, break_id=SlashOption(required=True)):
         await ctx.response.defer()
-        data = db.execute("SELECT * FROM breakData WHERE break_id = ? AND guild_id = ?",
-                          (break_id, ctx.guild.id,)).fetchone()
+        data=fetch_break_id(break_id, ctx.guild.id)
 
         if data == None:
             await ctx.followup.send("Invalid break ID passed", delete_after=10.0)
@@ -147,21 +135,11 @@ class staff_mngm(Cog):
                 time = parse_timespan(data[3])
                 duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
                 timing = "<t:{}:D>".format(duration)
-                db.execute("UPDATE breakData SET accepted = ? WHERE user_id = ? and guild_id = ?",
-                           (1, member.id, ctx.guild.id,))
-                db.execute("UPDATE breakData SET start = ? WHERE user_id = ? and guild_id = ?",
-                           (round(datetime.now().timestamp()), member.id, ctx.guild.id,))
-                db.execute("UPDATE breakData SET ends = ? WHERE user_id = ? and guild_id = ?",
-                           (duration, member.id, ctx.guild.id,))
-                db.commit()
+                approve_break(member, ctx.guild.id, round(datetime.now().timestamp()), duration)
             except:
                 timing = "Until further notice"
-                db.execute("UPDATE breakData SET accepted = ? WHERE user_id = ? and guild_id = ?",
-                           (1, member.id, ctx.guild.id,))
-                db.execute("UPDATE breakData SET start = ? WHERE user_id = ? and guild_id = ?", (round(
-                    datetime.now().timestamp()), member.id, ctx.guild.id,))
-                db.execute("UPDATE breakData SET ends = ? WHERE user_id = ? and guild_id = ?",
-                           (9999999999, member.id, ctx.guild.id,))
+                approve_break(member, ctx.guild.id, round(
+                    datetime.now().timestamp()), 9999999999)
 
             accepted_break.add_field(
                 name="Duration", value=timing, inline=False)
@@ -182,15 +160,13 @@ class staff_mngm(Cog):
                 await break_channel.send("{}, your break has been approved by {}".format(member.mention, ctx.user))
                 await ctx.followup.send(f"Accepted break of {member}", delete_after=10.0)
 
-            db.commit()
 
     @staff_break.subcommand(name="deny", description="Deny the break")
     @has_any_role(core_team, om)
     async def _deny(self, ctx: Interaction, break_id=SlashOption(required=True)):
         await ctx.response.defer()
         if ctx.guild.id == 841671029066956831:
-            data = db.execute(
-                "SELECT * FROM breakData WHERE break_id = ? and guild_id = ?", (break_id, ctx.guild.id,)).fetchone()
+            data = fetch_break_id(break_id, ctx.guild.id)
 
             if data == None:
                 await ctx.followup.send("Invalid break ID passed", delete_after=10.0)
@@ -207,9 +183,7 @@ class staff_mngm(Cog):
                     await ctx.followup.send(f"Denied break of {member}", delete_after=10.0)
                     await break_channel.send(f"{member.mention}, your break has been denied by {ctx.user}")
 
-                db.execute(
-                    "DELETE FROM breakData WHERE break_id = ? and guild_id = ?", (break_id, ctx.guild.id,))
-                db.commit()
+                deny_break(break_id, ctx.guild.id)
 
     @staff_break.subcommand(name='end', description="End your break")
     async def _end(self, ctx: Interaction):
@@ -220,9 +194,7 @@ class staff_mngm(Cog):
             if break_role in ctx.user.roles:
                 await ctx.user.remove_roles(break_role, reason="Staff returned from break")
                 await ctx.followup.send("Your break has ended.\nWelcome back! :tada:", delete_after=10.0)
-                db.execute(
-                    "DELETE FROM breakData WHERE user_id = ? and guild_id = ?", (ctx.user.id, ctx.guild.id,))
-                db.commit()
+                end_break(ctx.user, ctx.guild.id)
 
             else:
                 await ctx.followup.send("You are not on break. Please request for a break first.", delete_after=10.0)
@@ -293,9 +265,7 @@ class staff_mngm(Cog):
                       department=SlashOption(description="Department you are working in", required=True),
                       reason=SlashOption(required=True)):
         await ctx.response.defer(ephemeral=True)
-        db.execute(
-            "INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)", (ctx.user.id, 0))
-        db.commit()
+        resign_apply(ctx.user)
 
         channel = self.bot.get_channel(1002513633760260166)
 
@@ -318,8 +288,7 @@ class staff_mngm(Cog):
                 choices=["True", "False"], required=False)):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
-        data = db.execute(
-            "SELECT * FROM resignData WHERE user_id = ?", (member.id,)).fetchone()
+        data = check_resign(member)
 
         if data == None:
             await ctx.followup.send("Invalid User ID")
@@ -331,9 +300,7 @@ class staff_mngm(Cog):
             await ctx.followup.send("You cannot approve a resignation from someone who has a higher role than you")
 
         else:
-            db.execute(
-                "UPDATE resignData SET accepted = ? WHERE user_id = ?", (1, member.id,))
-            db.commit()
+            approve_resign(member)
 
             if kick == "True":
                 try:
@@ -357,6 +324,31 @@ class staff_mngm(Cog):
 
         await ctx.followup.send("Accepted resignation of {}".format(member))
 
+    @resign.subcommand(name="deny", description="Denies a resignation")
+    @has_any_role(core_team, chr, coo)
+    async def __deny__(self, ctx: Interaction, member: Member = SlashOption(required=True)):
+        await ctx.response.defer(ephemeral=True)
+        data = check_resign(member)
+
+        if data == None:
+            await ctx.followup.send("Invalid User ID")
+
+        elif data[0] == ctx.user.id:
+            await ctx.followup.send("You can't deny your own resignation")
+
+        elif member.top_role >= ctx.user.top_role:
+            await ctx.followup.send("You cannot deny a resignation from someone who has a higher role than you")
+
+        else:
+            deny_resign(member)
+            try:
+                await member.send("Your resignation has been denied.")
+            except:
+                pass
+            await ctx.followup.send("Denied resignation of {}".format(member))
+
+
+
     @strike.subcommand(description="Appeal your strike")
     async def appeal(self, ctx: Interaction,
                      strike_id=SlashOption(description="Enter the strike ID here", required=True),
@@ -368,7 +360,7 @@ Before you start appealing your strike, please make sure:
     2. You have proof in media links if necessary
         
 If you feel it meets those conditions, click the button below.
-Also just to let you know, your user ID is logged when doing this application so if you troll, we will take actions."""
+Also just to let you know, your user ID is logged when doing this appeal so if you troll, we will take actions."""
 
         await ctx.send(msg, view=view, ephemeral=True)
 

@@ -44,8 +44,11 @@ class warncog(Cog):
                 embed.add_field(
                     name="Reason for warn", value=reason, inline=False)
 
-            if give_adwarn(channel, member.id, ctx.user.id, reason, warn_id, appeal_id)==True:
-                
+            if give_adwarn(channel, member.id, ctx.user.id, reason, warn_id, appeal_id)==False:
+                pass
+            else:
+                give_adwarn(channel, member.id, ctx.user.id,
+                            reason, warn_id, appeal_id)
                 warnpoints = get_warn_points(member.id)               
                 embed.add_field(
                             name="Warn ID", value=warn_id, inline=True)

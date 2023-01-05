@@ -2,7 +2,7 @@ from nextcord import *
 from nextcord.ext import tasks
 from nextcord.ext.commands import Cog, Bot
 from datetime import *
-from config import db
+from assets.functions import check_plans, remove_plan
 
 
 class plan_updater_cog(Cog):
@@ -14,9 +14,7 @@ class plan_updater_cog(Cog):
     async def update_plans(self):
         ha_planlog = await self.bot.fetch_channel(956554797060866058)
 
-        cur = db.execute(
-            f"SELECT * FROM planData where server_id = ?", (925790259160166460,))
-        results = cur.fetchall()
+        results = check_plans(925790259160166460)
 
         if results == None:
             pass
@@ -35,9 +33,8 @@ class plan_updater_cog(Cog):
                     embed.add_field(name="Product", value=plan, inline=False)
                     embed.add_field(name="Ending", value=ending, inline=False)
                     await ha_planlog.send("{}, {} has ended".format(setter.mention, plan_id), embed=embed)
-                    db.execute(
-                        'DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, 925790259160166460,))
-                    db.commit()
+                    remove_plan(plan_id, 925790259160166460)
+
                 else:
                     pass
 
