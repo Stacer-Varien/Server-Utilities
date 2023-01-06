@@ -51,7 +51,7 @@ class owner(Cog):
         def check(m:Message):
             return m.author == ctx.user and m.content
 
-        code = await self.bot.wait_for('message', check=check)
+        code:Message = await self.bot.wait_for('message', check=check)
 
         if code.content.startswith("cancel"):
             await ctx.edit_original_message(content="Evaluation aborted")

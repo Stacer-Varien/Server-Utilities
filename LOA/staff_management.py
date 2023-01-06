@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from random import randint
-from nextcord.utils import get
+from assets.menus import ProductSelect
 
 from humanfriendly import parse_timespan
 from nextcord import *
@@ -410,111 +410,15 @@ Also just to let you know, your user ID is logged when doing this appeal so if y
 
     @pricelist.subcommand(description="Get a list of LOA coin pricelist")
     async def loacoins(self, ctx:Interaction):
-        await ctx.response.defer()
         thread_cat:CategoryChannel = self.bot.get_channel(862275910165594142)
         
         for channel in thread_cat.channels:
             if ctx.channel.id == channel.id:
-                shouts=Embed(color=Color.blue())
-                shouts.title= "Shoutouts & Custom Channels"
-                shouts.description="""
-Normal Shoutout ( Without Pings ) : 400
-
-Add-ons:
-- Shoutout Ping : 50
-- Partner Ping : 30
-- Others Ping: 20
-
-
-Normal Custom Channels ( Without Pings, last for 7 days ) : 800
-
-Add-ons:
-- Shoutout Ping : 100
-- Partner Ping: 60
-- Others Ping: 40
-- Real Custom Channel ( You may put anything you want in the channel at anytime, but no more roles will be pinged and the content must fit the <#705956109592035389> ) : 350
-- Per day after the first 7 days: 100
-"""
-
-                giveads = Embed(color=Color.blue())
-                giveads.title = "Giveaways & Auto Advertisements"
-                giveads.description = """
-Normal Giveaway ( With Giveaway Ping & Requires to join your server, lasts for 1 day ) : 1000
-
-Add-ons:
-- Dedicated Channel: 800
-- Prize provided by your server : 0
-- Prize in our server : 50 per person
-- Each winner (originally one winner) : 10
-- Each day (duration of the giveaway, 1 day is given originally) : 10
-
-Normal Auto Advertisements ( Every 8 hours ) for 7 days in <#757476260690657281> : 600
-
-Add-ons:
-- Every 4 hours : 100
-- Every 2 hours : 200
-- Every 30 minutes : 400
-- Each channel of your choice : 300 
-"""
-
-                memberships = Embed(color=Color.blue())
-                memberships.title = "Memberships"
-                memberships.description = """
-LOA Premium Membership
-- 30 days: 3000 LOA Coins
-- 365 (a year): 30000 LOA Coins ( ⭐ saving 6000 LOA Coins)
-
-What is included in Premium Membership:
-- Premium Role in Lead of Advertising
-- Access to <#716897785961775165>
-- Monthly Shoutout (DM <@!710733052699213844> to claim at the 1st day of each month)
-- Access to VIP Lounge
-
-LOA Executive Membership
-- 30 days: 8000 LOA Coins
-- 365 (a year): 80000 LOA Cions (⭐ saving 16000 LOA Coins)
-
-What is included in Executive Membership:
-- All above perks
-- Bonus entries when joining giveaways
-- VIP role in all <#941117023914713148> servers (if have^)
-- Access to all <#941117023914713148> servers VIP Lounge (if have^)
-- 5 shoutouts for free for each month (each shoutout must be claimed after 24 hours of the previous shoutout claiming time)
-- 20% off per each <#869201807828725790> purchasement
-
-^ = Available in Lead of Advertising, LOA Safety Centre and Lead of Gaming
-"""
-
-                openads = Embed(color=Color.blue())
-                openads.title = "Open Network Auto Advertisement"
-                openads.description = """
-Auto Advertisement for 7 days - 50000
-
-Add-ons:
-- Every 4 hours: 0 (default)
-- Every 1 hour: 500
-- Server advertisement less than 50 characters: 200
-- Per day after default: 400 
-"""
-
-                special = Embed(color=Color.blue())
-                special.title = "Open Network Auto Advertisement"
-                special.description = """
-Custom channel under <#707117465049759744> category:
-- 1 day: 10000
-- per day after that one day: 8000
-
-Custom Channel on the top of the server:
-- 1 day: 15000
-- per day after that one day: 12500
-
-<#959811761282891856> with Job Announcement Ping:
-- per announcement: 5000
-- Default stay for 1 day, after default stay time per day: 1000  
-"""
-
-                embeds=[shouts, giveads, memberships, openads, special]
-                await ctx.followup.send(embeds=embeds)
+                view=ProductSelect()
+                embed=Embed()
+                embed.color=Color.blue()
+                embed.description = "Use the dropmenu below to view a package"
+                await ctx.response.send_message(embed=embed, view=view)
 
     @pricelist.subcommand(description="Get a list of LOA coin pricelist")
     async def paidplans(self, ctx: Interaction):

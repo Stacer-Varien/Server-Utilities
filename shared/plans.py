@@ -7,7 +7,7 @@ from nextcord import slash_command as slash
 from nextcord.ext.application_checks import has_any_role
 from nextcord.ext.commands import Cog, Bot
 
-from config import db
+from assets.functions import add_plan, get_plan, remove_plan
 
 planmanager = 956634941066739772
 operationmanager = 841671956999045141
@@ -39,11 +39,8 @@ class plancog(Cog):
 
         else:
             guild = 704888699590279221
-        db.execute(
-            "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
-            (claimer.id, round(today.timestamp()), round(ending_time.timestamp()), plan, claimee.id, plan_id, guild,))
-
-        db.commit()
+        
+        add_plan(member.id, round(ending_time.timestamp()), plan, claimee.id, plan_id, guild)
 
         ha_planlog = await self.bot.fetch_channel(956554797060866058)
         loa_planlog = await self.bot.fetch_channel(990246941029990420)
@@ -68,17 +65,15 @@ class plancog(Cog):
 
         else:
             guild = 704888699590279221
-        cur = db.execute("SELECT * FROM planData WHERE plan_id = ? AND server_id = ?", (plan_id, guild,))
-        result = cur.fetchone()
+        
+        result = get_plan(plan_id, guild)
 
-        if result == 0:
+        if result == None:
             await ctx.followup.send("Invalid Plan ID.")
 
         else:
-            db.execute('DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, guild,))
-            db.commit()
+            remove_plan(plan_id, guild)
             await ctx.followup.send("Plan removed")
-
 
 def setup(bot: Bot):
     bot.add_cog(plancog(bot))

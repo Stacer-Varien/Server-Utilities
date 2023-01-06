@@ -243,7 +243,7 @@ def fetch_break_id(break_id:int, server:int):
     else:
         return data
 
-def approve_break(member:User, server:int, start:int, ends:int)
+def approve_break(member:User, server:int, start:int, ends:int):
         db.execute("UPDATE breakData SET accepted = ? WHERE user_id = ? and guild_id = ?",
                            (1, member.id, server,))
         db.execute("UPDATE breakData SET start = ? WHERE user_id = ? and guild_id = ?",
@@ -284,3 +284,37 @@ def deny_resign(member: User):
     db.execute(
         "DELETE FROM resignData WHERE WHERE user_id = ?", (member.id,))
     db.commit()
+
+def mark_untrusted(member:User, ending:int):
+    db.execute("INSERT OR IGNORE INTO untrustedData (user, ending) VALUES (?,?)", (member.id, ending,))
+    db.commit()
+
+def check_untrusted():
+    data=db.execute("SELECT * FROM untrustedData").fetchall()
+    db.commit()
+
+    if data == None:
+        return None
+    else:
+        return data
+
+def remove_untrusted(member:Member):
+    db.execute("DELETE FROM untrustedData WHERE user = ?", (member.id))
+    db.commit()
+
+def add_plan(user:User, until:int, plan:str, claimee:User, plan_id, server:int):
+    db.execute(
+        "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
+        (user.id, round(datetime.now().timestamp()), until, plan, claimee.id, plan_id, server,))
+    db.commit()
+
+def get_plan(plan_id:int, server:int):
+    data = db.execute(
+        "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?", (plan_id, server,)).fetchone()
+    
+    if data == None:
+        return None
+    else:
+        return data
+
+    
