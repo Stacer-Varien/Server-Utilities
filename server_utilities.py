@@ -1,56 +1,53 @@
 from os import listdir
 
-from nextcord import Intents
-from nextcord.ext.commands import Bot
+from discord import Intents
+from discord.ext.commands import Bot, when_mentioned_or
 
 from config import TOKEN
 
 intents = Intents().all()
 intents.presences = False
 intents.voice_states = False
-intents.reactions = False
-intents.scheduled_events = False
+intents.auto_moderation=False
+intents.guild_scheduled_events = False
 
-bot = Bot(intents=intents)
+
+class ServerUtilities(Bot):
+    async def setup_hook(self):
+        await self.tree.sync()
+
+        for filename in listdir('./HA'):
+            if filename.endswith('.py'):
+                await bot.load_extension(f'HA.{filename[:-3]}')
+                print(f"{filename} loaded")
+            else:
+                print(f'Unable to load {filename[:-3]}')
+
+        for filename in listdir('./admod'):
+            if filename.endswith('.py'):
+                await bot.load_extension(f'admod.{filename[:-3]}')
+                print(f"{filename} loaded")
+            else:
+                print(f'Unable to load {filename[:-3]}')
+
+        for filename in listdir('./LOA'):
+            if filename.endswith('.py'):
+                await bot.load_extension(f'LOA.{filename[:-3]}')
+                print(f"{filename} loaded")
+            else:
+                print(f'Unable to load {filename[:-3]}')
+
+        for filename in listdir('./shared'):
+            if filename.endswith('.py'):
+                await bot.load_extension(f'shared.{filename[:-3]}')
+                print(f"{filename} loaded")
+            else:
+                print(f'Unable to load {filename[:-3]}')
+
+        await bot.load_extension('jishaku')
+
+bot = Bot(intents=intents, command_prefix=when_mentioned_or("su!", 'SU!', 'Su!', 'su', 'SU', 'sU'))
 bot.remove_command('help')
-
-for filename in listdir('./HA'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'HA.{filename[:-3]}')
-        print(f"{filename} loaded")
-    else:
-        print(f'Unable to load {filename[:-3]}')
-
-for filename in listdir('./admod'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'admod.{filename[:-3]}')
-        print(f"{filename} loaded")
-    else:
-        print(f'Unable to load {filename[:-3]}')
-
-for filename in listdir('./LOA'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'LOA.{filename[:-3]}')
-        print(f"{filename} loaded")
-
-    else:
-        print(f'Unable to load {filename[:-3]}')
-
-for filename in listdir('./shared'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'shared.{filename[:-3]}')
-        print(f"{filename} loaded")
-
-    else:
-        print(f'Unable to load {filename[:-3]}')
-
-for filename in listdir('./VHF'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'VHF.{filename[:-3]}')
-        print(f"{filename} loaded")
-
-    else:
-        print(f'Unable to load {filename[:-3]}')
 
 
 @bot.event

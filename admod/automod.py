@@ -1,9 +1,9 @@
-from nextcord import Embed, Message
-from nextcord.ext.commands import Cog, Bot
-from config import db
+from discord import Embed, Message
+from discord.ext.commands import Cog, Bot
+from assets.functions import *
 from random import randint
 from datetime import timedelta
-from nextcord.utils import utcnow
+from discord.utils import utcnow
 from assets.not_allowed import no_invites, no_nsfw_spam
 from assets.functions import give_adwarn_auto, get_warn_points
 
@@ -20,17 +20,18 @@ class automodcog(Cog):
                     await message.delete()
                     warn_id = f"{randint(0,100000)}"
                     appeal_id = f"{randint(0,100000)}"
+                    warn_data=Warn(message.author, self.bot.user, warn_id)
 
-                    if give_adwarn_auto(message.channel, message.author.id, self.bot.user.id, warn_id, appeal_id) == False:
+                    if warn_data.give_adwarn_auto(message.channel, appeal_id) == False:
                         pass
                     else:
-                        give_adwarn_auto(
-                            message.channel, message.author.id, self.bot.user.id, warn_id, appeal_id)
+                        warn_data.give_adwarn_auto(
+                            message.channel, appeal_id)
                         adwarn_channel = message.guild.get_channel(
                             925790260695281703)
                         reason = f"Incorrectly advertising in {message.channel.mention}"
 
-                        warn_points = get_warn_points(message.author.id)
+                        warn_points = warn_data.get_warn_points(message.author.id)
 
                         embed = Embed(
                             title="You have been warned", color=0xFF0000)

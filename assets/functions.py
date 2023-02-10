@@ -1,10 +1,156 @@
 from datetime import *
 import os
-from nextcord import Embed, Member, TextChannel, User
+from discord import *
 
 from assets.not_allowed import no_invites, no_pings
 from config import db
 
+class Appeal():
+    def __init__(self, appeal_id:int):
+        self.user=user
+        self.appeal_id=appeal_id
+    
+    def check_appeal(self):
+        data=db.execute("SELECT * FROM warnData WHERE appeal_id = ?", (self.appeal_id,)).fetchone()
+        if data==None:
+            return None
+        else:
+            return data
+    
+    def remove_warn(self, member_id:int):
+        db.execute("DELETE FROM warnData WHERE appeal_id = ?", (self.appeal_id,))
+        db.execute("UPDATE warnDATA_v2 SET warn_point = warn_point - ? where user_id = ?", (1, member_id,))
+        db.commit()
+
+
+class Warn():
+    def __init__(self, user: Member, moderator:Member, warn_id: int=None) -> None:
+        self.user = user
+        self.moderator=moderator
+        self.warn_id = warn_id
+
+    def check_warn(self):
+        data=db.execute("SELECT * FROM warnDATA WHERE user_id = ? AND warn_id = ?", (self.user.id, self.warn_id,)).fetchone()
+        db.commit()
+
+        if data == None:
+            return None
+
+        else:
+            data=db.execute("SELECT * FROM warnDATA WHERE user_id = ?", (self.user.id,))
+            db.commit()
+            return data
+
+
+    def give_adwarn_auto(self, channel: TextChannel, appeal_id: int):
+        data = db.execute(
+            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)).fetchone()
+        data2 = db.execute(
+            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)).fetchone()
+        db.commit()
+        current_time = datetime.now()
+        next_warn = current_time + timedelta(hours=1)
+
+        reason = f"Incorrectly advertising in {channel.mention}"
+        if data == None:
+            db.execute(
+                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
+                (self.user.id, self.moderator.id, reason, self.warn_id, appeal_id,))
+
+            db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
+                    (self.user.id, 1, round(next_warn.timestamp())),)
+            db.commit()
+
+        elif int(data2[2]) < round(current_time.timestamp()):
+            db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
+                    (1, round(next_warn.timestamp()), self.user.id,))
+            db.commit()
+
+        elif int(data2[2]) > round(current_time.timestamp()):
+            return False
+
+
+    def give_adwarn(self, channel: TextChannel, reason: str, appeal_id: int):
+        data = db.execute(
+            "SELECT * FROM warnData WHERE user_id = ?", (member,)).fetchone()
+        data2 = db.execute(
+            "SELECT * FROM warnData_v2 WHERE user_id= ?", (member,)).fetchone()
+        db.commit()
+        current_time = datetime.now()
+        next_warn = current_time + timedelta(hours=1)
+        if data == None:
+            db.execute(
+                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
+                (self.user.id, self.moderator.id, '{} - {}'.format(channel.mention, reason), self.warn_id, appeal_id,))
+
+            db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
+                    (member, 1, round(next_warn.timestamp())))
+            db.commit()
+
+        elif int(data2[2]) < round(current_time.timestamp()):
+            db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
+                    (1, round(next_warn.timestamp()), self.user.id,))
+            db.commit()
+
+        elif int(data2[2]) > round(current_time.timestamp()):
+            return False
+
+
+    def get_warn_points(self) -> int:
+        try:
+            warnpointdata = db.execute(
+                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)).fetchone()
+            db.commit()
+            return warnpointdata[0]
+        except:
+            return 1
+
+
+    def get_warn_id(self):
+        data = db.execute(
+            "SELECT warn_id FROM warnData WHERE user_id = ?", (self.user.id,)).fetchone()
+        return data[0]
+
+
+    def set_results(self):
+        warn_point = self.get_warn_points(self.user.id)
+
+        if warn_point < 3:
+            result = "No action taken yet"
+            return result
+
+        elif warn_point == 3:
+            result = "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"
+            return result
+
+        elif warn_point == 6:
+            result = "Member has reached the 6 warn point punishment. A kick punishment was applied"
+            return result
+        elif warn_point == 10:
+            result = "Member has reached the 10 warn point punishment. A ban punishment was applied"
+            return result
+
+
+    def send_adwarn(self, reason: str):
+        warnpointdata = db.execute(
+            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,))
+        warn_point = int(warnpointdata.fetchone()[0])
+
+        warn_id = self.get_warn_id(self.user.id)
+
+        result = self.set_results(self.user.id)
+
+        embed = Embed(
+            title="You have been warned", color=0xFF0000)
+        embed.add_field(
+            name="Reason of warn", value=reason, inline=True)
+        embed.add_field(name="Warn ID", value=warn_id, inline=True)
+        embed.add_field(name="Warn Points", value=warn_point, inline=True)
+        embed.add_field(name="Result", value=result, inline=False)
+        embed.set_footer(
+            text="If you feel this warn was a mistake, please use `/appeal apply WARN_ID`")
+        embed.set_thumbnail(url=member.display_avatar)
+            
 
 def check_illegal_invites(message, channel: int):
     if 'discord.gg' in message:
@@ -21,98 +167,7 @@ def check_illegal_mentions(message, channel: int):
         else:
             return False
 
-def give_adwarn_auto(channel:TextChannel, member: int, moderator: int, warn_id: int, appeal_id:int):
-    data = db.execute("SELECT * FROM warnData WHERE user_id = ?", (member,)).fetchone()
-    current_time = datetime.now()
-    next_warn = current_time + timedelta(hours=1)
 
-    reason = f"Incorrectly advertising in {channel.mention}"
-    if data == None:
-        db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
-                (member, moderator, reason, warn_id, appeal_id,))
-
-        db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                       (member, 1, round(next_warn.timestamp())))
-        db.commit()
-
-    elif data[2] < round(current_time.timestamp()):
-        db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?", (1, round(next_warn.timestamp()), member,))
-        
-    elif data[2] > round(current_time.timestamp()):
-        return False
-
-def give_adwarn(channel, member: int, moderator: int, reason: str, warn_id:int, appeal_id:int):
-    data = db.execute("SELECT * FROM warnData WHERE user_id = ?", (member,)).fetchone()
-    current_time = datetime.now()
-    next_warn = current_time + timedelta(hours=1)
-    if data == None:
-        db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
-                (member, moderator, '{} - {}'.format(channel, reason), warn_id, appeal_id,))
-
-        db.execute("INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                       (member, 1, next_warn))
-        db.commit()
-
-    elif data[2] < round(current_time.timestamp()):
-        db.execute("UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?", (1, round(next_warn.timestamp()), member,))
-        db.commit()
-        
-    elif data[2] > round(current_time.timestamp()):
-        return False
-                
-def get_warn_points(member: int) -> int:
-    try:
-        warnpointdata = db.execute(
-            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (member,)).fetchone()
-        db.commit()
-        return warnpointdata[0]
-    except:
-        return 1
-
-
-def get_warn_id(member: int):
-    data = db.execute("SELECT warn_id FROM warnData WHERE user_id = ?", (member,)).fetchone()
-    return data[0]
-
-
-def set_results(member: int):
-    warn_point = get_warn_points(member)
-
-    if warn_point < 3:
-        result = "No action taken yet"
-        return result
-
-    elif warn_point == 3:
-        result = "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"
-        return result
-
-    elif warn_point == 6:
-        result = "Member has reached the 6 warn point punishment. A kick punishment was applied"
-        return result
-    elif warn_point == 10:
-        result = "Member has reached the 10 warn point punishment. A ban punishment was applied"
-        return result
-
-
-def send_adwarn(member: Member, reason: str):
-    warnpointdata = db.execute("SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (member.id,))
-    warn_point = int(warnpointdata.fetchone()[0])
-
-    warn_id = get_warn_id(member.id)
-
-    result = set_results(member.id)
-
-    embed = Embed(
-        title="You have been warned", color=0xFF0000)
-    embed.add_field(
-        name="Reason of warn", value=reason, inline=True)
-    embed.add_field(name="Warn ID", value=warn_id, inline=True)
-    embed.add_field(name="Warn Points", value=warn_point, inline=True)
-    embed.add_field(name="Result", value=result, inline=False)
-    embed.set_footer(text="If you feel this warn was a mistake, please use `/appeal WARN_ID`")
-    embed.set_thumbnail(url=member.display_avatar)
 
 
 def strike_staff(department: str, member: int, strike_id: int, appeal_id: int):
@@ -285,22 +340,6 @@ def deny_resign(member: User):
         "DELETE FROM resignData WHERE WHERE user_id = ?", (member.id,))
     db.commit()
 
-def mark_untrusted(member:User, ending:int):
-    db.execute("INSERT OR IGNORE INTO untrustedData (user, ending) VALUES (?,?)", (member.id, ending,))
-    db.commit()
-
-def check_untrusted():
-    data=db.execute("SELECT * FROM untrustedData").fetchall()
-    db.commit()
-
-    if data == None:
-        return None
-    else:
-        return data
-
-def remove_untrusted(member:Member):
-    db.execute("DELETE FROM untrustedData WHERE user = ?", (member.id))
-    db.commit()
 
 def add_plan(user:User, until:int, plan:str, claimee:User, plan_id, server:int):
     db.execute(
