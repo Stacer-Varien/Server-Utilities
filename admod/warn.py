@@ -1,22 +1,23 @@
-from nextcord import slash_command as slash
-from nextcord import *
-from nextcord.abc import *
-from nextcord.ext.commands import Cog, Bot
+from discord import app_commands as Serverutil
+from discord import *
+from discord.abc import *
+from discord.ext.commands import Cog, Bot
 from config import hazead
 from random import *
 from datetime import *
-from nextcord.utils import utcnow
-from nextcord.ext.application_checks import has_guild_permissions
+from discord.utils import utcnow
 from assets.functions import *
+from typing import Optional
 
 
 class warncog(Cog):
     def __init__(self, bot:Bot):
         self.bot = bot
 
-    @slash(description="Adwarn someone for violating the ad rules", guild_ids=[hazead])
-    @has_guild_permissions(kick_members=True)
-    async def adwarn(self, ctx: Interaction, member: Member, channel:abc.GuildChannel=SlashOption(channel_types=[ChannelType.text], required=True), reason=SlashOption(choices=['NSFW server', 'Invite reward server', 'Server has no description (less than 20 characters)', 'Server violates ToS', 'Advertising in wrong channel', 'Back to back advertising (not waiting for another person to advertise)', 'Custom reason'], required=True), custom=SlashOption(description="Write your own reason (only if you picked custom reason)", required=False), belongsto:abc.GuildChannel=SlashOption(description="Which channel should the ad go to? (only if you selected wrong channel option)", channel_types=[ChannelType.text],required=False)):
+    @Serverutil.command(description="Adwarn someone for violating the ad rules")
+    @Serverutil.describe(channel="Where was the ad deleted?", reason="What is the reason for the warn?", custom="Write your own reason (only if you picked custom reason)", belongsto="Which channel should the ad go to? (only if you selected wrong channel option)")
+    @Serverutil.has_permissions(kick_members=True)
+    async def adwarn(self, ctx: Interaction, member: Member, channel:TextChannel, reason:str, custom:Optional[str] =None, belongsto:Optional[TextChannel]=None):
         await ctx.response.defer(ephemeral=True)
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
@@ -27,7 +28,6 @@ class warncog(Cog):
             warn_id = f"{randint(0,100000)}"
             appeal_id = f"{randint(0,100000)}"
             embed = Embed(title="You have been warned", color=0xFF0000)
-
             if reason=='Advertising in wrong channel' and not belongsto:
                 await ctx.followup.send("Please include a channel to mention where the ad should be placed next time")
             elif reason=='Advertising in wrong channel' and belongsto!=None:
@@ -43,13 +43,14 @@ class warncog(Cog):
             else:
                 embed.add_field(
                     name="Reason for warn", value=reason, inline=False)
-
-            if give_adwarn(channel, member.id, ctx.user.id, reason, warn_id, appeal_id)==False:
+            
+            warn_data = Warn(member, ctx.user, warn_id)
+            if warn_data.give_adwarn(channel, reason, appeal_id)==False:
                 pass
             else:
-                give_adwarn(channel, member.id, ctx.user.id,
+                warn_data.give_adwarn(channel, member.id, ctx.user.id,
                             reason, warn_id, appeal_id)
-                warnpoints = get_warn_points(member.id)               
+                warnpoints = warn_data.get_warn_points()               
                 embed.add_field(
                             name="Warn ID", value=warn_id, inline=True)
                 embed.add_field(name="Warn Points", value=warnpoints, inline=True)
@@ -98,5 +99,5 @@ class warncog(Cog):
                     await adwarn_channel.send(member.mention, embed=embed)
                     await ctx.followup.send(f"Warning sent. Check {adwarn_channel.mention}",ephemeral=True)
 
-def setup(bot:Bot):
-    bot.add_cog(warncog(bot))
+async def setup(bot:Bot):
+    await bot.add_cog(warncog(bot), guild=Object(hazead))

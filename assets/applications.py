@@ -1,4 +1,4 @@
-from nextcord import *
+from discord import ui, ButtonStyle
 
 
 class AppButtons(ui.View):

@@ -1,19 +1,16 @@
 from asyncio import TimeoutError
 from discord import app_commands as serverutil
-from discord import Interaction, Embed, SlashOption
+from discord import Interaction, Embed, Object
 from discord.ext.commands import GroupCog, Bot
-from assets.functions import *
-from config import *
-from random import *
-from datetime import *
-from discord import *
-
+from assets.functions import Warn, Appeal
+from config import hazead
+from discord import Message
 
 class appealcog(GroupCog, name='appeal'):
     def __init__(self, bot:Bot):
         self.bot = bot
 
-    @serverutil.Command(description="Apply for an adwarn appeal", guild_ids=[hazead])
+    @serverutil.command(description="Apply for an adwarn appeal")
     @serverutil.describe(warn_id="Insert the warn ID that you want to appeal")
     async def apply(self, ctx: Interaction, warn_id:int):
         await ctx.response.defer()
@@ -68,10 +65,7 @@ class appealcog(GroupCog, name='appeal'):
             except:
                 await ctx.followup.send("Please open your DMs to start the appeal process", ephemeral=True)
 
-            
-
-
-    @serverutil.Command(description="Approve an appeal", guild_ids=[hazead])
+    @serverutil.command(description="Approve an appeal")
     @serverutil.checks.has_role(925790259319558157)
     @serverutil.describe(appeal_id="Insert the appeal ID shown from the member's appeal message")
     async def approve(self, ctx: Interaction, appeal_id:int):
@@ -100,7 +94,7 @@ class appealcog(GroupCog, name='appeal'):
             channel = await self.bot.fetch_channel(951783773006073906)
             await ctx.followup.send("Please do the command in {}".format(channel.mention), ephemeral=True)
 
-    @serverutil.Command(description="Deny an appeal", guild_ids=[hazead])
+    @serverutil.command(description="Deny an appeal")
     @serverutil.checks.has_role(925790259319558157)
     @serverutil.describe(appeal_id="Insert the appeal ID shown from the member's appeal message")
     async def deny(self, ctx: Interaction, appeal_id:int, reason:str):
@@ -113,6 +107,7 @@ class appealcog(GroupCog, name='appeal'):
             if check == None:
                 await ctx.followup.send(f"Invalid appeal ID")
             else:
+                member=await ctx.guild.fetch_member(check[0])
                 try:
                     await member.send(f"Hello {member.mention},\nUpon looking into your appeal, we have regrettably decided not to revoke your warn (**Warn ID** {check[3]}.\nThe warning will stay\nThank you\n\nReason: {reason}")
 
@@ -125,4 +120,4 @@ class appealcog(GroupCog, name='appeal'):
             await ctx.followup.send("Please do the command in {}".format(channel.mention), ephemeral=True)                
 
 async def setup(bot:Bot):
-    await bot.add_cog(appealcog(bot))
+    await bot.add_cog(appealcog(bot), guild=Object(hazead))

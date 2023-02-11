@@ -110,47 +110,7 @@ class Warn():
         data = db.execute(
             "SELECT warn_id FROM warnData WHERE user_id = ?", (self.user.id,)).fetchone()
         return data[0]
-
-
-    def set_results(self):
-        warn_point = self.get_warn_points(self.user.id)
-
-        if warn_point < 3:
-            result = "No action taken yet"
-            return result
-
-        elif warn_point == 3:
-            result = "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"
-            return result
-
-        elif warn_point == 6:
-            result = "Member has reached the 6 warn point punishment. A kick punishment was applied"
-            return result
-        elif warn_point == 10:
-            result = "Member has reached the 10 warn point punishment. A ban punishment was applied"
-            return result
-
-
-    def send_adwarn(self, reason: str):
-        warnpointdata = db.execute(
-            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,))
-        warn_point = int(warnpointdata.fetchone()[0])
-
-        warn_id = self.get_warn_id(self.user.id)
-
-        result = self.set_results(self.user.id)
-
-        embed = Embed(
-            title="You have been warned", color=0xFF0000)
-        embed.add_field(
-            name="Reason of warn", value=reason, inline=True)
-        embed.add_field(name="Warn ID", value=warn_id, inline=True)
-        embed.add_field(name="Warn Points", value=warn_point, inline=True)
-        embed.add_field(name="Result", value=result, inline=False)
-        embed.set_footer(
-            text="If you feel this warn was a mistake, please use `/appeal apply WARN_ID`")
-        embed.set_thumbnail(url=member.display_avatar)
-            
+          
 
 def check_illegal_invites(message, channel: int):
     if 'discord.gg' in message:
@@ -217,39 +177,39 @@ def fetch_striked_staff(appeal_id: int, department: str):
     else:
         return data
 
+class Partner():
+    def __init__(self, user:Member, server:Guild):
+        self.user=user
+        self.server=server
 
-def add_partnership_request(user: int, server: int):
-    db.execute("INSERT OR IGNORE INTO partnerData (user_id, guild_id) VALUES (?,?)",
-               (user, server,))
-    db.commit()
+    def check(self):
+        if self.server.id == 740584420645535775:
+            path="/partnerships/orleans/{}.txt".format(self.user.id)
+            check=os.path.exists(path)
+            if check == True:
+                return True
+            else:
+                return None    
+        
+        elif self.server.id == 925790259160166460:
+            path = "/partnerships/hazeads/{}.txt".format(self.user.id)
+            check = os.path.exists(path)
+            if check == True:
+                return True
+            else:
+                return None
 
+    def approve(self):
+        with open("partnerships/orleans/{}.txt".format(self.user.id), 'r') as f:
+            content = "".join(f.readlines())
+        os.remove("partnerships/orleans/{}.txt".format(self.user.id))
+        return content
 
-def get_partnership_request(user: int, server: int):
-    data = db.execute("SELECT * FROM partnerData WHERE user_id = ? and guild_id = ?", (user, server,)).fetchone()
-    db.commit()
-    return data
-
-
-def remove_partnership_request(user: int, server: int):
-    db.execute("DELETE FROM partnerData WHERE WHERE user_id = ? and guild_id = ?", (user, server,))
-    db.commit()
-
-def check_partnership(server:int, user:int):
-    if server == 740584420645535775:
-        path="/partnerships/orleans/{}.txt".format(user)
-        check=os.path.exists(path)
-        if check == True:
-            return True
-        else:
-            return "Partnership request not found!"    
-    
-    elif server == 925790259160166460:
-        path = "/partnerships/hazeads/{}.txt".format(user)
-        check = os.path.exists(path)
-        if check == True:
-            return True
-        else:
-            return "Partnership request not found!"
+    def deny(self):
+        with open("partnerships/orleans/{}.txt".format(self.user.id), 'r') as f:
+            content = "".join(f.readlines())
+        os.remove("partnerships/orleans/{}.txt".format(self.user.id))
+        return content
     
     
 

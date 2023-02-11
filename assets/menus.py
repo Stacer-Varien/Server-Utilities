@@ -1,4 +1,4 @@
-from nextcord import *
+from discord import ui, Interaction, SelectOption, Embed, Color
 
 
 class ProductMenu(ui.Select):
@@ -49,8 +49,7 @@ Add-ons:
 - Each winner (originally one winner) : 10
 - Each day (duration of the giveaway, 1 day is given originally) : 10
 
-#757476260690657281> : 600
-Normal Auto Advertisements ( Every 8 hours ) for 7 days in <
+Normal Auto Advertisements ( Every 8 hours ) for 7 days in <#757476260690657281> : 600
 
 Add-ons:
 - Every 4 hours : 100

@@ -5,8 +5,6 @@ from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
 from assets.not_allowed import no_invites, no_nsfw_spam
-from assets.functions import give_adwarn_auto, get_warn_points
-
 
 class automodcog(Cog):
     def __init__(self, bot: Bot):
@@ -31,7 +29,7 @@ class automodcog(Cog):
                             925790260695281703)
                         reason = f"Incorrectly advertising in {message.channel.mention}"
 
-                        warn_points = warn_data.get_warn_points(message.author.id)
+                        warn_points = warn_data.get_warn_points()
 
                         embed = Embed(
                             title="You have been warned", color=0xFF0000)
@@ -98,12 +96,10 @@ class automodcog(Cog):
             if attachments == True:
                 if len(message.attachments) > 5:
                     await message.channel.send("HEY {}! You are sending too many attachments at once!".format(message.author.mention), delete_after=5)
-                    await message.delete()
                 else:
                     pass
             else:
                 pass
 
-
-def setup(bot: Bot):
-    bot.add_cog(automodcog(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(automodcog(bot))

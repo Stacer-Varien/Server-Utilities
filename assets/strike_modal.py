@@ -1,8 +1,7 @@
-from nextcord import *
-from nextcord.ext.commands import Bot
+from discord import *
+from discord.ext.commands import Bot
 from assets.functions import get_appeal_id
 from config import db
-
 
 class Strike_Appeal(ui.Modal):
     def __init__(self, bot:Bot, strike_id, department):
@@ -12,9 +11,14 @@ class Strike_Appeal(ui.Modal):
         super().__init__(
             "Strike Appeal Form")
 
-        self.strike_appeal = ui.TextInput(label="Reason of appeal", min_length=4, max_length=1024,
-                                          required=True, placeholder="Enter your reason here",
-                                          style=TextInputStyle.paragraph)
+        self.strike_appeal = ui.TextInput(
+                                            label="Reason of appeal", 
+                                            min_length=4, 
+                                            max_length=1024,
+                                            required=True,
+                                            placeholder="Enter your reason here", 
+                                            style=TextStyle.paragraph
+                                        )
         self.add_item(self.strike_appeal)
 
     async def callback(self, ctx: Interaction) -> None:

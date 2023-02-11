@@ -1,9 +1,9 @@
 import os
-from nextcord import *
-from nextcord import slash_command as slash
-from nextcord.ext.application_checks import *
-from nextcord.ext.commands import Cog, Bot
-from assets.functions import check_partnership
+from discord import *
+from discord import app_commands as Serverutil
+from discord.ext.commands import GroupCog, Bot
+from assets.functions import Partner
+from config import hazead, orleans
 
 #ha
 partner_manager = 925790259319558155
@@ -13,17 +13,11 @@ owner = 925790259319558159
 #orleans
 management = 762318708596015114
 
-
-
-class partner(Cog):
+class partnercog(GroupCog, name="partner"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @slash(description='Main Partner Command', guild_ids=[925790259160166460, 740584420645535775])
-    async def partner(self, ctx: Interaction):
-        pass
-
-    @partner.subcommand(description='Parter with Orleans')
+    @Serverutil.command(description='Parter with Orleans')
     async def apply(self, ctx: Interaction):
         await ctx.response.defer()
         dm_link = await ctx.user.send(
@@ -37,11 +31,11 @@ class partner(Cog):
             ad: Message = await self.bot.wait_for('message', check=check, timeout=180)
 
             if ctx.guild.id == 740584420645535775:
-                with open("HA/orleans.txt") as f:
+                with open("HA/orleans.txt", 'r') as f:
                     content = "".join(f.readlines())
             
             elif ctx.guild.id == 925790259160166460:
-                with open("HA/hazeads.txt") as f:
+                with open("HA/hazeads.txt", 'r') as f:
                     content = "".join(f.readlines())
 
             await ctx.user.send(content)
@@ -85,33 +79,39 @@ class partner(Cog):
         except TimeoutError:
             await ctx.user.send("You have ran out of time. Please try again later")
 
-    @partner.subcommand(description='Approve a partnership')
-    @has_any_role(partner_manager, admins, owner, management)
-    async def approve(self, ctx: Interaction, member: Member = SlashOption(required=True)):
+    @Serverutil.subcommand(description='Approve a partnership')
+    @Serverutil.has_any_role(partner_manager, admins, owner, management)
+    async def approve(self, ctx: Interaction, member: Member):
         await ctx.response.defer()
+        partner = Partner(member, ctx.guild)
         if ctx.guild.id == 740584420645535775:
-            if check_partnership(ctx.guild.id, ctx.user.id) == True:
+            if partner.check() == True:
                 partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
                 partner_role = ctx.guild.get_role(1051047558224543844)
-                with open("partnerships/orleans/{}.txt".format(member.id), 'r') as f:
-                    content = "".join(f.readlines())
-                os.remove("partnerships/orleans/{}.txt".format(member.id))
+                content=partner.approve()
+                if partner_role in member.roles:
+                    pass
+                else:
+                    await member.add_roles(partner_role, reason="New Partner")
+                await ctx.followup.send("Partnership approved and given role")
+                await partner_channnel.send(content=content)
+            else:
+                await ctx.followup.send("Partnership not found")
         elif ctx.guild.id == 925790259160166460:
-            if check_partnership(ctx.guild.id, ctx.user.id) == True:
+            if partner.check() == True:
                 partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
                 partner_role = ctx.guild.get_role(950354444669841428)
-                with open("partnerships/hazeads/{}.txt".format(member.id), 'r') as f:
-                    content = "".join(f.readlines())
-                os.remove("partnerships/hazeads/{}.txt".format(member.id))
-        
-        if partner_role in member.roles:
-            pass
-        else:
-            await member.add_roles(partner_role, reason="New Partner")
-        await ctx.followup.send("Partnership approved and given role")
-        await partner_channnel.send(content=content)
+                content=partner.approve()
+                if partner_role in member.roles:
+                    pass
+                else:
+                    await member.add_roles(partner_role, reason="New Partner")
+                await ctx.followup.send("Partnership approved and given role")
+                await partner_channnel.send(content=content)
+            else:
+                await ctx.followup.send("Partnership not found")
 
-    @partner.subcommand(description='Deny a partnership')
+    @Serverutil.subcommand(description='Deny a partnership')
     @has_any_role(partner_manager, admins, owner)
     async def deny(self, ctx: Interaction, member: Member = SlashOption(required=True),
                    reason=SlashOption(required=True)):
@@ -128,5 +128,5 @@ class partner(Cog):
         except Forbidden:
             await ctx.followup.send("Partnership denied")
 
-def setup(bot: Bot):
-    bot.add_cog(partner(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(partnercog(bot))
