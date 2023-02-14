@@ -29,6 +29,5 @@ class break_updater(Cog):
             except:
                 continue
 
-
-def setup(bot: Bot):
-    bot.add_cog(break_updater(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(break_updater(bot))

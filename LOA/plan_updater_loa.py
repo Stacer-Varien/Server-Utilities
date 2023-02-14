@@ -6,6 +6,7 @@ from assets.functions import Plans
 
 
 class plan_updater_cog_loa(Cog):
+
     def __init__(self, bot: Bot):
         self.bot = bot
         self.update_plans_loa.start()
@@ -31,11 +32,13 @@ class plan_updater_cog_loa(Cog):
                     embed = Embed(title="Plan")
                     embed.add_field(name="Buyer", value=buyer, inline=False)
                     embed.add_field(name="Product", value=plan, inline=False)
-                    await loa_plan_log.send("{}, {} has ended".format(setter.mention, plan_id), embed=embed)
+                    await loa_plan_log.send("{}, {} has ended".format(
+                        setter.mention, plan_id),
+                                            embed=embed)
                     plans.remove_plan(plan_id)
                 else:
                     pass
 
 
-def setup(bot: Bot):
-    bot.add_cog(plan_updater_cog_loa(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(plan_updater_cog_loa(bot))

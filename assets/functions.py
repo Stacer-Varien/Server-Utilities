@@ -155,27 +155,27 @@ class Strike():
             return data
 
 
-    def revoke_strike(self, strike_id: int):
+    def revoke(self, strike_id: int):
         db.execute("DELETE FROM strikeData WHERE strike_id = ? AND department = ?", (strike_id, self.department))
         db.commit()
 
 
-def get_appeal_id(strike_id: int, department: str):
-    data = db.execute("SELECT appeal_id FROM strikeData WHERE strike_id = ? AND department = ?",
-                      (strike_id, department)).fetchone()
-    db.commit()
-    return data[0]
+    def get_appeal_id(self, strike_id: int):
+        data = db.execute("SELECT appeal_id FROM strikeData WHERE strike_id = ? AND department = ?",
+                        (strike_id, self.department)).fetchone()
+        db.commit()
+        return data[0]
 
 
-def fetch_striked_staff(appeal_id: int, department: str):
-    data = db.execute("SELECT * FROM strikeData WHERE appeal_id = ? AND department = ?",
-                      (appeal_id, department,)).fetchone()
-    db.commit()
+    def fetch_striked_staff(self, appeal_id: int):
+        data = db.execute("SELECT * FROM strikeData WHERE appeal_id = ? AND department = ?",
+                        (appeal_id, self.department,)).fetchone()
+        db.commit()
 
-    if data == None:
-        return None
-    else:
-        return data
+        if data == None:
+            return None
+        else:
+            return data
 
 class Partner():
     def __init__(self, user:Member, server:Guild):
@@ -301,30 +301,33 @@ class Plans():
             'DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, self.server,))
         db.commit()
 
-def resign_apply(user:User):
-    db.execute(
-            "INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)", (user.id, 0))
-    db.commit()
+class Resign():
+    def __init__(self, member:Member):
+        self.member=member
 
-def check_resign(member:User):
-    data = db.execute(
-        "SELECT * FROM resignData WHERE user_id = ?", (member.id,)).fetchone()
-    db.commit()
-    
-    if data==None:
-        return None
-    else:
-        return data
+    def resign_apply(self):
+        db.execute(
+                "INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)", (self.user.id, 0))
+        db.commit()
 
-def approve_resign(member:User):
-    db.execute("UPDATE resignData SET accepted = ? WHERE user_id = ?", (1, member.id,))
-    db.commit()
+    def check_resign(self):
+        data = db.execute(
+            "SELECT * FROM resignData WHERE user_id = ?", (self.member.id,)).fetchone()
+        db.commit()
+        
+        if data==None:
+            return None
+        else:
+            return data
+
+    def approve_resign(self):
+        db.execute("UPDATE resignData SET accepted = ? WHERE user_id = ?", (1, self.member.id,))
+        db.commit()
 
 
-def deny_resign(member: User):
-    db.execute(
-        "DELETE FROM resignData WHERE WHERE user_id = ?", (member.id,))
-    db.commit()
+    def deny_resign(self):
+        db.execute("DELETE FROM resignData WHERE WHERE user_id = ?", (self.member.id,))
+        db.commit()
 
 
 def add_plan(user:User, until:int, plan:str, claimee:User, plan_id, server:int):

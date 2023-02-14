@@ -1,5 +1,5 @@
-from nextcord import *
-from nextcord.ext.commands import Cog, Bot
+from discord import *
+from discord.ext.commands import Cog, Bot
 
 from config import db
 
@@ -8,6 +8,7 @@ HAZE_ADS = 925790259160166460
 
 
 class member(Cog):
+
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -24,7 +25,9 @@ class member(Cog):
                 else:
                     pass
                 embed.set_image(
-                    url="https://media.discordapp.net/attachments/829041410556690452/951799345324376065/swim-ad.gif")
+                    url=
+                    "https://media.discordapp.net/attachments/829041410556690452/951799345324376065/swim-ad.gif"
+                )
                 await channel.send(welcome, embed=embed)
             except Exception as e:
                 raise e
@@ -44,21 +47,32 @@ class member(Cog):
         elif member.guild.id == 841671029066956831:
             channel = self.bot.get_channel(841672222136991757)
             try:
-                check_resignation_data = db.execute("SELECT accepted FROM resignData WHERE user_id = ?", (
-                member.id,)).fetchone()  # checks for their user ID in the database if it exists
+                check_resignation_data = db.execute(
+                    "SELECT accepted FROM resignData WHERE user_id = ?",
+                    (member.id, )).fetchone(
+                    )  # checks for their user ID in the database if it exists
 
                 if check_resignation_data == None:  # if they just left without requesting for resigning
-                    no_resign = Embed(title=f"{member} ({member.id}) left the server", color=Color.red())
+                    no_resign = Embed(
+                        title=f"{member} ({member.id}) left the server",
+                        color=Color.red())
                     await channel.send(embed=no_resign)
 
-                elif check_resignation_data[0] == 0:  # if they left without an accepted resignation
-                    not_accepted = Embed(title=f"{member} ({member.id}) left the server", color=Color.red())
+                elif check_resignation_data[
+                        0] == 0:  # if they left without an accepted resignation
+                    not_accepted = Embed(
+                        title=f"{member} ({member.id}) left the server",
+                        color=Color.red())
                     await channel.send(embed=not_accepted)
 
-                elif check_resignation_data[0] == 1:  # if their resignation has been accepted and they were kicked out
-                    db.execute("DELETE FROM resignData WHERE user_id = ?", (member.id,))
+                elif check_resignation_data[
+                        0] == 1:  # if their resignation has been accepted and they were kicked out
+                    db.execute("DELETE FROM resignData WHERE user_id = ?",
+                               (member.id, ))
                     db.commit()
-                    accepted = Embed(title=f"{member} ({member.id}) has resigned.", color=Color.green())
+                    accepted = Embed(
+                        title=f"{member} ({member.id}) has resigned.",
+                        color=Color.green())
                     await channel.send(embed=accepted)
             except Exception as e:
                 print(e)
