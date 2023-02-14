@@ -1,16 +1,16 @@
 import os
 from discord import *
 from discord import app_commands as Serverutil
-from discord.ext.commands import GroupCog, Bot
+from discord.ext.commands import GroupCog, Bot, has_any_role
 from assets.functions import Partner
 from config import hazead, orleans
 
-#ha
+# ha
 partner_manager = 925790259319558155
 admins = 925790259319558157
 owner = 925790259319558159
 
-#orleans
+# orleans
 management = 762318708596015114
 
 class partnercog(GroupCog, name="partner"):
@@ -33,7 +33,7 @@ class partnercog(GroupCog, name="partner"):
             if ctx.guild.id == 740584420645535775:
                 with open("HA/orleans.txt", 'r') as f:
                     content = "".join(f.readlines())
-            
+
             elif ctx.guild.id == 925790259160166460:
                 with open("HA/hazeads.txt", 'r') as f:
                     content = "".join(f.readlines())
@@ -46,7 +46,7 @@ class partnercog(GroupCog, name="partner"):
                 def check_image(m: Message):
                     return m.author == ctx.user and m.attachments
 
-                proof:Message = await self.bot.wait_for('message', check=check_image, timeout=180)
+                proof: Message = await self.bot.wait_for('message', check=check_image, timeout=180)
 
                 image_urls = [x.url for x in proof.attachments]
                 images = "\n".join(image_urls)
@@ -55,7 +55,7 @@ class partnercog(GroupCog, name="partner"):
                     with open("partnerships/orleans/{}.txt".format(ctx.user.id), 'w') as f:
                         f.write(ad.content)
                     partnerchannel = self.bot.get_channel(1051048278181031988)
-                    
+
                 elif ctx.guild.id == 925790259160166460:
                     with open("partnerships/hazeads/{}.txt".format(ctx.user.id), 'w') as f:
                         f.write(ad.content)
@@ -79,54 +79,21 @@ class partnercog(GroupCog, name="partner"):
         except TimeoutError:
             await ctx.user.send("You have ran out of time. Please try again later")
 
-    @Serverutil.subcommand(description='Approve a partnership')
-    @Serverutil.has_any_role(partner_manager, admins, owner, management)
+    @Serverutil.command(description='Approve a partnership')
+    @has_any_role(partner_manager, admins, owner, management)
     async def approve(self, ctx: Interaction, member: Member):
         await ctx.response.defer()
         partner = Partner(member, ctx.guild)
-        if ctx.guild.id == 740584420645535775:
-            if partner.check() == True:
-                partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
-                partner_role = ctx.guild.get_role(1051047558224543844)
-                content=partner.approve()
-                if partner_role in member.roles:
-                    pass
-                else:
-                    await member.add_roles(partner_role, reason="New Partner")
-                await ctx.followup.send("Partnership approved and given role")
-                await partner_channnel.send(content=content)
-            else:
-                await ctx.followup.send("Partnership not found")
-        elif ctx.guild.id == 925790259160166460:
-            if partner.check() == True:
-                partner_channnel = await ctx.guild.fetch_channel(1040380792406298645)
-                partner_role = ctx.guild.get_role(950354444669841428)
-                content=partner.approve()
-                if partner_role in member.roles:
-                    pass
-                else:
-                    await member.add_roles(partner_role, reason="New Partner")
-                await ctx.followup.send("Partnership approved and given role")
-                await partner_channnel.send(content=content)
-            else:
-                await ctx.followup.send("Partnership not found")
+        if partner.check() == True:
+            await partner.approve(ctx.guild, member)
 
-    @Serverutil.subcommand(description='Deny a partnership')
+    @Serverutil.command(description='Deny a partnership')
+    @Serverutil.describe(reason="What was the reason for denying the partnership request?")
     @has_any_role(partner_manager, admins, owner)
-    async def deny(self, ctx: Interaction, member: Member = SlashOption(required=True),
-                   reason=SlashOption(required=True)):
-        if ctx.guild.id == 740584420645535775:
-            if check_partnership(ctx.guild.id, ctx.user.id) == True:
-                os.remove("partnerships/orleans/{}.txt".format(member.id))
-        elif ctx.guild.id == 925790259160166460:
-            if check_partnership(ctx.guild.id, ctx.user.id) == True:
-                os.remove("partnerships/orleans/{}.txt".format(member.id))
-        try:
-            await member.send(
-                f"Your partnership request was denied because:\n{reason}")
-            await ctx.followup.send("Partnership denied and reason sent")
-        except Forbidden:
-            await ctx.followup.send("Partnership denied")
+    async def deny(self, ctx: Interaction, member: Member, reason: str):
+        partner = Partner(member, ctx.guild)
+        if partner.check() == True:
+            await partner.deny(reason)
 
 async def setup(bot: Bot):
-    await bot.add_cog(partnercog(bot))
+    await bot.add_cog(partnercog(bot), guilds=[Object(id=hazead), Object(id=orleans)])

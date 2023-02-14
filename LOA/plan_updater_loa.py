@@ -1,8 +1,8 @@
-from nextcord import *
-from nextcord.ext import tasks
-from nextcord.ext.commands import Cog, Bot
+from discord import *
+from discord.ext import tasks
+from discord.ext.commands import Cog, Bot
 from datetime import *
-from assets.functions import check_plans, remove_plan
+from assets.functions import Plans
 
 
 class plan_updater_cog_loa(Cog):
@@ -14,28 +14,27 @@ class plan_updater_cog_loa(Cog):
     async def update_plans_loa(self):
         loa_plan_log = await self.bot.fetch_channel(990246941029990420)
 
-        results = check_plans(704888699590279221)
+        plans = Plans(704888699590279221)
 
-        if results == None:
+        if plans.check_plans() == None:
             pass
 
         else:
-            for i in results:
-                buyer=await self.bot.fetch_user(i[0])
+            for i in plans.check_plans():
+                buyer = await self.bot.fetch_user(i[0])
                 ending = i[2]
-                plan=i[3]
+                plan = i[3]
                 setter = await self.bot.fetch_user(i[4])
                 plan_id = i[5]
 
-                if int(round(datetime.now().timestamp()))> int(ending):
-                    embed=Embed(title="Plan")
+                if int(round(datetime.now().timestamp())) > int(ending):
+                    embed = Embed(title="Plan")
                     embed.add_field(name="Buyer", value=buyer, inline=False)
                     embed.add_field(name="Product", value=plan, inline=False)
                     await loa_plan_log.send("{}, {} has ended".format(setter.mention, plan_id), embed=embed)
-                    remove_plan(plan_id, 704888699590279221)
+                    plans.remove_plan(plan_id)
                 else:
                     pass
-                    
 
 
 def setup(bot: Bot):

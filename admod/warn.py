@@ -3,8 +3,8 @@ from discord import *
 from discord.abc import *
 from discord.ext.commands import Cog, Bot
 from config import hazead
-from random import *
-from datetime import *
+from random import randint
+from datetime import timedelta
 from discord.utils import utcnow
 from assets.functions import *
 from typing import Optional

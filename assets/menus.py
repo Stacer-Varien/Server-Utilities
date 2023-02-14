@@ -1,6 +1,5 @@
 from discord import ui, Interaction, SelectOption, Embed, Color
 
-
 class ProductMenu(ui.Select):
     def __init__(self):
         options = [
@@ -117,7 +116,6 @@ Custom Channel on the top of the server:
 - Default stay for 1 day, after default stay time per day: 1000  
 """
             await ctx.edit_original_message(embed=special)
-
 
 class ProductSelect(ui.View):
     def __init__(self):

@@ -8,7 +8,7 @@ from config import TOKEN
 intents = Intents().all()
 intents.presences = False
 intents.voice_states = False
-intents.auto_moderation=False
+intents.auto_moderation = False
 intents.guild_scheduled_events = False
 
 
@@ -46,7 +46,9 @@ class ServerUtilities(Bot):
 
         await bot.load_extension('jishaku')
 
-bot = Bot(intents=intents, command_prefix=when_mentioned_or("su!", 'SU!', 'Su!', 'su', 'SU', 'sU'))
+
+bot = Bot(intents=intents, command_prefix=when_mentioned_or(
+    "su!", 'SU!', 'Su!', 'su', 'SU', 'sU'))
 bot.remove_command('help')
 
 
