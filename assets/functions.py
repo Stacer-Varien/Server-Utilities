@@ -10,14 +10,14 @@ class Appeal():
     def __init__(self, appeal_id:int):
         self.user=user
         self.appeal_id=appeal_id
-    
+
     def check_appeal(self):
         data=db.execute("SELECT * FROM warnData WHERE appeal_id = ?", (self.appeal_id,)).fetchone()
         if data==None:
             return None
         else:
             return data
-    
+
     def remove_warn(self, member_id:int):
         db.execute("DELETE FROM warnData WHERE appeal_id = ?", (self.appeal_id,))
         db.execute("UPDATE warnDATA_v2 SET warn_point = warn_point - ? where user_id = ?", (1, member_id,))
@@ -110,7 +110,7 @@ class Warn():
         data = db.execute(
             "SELECT warn_id FROM warnData WHERE user_id = ?", (self.user.id,)).fetchone()
         return data[0]
-       
+
 
 def check_illegal_invites(message, channel: int):
     if 'discord.gg' in message:
@@ -189,8 +189,8 @@ class Partner():
             if check == True:
                 return True
             else:
-                return None    
-        
+                return None
+
         elif self.server.id == 925790259160166460:
             path = "/partnerships/hazeads/{}.txt".format(self.user.id)
             check = os.path.exists(path)
@@ -228,7 +228,7 @@ class Partner():
             os.remove("partnerships/orleans/{}.txt".format(self.user.id))
         elif self.server.id == 925790259160166460:
             os.remove("partnerships/hazeads/{}.txt".format(self.user.id))
-        
+
         try:
             await self.user.send(
                 f"Your partnership request was denied because:\n{reason}")
@@ -239,7 +239,7 @@ class Partner():
 class Break():
     def __init__(self, member:Optional[Member]=None)->None:
         self.member=member
-  
+
     def check_loa_breaks(self):
         data = db.execute(
             "SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
@@ -286,21 +286,6 @@ class Break():
             "DELETE FROM breakData WHERE user_id = ? and guild_id = ?", (self.member.id, server,))
         db.commit()
 
-class Plans():
-    def __init__(self, server:int):
-        self.server=server
-        
-    def check_plans(self):
-        data = db.execute(
-                "SELECT * FROM planData where server_id = ?", (self.server,)).fetchall()
-        db.commit()
-        return data
-
-    def remove_plan(self, plan_id:int):
-        db.execute(
-            'DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (plan_id, self.server,))
-        db.commit()
-
 class Resign():
     def __init__(self, member:Member):
         self.member=member
@@ -314,7 +299,7 @@ class Resign():
         data = db.execute(
             "SELECT * FROM resignData WHERE user_id = ?", (self.member.id,)).fetchone()
         db.commit()
-        
+
         if data==None:
             return None
         else:
@@ -329,20 +314,34 @@ class Resign():
         db.execute("DELETE FROM resignData WHERE WHERE user_id = ?", (self.member.id,))
         db.commit()
 
+class Plans():
+    def __init__(self,server: int):
+        self.server=server
 
-def add_plan(user:User, until:int, plan:str, claimee:User, plan_id, server:int):
-    db.execute(
-        "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
-        (user.id, round(datetime.now().timestamp()), until, plan, claimee.id, plan_id, server,))
-    db.commit()
+    def add_plan(self, user:User, until:int, plan:str, claimee:User, plan_id:int):
+        db.execute(
+            "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
+            (user.id, round(datetime.now().timestamp()), until, plan, claimee.id, plan_id, self.server,))
+        db.commit()
 
-def get_plan(plan_id:int, server:int):
-    data = db.execute(
-        "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?", (plan_id, server,)).fetchone()
-    
-    if data == None:
-        return None
-    else:
+    def get_plan(self, plan_id:int):
+        data = db.execute(
+            "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?", (plan_id, self.server,)).fetchone()
+
+        if data == None:
+            return None
+        else:
+            return data
+
+    def check_plans(self):
+        data = db.execute("SELECT * FROM planData where server_id = ?",
+                          (self.server,)).fetchall()
+        db.commit()
         return data
 
-    
+    def remove_plan(self, plan_id: int):
+        db.execute('DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (
+            plan_id,
+            self.server,
+        ))
+        db.commit()

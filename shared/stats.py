@@ -1,20 +1,25 @@
 from datetime import timedelta
 from sys import version_info as py_version
 from time import time
-
-from nextcord import *
-from nextcord import slash_command as slash, __version__ as discord_version
-from nextcord.ext.commands import Cog, Bot
+from collections import OrderedDict
+from json import load
+from discord import *
+from discord import app_commands as Serverutil, __version__ as discord_version
+from discord.ext.commands import Cog, Bot
 
 format = "%a, %d %b %Y | %H:%M:%S"
 start_time = time()
 
+def replace_all(text: str, dic: dict):
+    for i, j in dic.items():
+        text = text.replace(i, j)
+    return text
 
 class slashinfo(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @slash(description="See the bot's status from development to now")
+    @Serverutil.command(description="See the bot's status from development to now")
     async def stats(self, ctx: Interaction):
         await ctx.response.defer()
         botowner = self.bot.get_user(597829930964877369)
@@ -26,7 +31,7 @@ class slashinfo(Cog):
             format), inline=True)
         embed.add_field(
             name="Version",
-            value=f"• **Python Version:** {py_version.major}.{py_version.minor}.{py_version.micro}\n•**Nextcord Version:** {discord_version}",
+            value=f"• **Python Version:** {py_version.major}.{py_version.minor}.{py_version.micro}\n•**DiscordPy Version:** {discord_version}",
             inline=True)
 
         current_time = time()
@@ -36,12 +41,19 @@ class slashinfo(Cog):
             name="Uptime", value=f"{uptime} hours", inline=True)
 
         embed.set_thumbnail(
-            url=self.bot.user.avatar)
+            url=self.bot.user.display_avatar)
         embed.set_footer(
-            text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him. By the way, its not for free...".format(
+            text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him or email to **zane544yt@protonmail.com**. By the way, its not for free...".format(
                 botowner))
         await ctx.followup.send(embed=embed)
 
+    @Serverutil.command(description="Check if a bot is made by Varien")
+    async def validate_bot(self, ctx: Interaction, botid:str):
+        f=open('assets/mybots.json')
+        json=load(f)
+
+        if json['mybots'][botid] == 
+        
 
 def setup(bot: Bot):
     bot.add_cog(slashinfo(bot))

@@ -1,7 +1,7 @@
 import os
 from discord import *
 from discord import app_commands as Serverutil
-from discord.ext.commands import GroupCog, Bot, has_any_role
+from discord.ext.commands import GroupCog, Bot
 from assets.functions import Partner
 from config import hazead, orleans
 
@@ -102,7 +102,7 @@ class partnercog(GroupCog, name="partner"):
                 "You have ran out of time. Please try again later")
 
     @Serverutil.command(description='Approve a partnership')
-    @has_any_role(partner_manager, admins, owner, management)
+    @Serverutil.checks.has_any_role(partner_manager, admins, owner, management)
     async def approve(self, ctx: Interaction, member: Member):
         await ctx.response.defer()
         partner = Partner(member, ctx.guild)
@@ -112,7 +112,7 @@ class partnercog(GroupCog, name="partner"):
     @Serverutil.command(description='Deny a partnership')
     @Serverutil.describe(
         reason="What was the reason for denying the partnership request?")
-    @has_any_role(partner_manager, admins, owner)
+    @Serverutil.checks.has_any_role(partner_manager, admins, owner)
     async def deny(self, ctx: Interaction, member: Member, reason: str):
         partner = Partner(member, ctx.guild)
         if partner.check() == True:

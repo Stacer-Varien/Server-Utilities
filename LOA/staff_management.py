@@ -129,7 +129,7 @@ class breakcog(GroupCog, name='break'):
                                         delete_after=10.0)
 
     @Serverutil.command(description="Approve the break")
-    @has_any_role(core_team, om)
+    @Serverutil.checks.has_any_role(core_team, om)
     async def approve(self, ctx: Interaction, break_id: int):
         await ctx.response.defer()
         data = Break().fetch_break_id(break_id, ctx.guild.id)
@@ -199,7 +199,7 @@ class breakcog(GroupCog, name='break'):
                                         delete_after=10.0)
 
     @Serverutil.command(name="deny", description="Deny the break")
-    @has_any_role(core_team, om)
+    @Serverutil.checks.has_any_role(core_team, om)
     async def _deny(self, ctx: Interaction, break_id: int):
         await ctx.response.defer()
         if ctx.guild.id == 841671029066956831:
@@ -258,7 +258,7 @@ class strikecog(GroupCog, name='strike'):
         description=
         "Give a strike to a staff member for bad performance/unprofessionalism"
     )
-    @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
+    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def give(self, ctx: Interaction, member: Member,
                    department: Literal["Management", "Human Resources",
                                        "Moderation", "Marketing"],
@@ -298,7 +298,7 @@ class strikecog(GroupCog, name='strike'):
 
     @Serverutil.command(
         description="Remove a strike if a staff member has shown improvement")
-    @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
+    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def remove(self, ctx: Interaction, strike_id: int,
                      department: Literal["Management", "Human Resources",
                                          "Moderation", "Marketing"],
@@ -345,7 +345,7 @@ Also just to let you know, your user ID is logged when doing this appeal so if y
         await ctx.response.send_message(msg, view=view, ephemeral=True)
 
     @Serverutil.command(description="Approve or deny a strike")
-    @has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
+    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def appealverdict(self, ctx: Interaction, strike_appeal_id: int,
                             department: Literal["Management",
                                                 "Human Resources",
@@ -414,7 +414,7 @@ class resigncog(GroupCog, name='resign'):
         await channel.send(embed=request)
 
     @Serverutil.command(description="Approve a resignation")
-    @has_any_role(core_team, chr, coo)
+    @Serverutil.checks.has_any_role(core_team, chr, coo)
     async def approve(self, ctx: Interaction, member: Member, department: str):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
@@ -438,7 +438,7 @@ class resigncog(GroupCog, name='resign'):
         await ctx.followup.send("Accepted resignation of {}".format(member))
 
     @Serverutil.command(name="deny", description="Denies a resignation")
-    @has_any_role(core_team, chr, coo)
+    @Serverutil.checks.has_any_role(core_team, chr, coo)
     async def deny(self, ctx: Interaction, member: Member):
         await ctx.response.defer(ephemeral=True)
         resign = Resign(ctx.user)
