@@ -1,7 +1,7 @@
-from discord import *
+from discord import Embed
 from discord.ext import tasks
 from discord.ext.commands import Cog, Bot
-from datetime import *
+from datetime import datetime
 from assets.functions import Plans
 
 

@@ -63,11 +63,11 @@ class plancog(GroupCog, name="plan"):
                                     loa_staff_team)
     async def end(self, ctx: Interaction, plan_id: int):
         await ctx.response.defer(ephemeral=True)
-        if ctx.guild.id == 925790259160166460:
-            guild = 925790259160166460
+        if ctx.guild.id == hazead:
+            guild = hazead
 
         else:
-            guild = 704888699590279221
+            guild = loa
 
         plan = Plans(guild)
         result = plan.get_plan(plan_id)

@@ -4,9 +4,6 @@ from discord.ext import tasks
 
 from assets.applications import AppButtons
 
-HAZE_ADS = 925790259160166460
-
-
 class application(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot

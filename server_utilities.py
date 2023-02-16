@@ -15,7 +15,6 @@ intents.guild_scheduled_events = False
 class ServerUtilities(Bot):
     async def setup_hook(self):
         await self.tree.sync()
-
         for filename in listdir('./HA'):
             if filename.endswith('.py'):
                 await bot.load_extension(f'HA.{filename[:-3]}')

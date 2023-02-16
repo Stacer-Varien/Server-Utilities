@@ -1,380 +1,387 @@
 {
-    "mybots": [
-        {
-            "831993597166747679": {
-                "content": null,
-                "embeds": [
+    "831993597166747679": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "[Yes! Click here](https://top.gg/bot/831993597166747679)",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Public",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Cute multipurpose bot with utility, moderation, management, Hentai, information and fun commands",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "No. Please email/DM %botowner% to buy a bot from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "[Yes! Click here](https://top.gg/bot/831993597166747679)",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Public",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Cute multipurpose bot with utility, moderation, management, Hentai, information and fun commands",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "No. Please email/DM %botowner% to buy a bot from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "881516083922739240": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "881516083922739240": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No. Only for [Orleans](https://discord.gg/jh7jkuk2pp)",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Private",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Former Youtube notifier bot for depricated channel, RE Music",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "No. Please email/DM %botowner% to buy a bot from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No. Only for [Orleans](https://discord.gg/jh7jkuk2pp)",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Private",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Former Youtube notifier bot for depricated channel, RE Music",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "No. Please email/DM %botowner% to buy a bot from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "895364798588534826": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "895364798588534826": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Private",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Test bot for `<@!831993597166747679>`",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "No. Please email/DM %botowner% to buy a bot from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Private",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Test bot for `<@!831993597166747679>`",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "No. Please email/DM %botowner% to buy a bot from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "926453662446915634": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "926453662446915634": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Utility bot for Orleans, HAZE Advertisings, LOA, LSS and Varien's Homework Folder",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Uitlity bot",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "No. Please email/DM %botowner% to buy a bot from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Utility bot for Orleans, HAZE Advertisings, LOA, LSS and Varien's Homework Folder",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Uitlity bot",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "No. Please email/DM %botowner% to buy a bot from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "1067838201185706056": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "1067838201185706056": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This is not a bot but it does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This is not a bot but it does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Name",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Private",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Custom Discord presence",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "No. Please email/DM %botowner% to buy a bot from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Name",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Private",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Custom Discord presence",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "No. Please email/DM %botowner% to buy a bot from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "988435020836397067": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "988435020836397067": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Private",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Satanic themed bot that has utility, fun and moderation commands",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "YES! Please email/DM %botowner% to buy from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Private",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Satanic themed bot that has utility, fun and moderation commands",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "YES! Please email/DM %botowner% to buy from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "1039547875081850982": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "1039547875081850982": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Private",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Hentai bot based on the anime, Fate",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "YES! Please email/DM %botowner% to buy from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Private",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Hentai bot based on the anime, Fate",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "YES! Please email/DM %botowner% to buy from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        },
-        {
-            "1047955510013460621": {
-                "content": null,
-                "embeds": [
+        ],
+        "attachments": []
+    },
+    "1047955510013460621": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does belong to %botowner%",
+                "color": 65443,
+                "fields": [
                     {
-                        "title": "This bot does belongs to %botowner%",
-                        "color": 65443,
-                        "fields": [
-                            {
-                                "name": "Bot",
-                                "value": "%bot%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Bot ID",
-                                "value": "%bot.id%",
-                                "inline": true
-                            },
-                            {
-                                "name": "Invitable?",
-                                "value": "No",
-                                "inline": true
-                            },
-                            {
-                                "name": "Publicity",
-                                "value": "Private",
-                                "inline": true
-                            },
-                            {
-                                "name": "Type",
-                                "value": "Hentai autoposting bot focused on anime waifus every week",
-                                "inline": true
-                            },
-                            {
-                                "name": "Buyable?",
-                                "value": "YES! Please email/DM %botowner% to buy from him",
-                                "inline": true
-                            }
-                        ],
-                        "thumbnail": {
-                            "url": "%botav%"
-                        }
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Invitable?",
+                        "value": "No",
+                        "inline": true
+                    },
+                    {
+                        "name": "Publicity",
+                        "value": "Private",
+                        "inline": true
+                    },
+                    {
+                        "name": "Type",
+                        "value": "Hentai autoposting bot focused on anime waifus every week",
+                        "inline": true
+                    },
+                    {
+                        "name": "Buyable?",
+                        "value": "YES! Please email/DM %botowner% to buy from him",
+                        "inline": true
                     }
                 ],
-                "attachments": []
+                "thumbnail": {
+                    "url": "%botav%"
+                }
             }
-        }
-    ]
+        ],
+        "attachments": []
+    },
+    "notmine": {
+        "content": null,
+        "embeds": [
+            {
+                "title": "This bot does not belong to %botowner%",
+                "color": 16711680,
+                "fields": [
+                    {
+                        "name": "Bot",
+                        "value": "%bot%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Bot ID",
+                        "value": "%bot.id%",
+                        "inline": true
+                    }
+                ],
+                "thumbnail": {
+                    "url": "%botav%"
+                }
+            }
+        ],
+        "attachments": []
+    }
 }

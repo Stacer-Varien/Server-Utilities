@@ -4,10 +4,11 @@ from assets.menus import ProductSelect
 from humanfriendly import parse_timespan
 from discord import Embed, Color, Interaction, Member, CategoryChannel, Object
 from discord import app_commands as Serverutil
-from discord.ext.commands import Bot, GroupCog, has_any_role
+from discord.ext.commands import Bot, GroupCog
 from assets.functions import Break, Resign, Strike
 from assets.strike_modal import Start_Appeal
 from typing import Literal, Optional
+from config import lss
 
 ha_admin = 925790259319558157
 ha_hr = 925790259319558156
@@ -536,7 +537,7 @@ What you can get for getting any of our plans:
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(breakcog(bot), guild=Object(841671029066956831))
-    await bot.add_cog(strikecog(bot), guild=Object(841671029066956831))
-    await bot.add_cog(resigncog(bot), guild=Object(841671029066956831))
-    await bot.add_cog(pricelistcog(bot), guild=Object(841671029066956831))
+    await bot.add_cog(breakcog(bot), guild=Object(lss))
+    await bot.add_cog(strikecog(bot), guild=Object(lss))
+    await bot.add_cog(resigncog(bot), guild=Object(lss))
+    await bot.add_cog(pricelistcog(bot), guild=Object(lss))
