@@ -107,16 +107,17 @@ class partnercog(GroupCog, name="partner"):
         await ctx.response.defer()
         partner = Partner(member, ctx.guild)
         if partner.check() == True:
-            await partner.approve(ctx.guild, member)
+            await partner.approve(ctx)
 
     @Serverutil.command(description='Deny a partnership')
     @Serverutil.describe(
         reason="What was the reason for denying the partnership request?")
     @Serverutil.checks.has_any_role(partner_manager, admins, owner)
     async def deny(self, ctx: Interaction, member: Member, reason: str):
+        await ctx.response.defer()
         partner = Partner(member, ctx.guild)
         if partner.check() == True:
-            await partner.deny(reason)
+            await partner.deny(ctx, reason)
 
 
 async def setup(bot: Bot):

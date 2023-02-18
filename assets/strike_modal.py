@@ -1,6 +1,6 @@
 from discord import *
 from discord.ext.commands import Bot
-from assets.functions import get_appeal_id
+from assets.functions import Strike
 from config import db
 
 class Strike_Appeal(ui.Modal):
@@ -12,7 +12,7 @@ class Strike_Appeal(ui.Modal):
             "Strike Appeal Form")
 
         self.strike_appeal = ui.TextInput(
-                                            label="Reason of appeal", 
+                                            label="Reason for appealling strike", 
                                             min_length=4, 
                                             max_length=1024,
                                             required=True,
@@ -22,7 +22,7 @@ class Strike_Appeal(ui.Modal):
         self.add_item(self.strike_appeal)
 
     async def callback(self, ctx: Interaction) -> None:
-        appeal_id = get_appeal_id(self.strike_id, self.department)
+        appeal_id = Strike(self.department).get_appeal_id(self.strike_id)
 
         embed = Embed(title="New Strike Appeal")
         embed.add_field(name="Staff member", value="{} | {}".format(ctx.user, ctx.user.id), inline=False)

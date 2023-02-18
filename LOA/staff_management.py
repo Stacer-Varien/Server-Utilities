@@ -341,7 +341,8 @@ Before you start appealing your strike, please make sure:
     2. You have proof in media links if necessary
         
 If you feel it meets those conditions, click the button below.
-Also just to let you know, your user ID is logged when doing this appeal so if you troll, we will take actions."""
+Also just to let you know, your user ID is logged when doing this appeal so if you troll, we will take actions.
+"""
 
         await ctx.response.send_message(msg, view=view, ephemeral=True)
 
@@ -409,7 +410,8 @@ class resigncog(GroupCog, name='resign'):
                           inline=False)
         request.set_footer(
             text=
-            "To accept or deny the resignation, use `/resign approve USER_ID`")
+            "To accept or deny the resignation, use `/resign approve USER_ID` or `/resign approve USER_ID`"
+        )
 
         await ctx.followup.send("Your resignation has been requested")
         await channel.send(embed=request)
@@ -437,12 +439,13 @@ class resigncog(GroupCog, name='resign'):
             resign.approve_resign()
 
         await ctx.followup.send("Accepted resignation of {}".format(member))
+        await channel.send(f"{member}has resigned from {department}")
 
     @Serverutil.command(name="deny", description="Denies a resignation")
     @Serverutil.checks.has_any_role(core_team, chr, coo)
     async def deny(self, ctx: Interaction, member: Member):
         await ctx.response.defer(ephemeral=True)
-        resign = Resign(ctx.user)
+        resign = Resign(member)
         data = resign.check_resign()
 
         if data == None:

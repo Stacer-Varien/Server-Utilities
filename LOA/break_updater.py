@@ -10,7 +10,7 @@ class break_updater(Cog):
         self.bot = bot
         self.check_break.start()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(minutes=1)
     async def check_break(self):
         check_breaks = Break().check_loa_breaks()
         loa = await self.bot.fetch_guild(841671029066956831)
