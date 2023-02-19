@@ -62,11 +62,12 @@ class slashinfo(Cog):
         botowner = await self.bot.fetch_user(597829930964877369)
         bot = await self.bot.fetch_user(int(botid))
         if bot.bot == True:
+            parms = OrderedDict([("%botowner%", str(botowner)),
+                                 ("%bot%", str(bot)),
+                                 ("%bot.id%", str(bot.id)),
+                                 ("%botav%", bot.display_avatar)])
             try:
-                parms = OrderedDict([("%botowner%", str(botowner)),
-                                     ("%bot%", str(bot)),
-                                     ("%bot.id%", str(bot.id)),
-                                     ("%botav%", bot.display_avatar)])
+
                 json = load(replace_all(f, parms))
 
                 embed = Embed.from_dict(json[botid]["embeds"][0])
@@ -83,4 +84,10 @@ class slashinfo(Cog):
 
 
 def setup(bot: Bot):
-    bot.add_cog(slashinfo(bot), guilds=[Object(id=lss), Object(id=hazead), Object(id=orleans), Object(loa)])
+    bot.add_cog(slashinfo(bot),
+                guilds=[
+                    Object(id=lss),
+                    Object(id=hazead),
+                    Object(id=orleans),
+                    Object(loa)
+                ])

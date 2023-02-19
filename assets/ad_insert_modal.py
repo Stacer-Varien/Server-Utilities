@@ -56,7 +56,7 @@ class {self.name}(Cog):
         
         for a in channels:
           channel = await self.bot.fetch_channel(a)
-          await channel.send(content)
+          await channel.send(content, allowed_mentions=AllowedMentions.none)
 
 async def setup(bot:Bot):
     await bot.add_cog({self.name}(bot))
