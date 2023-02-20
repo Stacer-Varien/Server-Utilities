@@ -19,7 +19,7 @@ class autoadcog(GroupCog, name='automod'):
 
 
     @Serverutil.command(description="Create an autoad and starts it")
-    @Serverutil.checks.has_any_role(841671779394781225)
+    @Serverutil.checks.has_any_role(841671779394781225,1077172702743371787)
     @Serverutil.describe(
         buyer_id="What is the buyer's user ID?",
         name="What will you name the autoad?",
@@ -46,7 +46,7 @@ class autoadcog(GroupCog, name='automod'):
         await ctx.response.send_modal(Ad_Insert(self.bot, int(buyer_id), name, looping, round(ending.timestamp()), channels))
 
     @Serverutil.command(description="Manages an autoad")
-    @Serverutil.checks.has_any_role(841671779394781225)
+    @Serverutil.checks.has_any_role(841671779394781225, 1077172702743371787)
     @Serverutil.describe(autoad_name="What is the name of the autoad")
     async def manage(self, ctx:Interaction, autoad_name:str):
         await ctx.response.defer()
@@ -86,13 +86,16 @@ class autoadcog(GroupCog, name='automod'):
                     attachment=msg.attachments[0].url
 
                     ad=requests.get(attachment).content
+                    os.remove(f"/autopost/{autoad_name}.py")
 
-                    with open(f"autopost/{autoad_name}.txt", 'r') as f:
-                        f.writelines(ad)
+                    with open(f"/autopost/{autoad_name}.txt", 'wb') as f:
+                        f.write(ad)
 
                     await ctx.edit_original_response(f"Ad for {autoad_name} has been changed")
                 except TimeoutError:
                     await ctx.edit_original_response("Timeout")
-
         else:
-            await ctx.followup.send("Invalid Plan ID with autoad passed")
+            await ctx.followup.send("No Autoad has that name. Please try and check if you have put the correct autoad")
+
+async def setup(bot:Bot):
+    await bot.add_cog(autoadcog(bot))
