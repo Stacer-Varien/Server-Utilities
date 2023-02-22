@@ -1,6 +1,8 @@
 from discord import ui, Interaction, SelectOption, Embed, Color
 
+
 class ProductMenu(ui.Select):
+
     def __init__(self):
         options = [
             SelectOption(label="Shoutout and Custom Channels"),
@@ -10,7 +12,9 @@ class ProductMenu(ui.Select):
             SelectOption(label="Special Packages")
         ]
         super().__init__(placeholder="Select an option",
-                         max_values=1, min_values=1, options=options)
+                         max_values=1,
+                         min_values=1,
+                         options=options)
 
     async def callback(self, ctx: Interaction):
         if self.values[0] == "Shoutout and Custom Channels":
@@ -117,7 +121,9 @@ Custom Channel on the top of the server:
 """
             await ctx.edit_original_message(embed=special)
 
+
 class ProductSelect(ui.View):
+
     def __init__(self):
         super().__init__(timeout=360)
         self.add_item(ProductMenu())

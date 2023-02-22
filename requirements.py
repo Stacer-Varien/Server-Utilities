@@ -1,10 +1,10 @@
 import platform
 import os
 
-pip="install -U pip"
-packages="install -U discord requests python-dotenv humanfriendly datetime"
+pip = "install -U pip"
+packages = "install -U discord requests python-dotenv humanfriendly datetime"
 
-pack=[pip, packages]
+pack = [pip, packages]
 
 if platform.system() == "Linux":
     for i in pack:

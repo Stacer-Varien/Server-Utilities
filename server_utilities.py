@@ -1,8 +1,6 @@
 from os import listdir
-
 from discord import Intents
 from discord.ext.commands import Bot, when_mentioned_or
-
 from config import TOKEN
 
 intents = Intents().all()
@@ -13,6 +11,7 @@ intents.guild_scheduled_events = False
 
 
 class ServerUtilities(Bot):
+
     async def setup_hook(self):
         await self.tree.sync()
         for filename in listdir('./HA'):
@@ -46,8 +45,9 @@ class ServerUtilities(Bot):
         await bot.load_extension('jishaku')
 
 
-bot = Bot(intents=intents, command_prefix=when_mentioned_or(
-    "su!", 'SU!', 'Su!', 'su', 'SU', 'sU'))
+bot = Bot(intents=intents,
+          command_prefix=when_mentioned_or("su!", 'SU!', 'Su!', 'su', 'SU',
+                                           'sU'))
 bot.remove_command('help')
 
 
@@ -55,5 +55,6 @@ bot.remove_command('help')
 async def on_ready():
     print('Connected to bot: {}'.format(bot.user.name))
     print('Bot ID: {}'.format(bot.user.id))
+
 
 bot.run(TOKEN)

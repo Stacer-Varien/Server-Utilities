@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from random import randint
 from assets.menus import ProductSelect
 from humanfriendly import parse_timespan
-from discord import Embed, Color, Interaction, Member, CategoryChannel, Object
+from discord import Embed, Color, Interaction, Member, CategoryChannel, Object, TextChannel
 from discord import app_commands as Serverutil
 from discord.ext.commands import Bot, GroupCog
 from assets.functions import Break, Resign, Strike
@@ -255,18 +255,55 @@ class strikecog(GroupCog, name='strike'):
     def __init__(self, bot: Bot):
         self.bot = bot
 
+    async def addstrike(self, ctx: Interaction, member: Member,
+                        department: str, reason: str, strike: Strike):
+        channel = self.bot.get_channel(841672405444591657)
+        strike_id = randint(0, 99999)
+        appeal_id = randint(0, 99999)
+        strike.give(strike_id, appeal_id)
+        if strike.get_strikes() == None:
+            strikes = 0
+        else:
+            strikes = strike.get_strikes()
+
+        embed = Embed(title="You have been striked", color=Color.red())
+        embed.add_field(name="Strike count", value=strikes, inline=True)
+        embed.add_field(name="Department", value=department, inline=True)
+        embed.add_field(name="Reason", value=reason, inline=True)
+        embed.add_field(name="Strike ID", value=strike_id)
+        embed.set_footer(
+            text=
+            "To appeal for your strike, please do `/strike appeal STRIKE ID`")
+        await channel.send(member.mention, embed=embed)
+        await ctx.followup.send("Strike given to {}".format(member))
+
     @Serverutil.command(
         description=
         "Give a strike to a staff member for bad performance/unprofessionalism"
     )
-    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
     async def give(self, ctx: Interaction, member: Member,
                    department: Literal["Management", "Human Resources",
                                        "Moderation", "Marketing"],
                    reason: str):
         await ctx.response.defer(ephemeral=True)
-        channel = self.bot.get_channel(841672405444591657)
-        CT = ctx.guild.get_role(core_team)
+
+        #all
+        CT = ctx.guild.get_role(841671779394781225)
+        OM = ctx.guild.get_role(841671956999045141)
+        COO = ctx.guild.get_role(955722820464283658)
+        CHR = ctx.guild.get_role(949147158572056636)
+        TL = ctx.guild.get_role(841682891599773767)
+        SS = ctx.guild.get_role(962628294627438682)
+
+        #mod
+        CSO = ctx.guild.fetch_roles(949147509660483614)
+        CAO = ctx.guild.get_role(1076650317392916591)
+        CSOA = ctx.guild.get_role(1074770323293085716)
+        CSOT = ctx.guild.get_role(1074770253294342144)
+        MODS = ctx.guild.get_role(1074770253294342144)
+        MODT = ctx.guild.get_role(1074770253294342144)
+
+        ALL = [CT, OM, COO, CHR, TL, SS]
 
         if CT in member.roles:
             await ctx.followup.send(
@@ -275,31 +312,46 @@ class strikecog(GroupCog, name='strike'):
                 ephemeral=True)
 
         else:
-            strike = Strike(department, member)
-            strike_id = randint(0, 99999)
-            appeal_id = randint(0, 99999)
-            strike.give(strike_id, appeal_id)
+            if department == 'Moderation':
+                if MODT in ctx.user.roles and MODT in member.roles:
+                    MODERS = [CSO, CAO, CSOA, CSOT, MODS]
+                    if any(role.id for role in MODERS
+                           for role in ctx.user.roles):
+                        if ctx.user.get_role(CSO).position >= member.get_role(
+                                CAO
+                        ) or ctx.user.get_role(CAO).position >= member.get_role(
+                                CSOA).position or ctx.user.get_role(
+                                    CSOA).position >= member.get_role(
+                                        CSOT).position or ctx.user.get_role(
+                                            CSOT).position >= member.get_role(
+                                                MODS
+                                            ).position or ctx.user.get_role(
+                                                MODS
+                                            ).position > member.get_role(
+                                                1074770103415083099).position:
+                            strike = Strike(department, member)
+                    await self.addstrike(ctx, member, department, reason,
+                                         strike)
+            elif department == "Marketing":
+                if ctx.user.get_role(
+                        950013921895538688).position > member.get_role(
+                            881084354422538281).position:
+                    strike = Strike(department, member)
+                    await self.addstrike(ctx, member, department, reason,
+                                         strike)
 
-            if strike.get_strikes() == None:
-                strikes = 0
+            elif any(role.id for role in ALL for role in ctx.user.roles):
+                strike = Strike(department, member)
+                await self.addstrike(ctx, member, department, reason, strike)
+
             else:
-                strikes = strike.get_strikes()
-
-            embed = Embed(title="You have been striked", color=Color.red())
-            embed.add_field(name="Strike count", value=strikes, inline=True)
-            embed.add_field(name="Department", value=department, inline=True)
-            embed.add_field(name="Reason", value=reason, inline=True)
-            embed.add_field(name="Strike ID", value=strike_id)
-            embed.set_footer(
-                text=
-                "To appeal for your strike, please do `/strike appeal STRIKE ID`"
-            )
-            await channel.send(member.mention, embed=embed)
-            await ctx.followup.send("Strike given to {}".format(member))
+                await ctx.followup.send(
+                    "You do not have the required roles to do a strike")
 
     @Serverutil.command(
         description="Remove a strike if a staff member has shown improvement")
-    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
+    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader,
+                                    staff_supervisor, om)
     async def remove(self, ctx: Interaction, strike_id: int,
                      department: Literal["Management", "Human Resources",
                                          "Moderation", "Marketing"],
@@ -347,7 +399,8 @@ Also just to let you know, your user ID is logged when doing this appeal so if y
         await ctx.response.send_message(msg, view=view, ephemeral=True)
 
     @Serverutil.command(description="Approve or deny a strike")
-    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader, staff_supervisor)
+    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader,
+                                    staff_supervisor)
     async def appealverdict(self, ctx: Interaction, strike_appeal_id: int,
                             department: Literal["Management",
                                                 "Human Resources",
@@ -540,7 +593,7 @@ What you can get for getting any of our plans:
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(breakcog(bot), guild=Object(lss))
-    await bot.add_cog(strikecog(bot), guild=Object(lss))
-    await bot.add_cog(resigncog(bot), guild=Object(lss))
-    await bot.add_cog(pricelistcog(bot), guild=Object(lss))
+    await bot.add_cog(breakcog(bot), guild=Object(id=lss))
+    await bot.add_cog(strikecog(bot), guild=Object(id=lss))
+    await bot.add_cog(resigncog(bot), guild=Object(id=lss))
+    await bot.add_cog(pricelistcog(bot), guild=Object(id=lss))

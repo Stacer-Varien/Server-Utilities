@@ -40,5 +40,6 @@ class plan_updater_cog(Cog):
                 else:
                     pass
 
+
 async def setup(bot: Bot):
     await bot.add_cog(plan_updater_cog(bot))

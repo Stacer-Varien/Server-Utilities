@@ -4,7 +4,9 @@ from discord.ext import tasks
 
 from assets.applications import AppButtons
 
+
 class application(Cog):
+
     def __init__(self, bot: Bot):
         self.bot = bot
         self.reload_apps.start()

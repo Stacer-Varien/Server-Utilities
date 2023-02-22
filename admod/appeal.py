@@ -118,6 +118,8 @@ class appealcog(GroupCog, name='appeal'):
 
                 await ctx.followup.send(
                     "Warning revoked and message sent to member")
+                adwarn_channel = ctx.guild.get_channel(925790260695281703)
+                await adwarn_channel.send("{}, your warn has been removed")
         else:
             channel = await self.bot.fetch_channel(951783773006073906)
             await ctx.followup.send("Please do the command in {}".format(

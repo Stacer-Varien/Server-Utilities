@@ -275,7 +275,7 @@ class Partner():
             else:
                 return None
 
-    async def approve(self, ctx:Interaction):
+    async def approve(self, ctx: Interaction):
         if self.server.id == 740584420645535775:
             with open("partnerships/orleans/{}.txt".format(self.user.id),
                       'r') as f:
@@ -304,7 +304,7 @@ class Partner():
             await partner_channnel.send(content=content)
         return await ctx.followup.send("Partnership approved")
 
-    async def deny(self, ctx:Interaction, reason: str):
+    async def deny(self, ctx: Interaction, reason: str):
         if self.server.id == 740584420645535775:
             os.remove("partnerships/orleans/{}.txt".format(self.user.id))
         elif self.server.id == 925790259160166460:
@@ -313,9 +313,9 @@ class Partner():
         try:
             await self.user.send(
                 f"Your partnership request was denied because:\n{reason}")
-            msg="Partnership denied and reason sent"
+            msg = "Partnership denied and reason sent"
         except:
-            msg= "Partnership denied"
+            msg = "Partnership denied"
         return await ctx.followup.send(msg)
 
 
@@ -482,20 +482,20 @@ class Plans():
         ))
         db.commit()
 
+
 class AutoAd():
-    def __init__(self, bot:Bot, server:Guild):
-        self.bot=bot
-        self.server=server
-    
-    async def check_channel(self, channels:str):
-        if self.server.id==841671029066956831:
-            server= await self.bot.fetch_guild(841671029066956831)
-        elif self.server.id==925790259160166460:
-            server= await self.bot.fetch_guild(925790259160166460)            
+
+    def __init__(self, bot: Bot, server: Guild):
+        self.bot = bot
+        self.server = server
+
+    async def check_channel(self, channels: str):
+        if self.server.id == 841671029066956831:
+            server = await self.bot.fetch_guild(841671029066956831)
+        elif self.server.id == 925790259160166460:
+            server = await self.bot.fetch_guild(925790259160166460)
         try:
             for channel in channels:
                 await server.fetch_channel(int(channel))
         except:
             return None
-
-          

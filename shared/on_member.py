@@ -66,7 +66,7 @@ class member(Cog):
                     await channel.send(embed=not_accepted)
 
                 elif check_resignation_data[
-                        0] == 1:  # if their resignation has been accepted and they were kicked out
+                        0] == 1:  # if their resignation has been accepted
                     db.execute("DELETE FROM resignData WHERE user_id = ?",
                                (member.id, ))
                     db.commit()
@@ -78,6 +78,7 @@ class member(Cog):
                 print(e)
         else:
             pass
+
 
 async def setup(bot: Bot):
     await bot.add_cog(member(bot))
