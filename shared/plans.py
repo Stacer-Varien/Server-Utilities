@@ -3,10 +3,10 @@ from random import randint
 from humanfriendly import parse_timespan
 from discord import *
 from discord import app_commands as Serverutil
-from discord.ext.commands import GroupCog, Bot, has_any_role
+from discord.ext.commands import GroupCog, Bot
 from config import hazead, orleans, loa, lss
 
-from assets.functions import Plans, get_plan, remove_plan
+from assets.functions import Plans
 
 planmanager = 956634941066739772
 operationmanager = 841671956999045141

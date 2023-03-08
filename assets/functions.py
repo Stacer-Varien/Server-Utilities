@@ -8,7 +8,7 @@ from typing import Optional
 
 
 def convert_loop_time(time: float):
-    """Convert a float from humanfriendly.parse_timespan to loop times for the autoad maker"""
+    """Convert a float from humanfriendly.parse_timespan to task times for the autoad maker"""
     if time < 60:
         return f"seconds={time}"
     elif time < 3600:
@@ -351,7 +351,7 @@ class Break():
             ))
         db.commit()
 
-    def fetch_break_id(break_id: int, server: int):
+    def fetch_break_id(self, break_id: int, server: int):
         data = db.execute(
             "SELECT * FROM breakData WHERE break_id = ? AND guild_id = ?", (
                 break_id,

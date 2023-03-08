@@ -2,7 +2,7 @@ from datetime import timedelta
 from sys import version_info as py_version
 from time import time
 from collections import OrderedDict
-from json import load
+from json import loads
 from discord import Embed, Interaction, Color, Object
 from discord import app_commands as Serverutil, __version__ as discord_version
 from discord.ext.commands import Cog, Bot
@@ -58,24 +58,25 @@ class slashinfo(Cog):
     @Serverutil.command(description="Check if a bot is made by Varien")
     async def validate_bot(self, ctx: Interaction, botid: str):
         await ctx.response.defer()
-        f = open('assets/mybots.json')
+        with open('assets/mybots.json', 'r') as f:
+            content="".join(f.readlines())
+        if int(botid) == 1067838201185706056:
+            pass
+        else:
+            bot = await self.bot.fetch_user(int(botid))
         botowner = await self.bot.fetch_user(597829930964877369)
-        bot = await self.bot.fetch_user(int(botid))
-        if bot.bot == True:
-            parms = OrderedDict([("%botowner%", str(botowner)),
-                                 ("%bot%", str(bot)),
-                                 ("%bot.id%", str(bot.id)),
-                                 ("%botav%", bot.display_avatar)])
-            try:
 
-                json = load(replace_all(f, parms))
+        parms = OrderedDict([("%botowner%", str(botowner)),
+                             ("%bot%", str(bot)), ("%bot.id%", str(bot.id)),
+                             ("%botav%", str(bot.display_avatar)),])
+        if bot.bot == True:
+
+            try:
+                json = loads(replace_all(content, parms))
 
                 embed = Embed.from_dict(json[botid]["embeds"][0])
             except KeyError:
-                parms = OrderedDict([("%botowner", str(botowner)),
-                                     ("%bot%", str(bot)),
-                                     ("%bot.id%", str(bot.id)),
-                                     ("%botav%", bot.display_avatar)])
+                json = loads(replace_all(content, parms))
                 embed = Embed.from_dict(json["notmine"]["embeds"][0])
             await ctx.followup.send(embed=embed)
         else:
@@ -83,11 +84,11 @@ class slashinfo(Cog):
                                     )
 
 
-def setup(bot: Bot):
-    bot.add_cog(slashinfo(bot),
+async def setup(bot: Bot):
+    await bot.add_cog(slashinfo(bot),
                 guilds=[
                     Object(id=lss),
                     Object(id=hazead),
                     Object(id=orleans),
-                    Object(loa)
+                    Object(id=loa)
                 ])

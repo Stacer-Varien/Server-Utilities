@@ -7,7 +7,7 @@ from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
 from assets.functions import *
-from typing import Optional
+from typing import Optional, Literal
 
 
 class warncog(Cog):
@@ -24,14 +24,22 @@ class warncog(Cog):
         belongsto=
         "Which channel should the ad go to? (only if you selected wrong channel option)"
     )
-    @Serverutil.has_permissions(kick_members=True)
-    async def adwarn(self,
-                     ctx: Interaction,
-                     member: Member,
-                     channel: TextChannel,
-                     reason: str,
-                     custom: Optional[str] = None,
-                     belongsto: Optional[TextChannel] = None):
+    @Serverutil.checks.has_any_role(980142809094971423, 925790259319558154,
+                                    925790259319558157)
+    async def adwarn(
+            self,
+            ctx: Interaction,
+            member: Member,
+            channel: TextChannel,
+            reason: Literal[
+                'Invite reward server', 'NSFW server',
+                'Ad description involves violating the ToS',
+                'Invalid/Expired Invite', 'Public ping used',
+                'Very little to no description (less than 30 characters)',
+                'Back to back advertising', 'Advertising in wrong channel',
+                'Custom reason'],
+            custom: Optional[str] = None,
+            belongsto: Optional[TextChannel] = None):
         await ctx.response.defer(ephemeral=True)
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:

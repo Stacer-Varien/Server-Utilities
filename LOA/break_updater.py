@@ -25,7 +25,7 @@ class break_updater(Cog):
                     await member.remove_roles(break_role,
                                               reason="Break has ended")
 
-                    Break(member).remove_loa_break(member)
+                    Break(member).remove_loa_break()
 
                     await break_channel.send("{}, your break has ended".format(
                         member.mention))

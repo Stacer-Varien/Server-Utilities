@@ -188,12 +188,12 @@
                 "fields": [
                     {
                         "name": "Name",
-                        "value": "%bot%",
+                        "value": "CustomRP",
                         "inline": true
                     },
                     {
                         "name": "ID",
-                        "value": "%bot.id%",
+                        "value": "1067838201185706056",
                         "inline": true
                     },
                     {

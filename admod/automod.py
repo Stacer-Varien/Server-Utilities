@@ -4,7 +4,7 @@ from assets.functions import Warn
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
-from assets.not_allowed import no_invites, no_nsfw_spam
+from assets.not_allowed import no_invites, no_nsfw_spam, not_allowed_nsfw
 
 
 class automodcog(Cog):
@@ -100,6 +100,10 @@ class automodcog(Cog):
                                                   embed=embed)
                 else:
                     pass
+            elif message.channel.id in not_allowed_nsfw:
+                await message.delete()
+            else:
+                pass
         elif message.channel.id == 1041309643449827360:
             attachments = bool(message.attachments)
             content = bool(message.content)

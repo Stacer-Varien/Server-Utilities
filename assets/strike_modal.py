@@ -4,23 +4,23 @@ from assets.functions import Strike
 from config import db
 
 
-class Strike_Appeal(ui.Modal):
+class Strike_Appeal(ui.Modal, title="Strike Appeal Form"):
 
     def __init__(self, bot: Bot, strike_id, department):
+        super().__init__()
         self.bot = bot
         self.strike_id = strike_id
         self.department = department
-        super().__init__("Strike Appeal Form")
 
-        self.strike_appeal = ui.TextInput(label="Reason for appealling strike",
+    strike_appeal = ui.TextInput(label="Reason for appealling strike",
                                           min_length=4,
                                           max_length=1024,
                                           required=True,
                                           placeholder="Enter your reason here",
                                           style=TextStyle.paragraph)
-        self.add_item(self.strike_appeal)
 
-    async def callback(self, ctx: Interaction) -> None:
+
+    async def on_submit(self, ctx: Interaction) -> None:
         appeal_id = Strike(self.department).get_appeal_id(self.strike_id)
 
         embed = Embed(title="New Strike Appeal")
@@ -39,7 +39,8 @@ class Strike_Appeal(ui.Modal):
         db.commit()
         channel = self.bot.get_channel(1004744695085285457)
 
-        return await channel.send(embed=embed)
+        await channel.send(embed=embed)
+        await ctx.response.send_message('Your strike appeal has been logged. Please wait for the appropriate staff to decide if its approvable or not.\nThank you', ephemeral=True)
 
 
 class Start_Appeal(ui.View):

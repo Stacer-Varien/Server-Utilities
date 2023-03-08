@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from random import randint
 from assets.menus import ProductSelect
 from humanfriendly import parse_timespan
-from discord import Embed, Color, Interaction, Member, CategoryChannel, Object, TextChannel
+from discord import Embed, Color, Interaction, Member, CategoryChannel, Object
 from discord import app_commands as Serverutil
 from discord.ext.commands import Bot, GroupCog
 from assets.functions import Break, Resign, Strike
@@ -296,7 +296,7 @@ class strikecog(GroupCog, name='strike'):
         SS = ctx.guild.get_role(962628294627438682)
 
         #mod
-        CSO = ctx.guild.fetch_roles(949147509660483614)
+        CSO = ctx.guild.get_role(949147509660483614)
         CAO = ctx.guild.get_role(1076650317392916591)
         CSOA = ctx.guild.get_role(1074770323293085716)
         CSOT = ctx.guild.get_role(1074770253294342144)
@@ -313,20 +313,21 @@ class strikecog(GroupCog, name='strike'):
 
         else:
             if department == 'Moderation':
+
                 if MODT in ctx.user.roles and MODT in member.roles:
                     MODERS = [CSO, CAO, CSOA, CSOT, MODS]
                     if any(role.id for role in MODERS
                            for role in ctx.user.roles):
-                        if ctx.user.get_role(CSO).position >= member.get_role(
-                                CAO
-                        ) or ctx.user.get_role(CAO).position >= member.get_role(
-                                CSOA).position or ctx.user.get_role(
-                                    CSOA).position >= member.get_role(
-                                        CSOT).position or ctx.user.get_role(
-                                            CSOT).position >= member.get_role(
-                                                MODS
+                        if ctx.user.get_role(CSO.id).position >= member.get_role(
+                                CAO.id
+                        ) or ctx.user.get_role(CAO.id).position >= member.get_role(
+                                CSOA.id).position or ctx.user.get_role(
+                                    CSOA.id).position >= member.get_role(
+                                        CSOT.id).position or ctx.user.get_role(
+                                            CSOT.id).position >= member.get_role(
+                                                MODS.id
                                             ).position or ctx.user.get_role(
-                                                MODS
+                                                MODS.id
                                             ).position > member.get_role(
                                                 1074770103415083099).position:
                             strike = Strike(department, member)
@@ -399,7 +400,7 @@ Also just to let you know, your user ID is logged when doing this appeal so if y
         await ctx.response.send_message(msg, view=view, ephemeral=True)
 
     @Serverutil.command(description="Approve or deny a strike")
-    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader,
+    @Serverutil.checks.has_any_role(core_team, om, chr, coo, team_leader,
                                     staff_supervisor)
     async def appealverdict(self, ctx: Interaction, strike_appeal_id: int,
                             department: Literal["Management",
@@ -423,7 +424,7 @@ Also just to let you know, your user ID is logged when doing this appeal so if y
             if verdict == "accept":
                 strike.revoke(user[2])
 
-                strikes = strike.get_strikes(user[1])
+                strikes = strike.get_strikes()
 
                 staff_member = ctx.guild.get_member(user[1])
                 msg = "{}, your appeal for your strike has been appealled. You now have {} strikes".format(
@@ -450,7 +451,7 @@ class resigncog(GroupCog, name='resign'):
     @Serverutil.command(name="apply", description="Apply for resignation")
     async def apply(self, ctx: Interaction, department: str, reason: str):
         await ctx.response.defer(ephemeral=True)
-        Resign(ctx.user).resign_apply(ctx.user)
+        Resign(ctx.user).resign_apply()
 
         channel = self.bot.get_channel(1002513633760260166)
 
@@ -521,7 +522,7 @@ class resigncog(GroupCog, name='resign'):
             await ctx.followup.send("Denied resignation of {}".format(member))
 
 
-class pricelistcog():
+class pricelistcog(GroupCog, name='pricelist'):
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -592,7 +593,7 @@ What you can get for getting any of our plans:
                 await ctx.followup.send(embed=embed)
 
 
-async def setup(bot: Bot):
+async def setup(bot: Bot)->None:
     await bot.add_cog(breakcog(bot), guild=Object(id=lss))
     await bot.add_cog(strikecog(bot), guild=Object(id=lss))
     await bot.add_cog(resigncog(bot), guild=Object(id=lss))

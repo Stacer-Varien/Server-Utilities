@@ -75,7 +75,7 @@ class member(Cog):
                         color=Color.green())
                     await channel.send(embed=accepted)
             except Exception as e:
-                print(e)
+                pass
         else:
             pass
 
