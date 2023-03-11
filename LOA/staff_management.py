@@ -453,7 +453,7 @@ class resigncog(GroupCog, name='resign'):
         await ctx.response.defer(ephemeral=True)
         Resign(ctx.user).resign_apply()
 
-        channel = self.bot.get_channel(1002513633760260166)
+        channel = await self.bot.fetch_channel(1002513633760260166)
 
         request = Embed(title="Resignation request of {} | {}".format(
             ctx.user, ctx.user.id),

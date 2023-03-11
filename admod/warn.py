@@ -1,8 +1,10 @@
+from json import loads
 from discord import app_commands as Serverutil
 from discord import *
 from discord.abc import *
 from discord.ext.commands import Cog, Bot
-from config import hazead
+from humanfriendly import format_timespan
+from config import hazead, loa
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
@@ -31,13 +33,12 @@ class warncog(Cog):
             ctx: Interaction,
             member: Member,
             channel: TextChannel,
-            reason: Literal[
-                'Invite reward server', 'NSFW server',
-                'Ad description involves violating the ToS',
-                'Invalid/Expired Invite', 'Public ping used',
-                'Very little to no description (less than 30 characters)',
-                'Back to back advertising', 'Advertising in wrong channel',
-                'Custom reason'],
+            reason: Literal['Invite reward server', 'NSFW server',
+                            'Ad description involves violating the ToS',
+                            'Invalid/Expired Invite', 'Public ping used',
+                            'Very little to no description',
+                            'Back to back advertising',
+                            'Advertising in wrong channel', 'Custom reason'],
             custom: Optional[str] = None,
             belongsto: Optional[TextChannel] = None):
         await ctx.response.defer(ephemeral=True)
@@ -45,24 +46,25 @@ class warncog(Cog):
         if member == ctx.user:
             failed = Embed(description="You can't warn yourself")
             await ctx.followup.send(embed=failed)
+        embed = Embed()
+        if reason == 'Advertising in wrong channel' and not belongsto:
+            await ctx.followup.send(
+                "Please include a channel to mention where the ad should be placed next time"
+            )
+        elif reason == 'Custom reason' and not custom:
+            await ctx.followup.send("Please add a custom reason")
 
         else:
-            warn_id = f"{randint(0,100000)}"
-            appeal_id = f"{randint(0,100000)}"
+            warn_id = randint(0, 100000)
+            appeal_id = randint(0, 100000)
             embed = Embed(title="You have been warned", color=0xFF0000)
-            if reason == 'Advertising in wrong channel' and not belongsto:
-                await ctx.followup.send(
-                    "Please include a channel to mention where the ad should be placed next time"
-                )
-            elif reason == 'Advertising in wrong channel' and belongsto != None:
+            if reason == 'Advertising in wrong channel' and belongsto != None:
                 embed.add_field(name="Reason for warn",
                                 value=reason,
                                 inline=False)
                 embed.add_field(name="Belongs to",
                                 value=belongsto,
                                 inline=False)
-            elif reason == 'Custom reason' and not custom:
-                await ctx.followup.send("Please add a custom reason")
             elif reason == 'Custom reason' and custom != None:
                 embed.add_field(name="Reason for warn",
                                 value=custom,
@@ -72,12 +74,15 @@ class warncog(Cog):
                                 value=reason,
                                 inline=False)
 
-            warn_data = Warn(member, ctx.user, warn_id)
-            if warn_data.give_adwarn(channel, reason, appeal_id) == False:
-                pass
-            else:
-                warn_data.give_adwarn(channel, member.id, ctx.user.id, reason,
-                                      warn_id, appeal_id)
+            if ctx.guild.id == hazead:
+                warn_data = Warn(member, ctx.user, warn_id)
+                if warn_data.give_adwarn(channel, reason, appeal_id) == False:
+                    return
+
+                if reason == 'Custom reason' and custom != None:
+                    warn_data.give_adwarn(channel, custom)
+                else:
+                    warn_data.give_adwarn(channel, reason)
                 warnpoints = warn_data.get_warn_points()
                 embed.add_field(name="Warn ID", value=warn_id, inline=True)
                 embed.add_field(name="Warn Points",
@@ -96,7 +101,7 @@ class warncog(Cog):
                         )
                         await member.send(embed=timeoutmsg)
                     except:
-                        pass
+                        return
 
                 elif warnpoints == 6:
                     try:
@@ -106,7 +111,7 @@ class warncog(Cog):
                         )
                         await member.send(embed=kickmsg)
                     except:
-                        pass
+                        return
                     await member.kick(reason="Kick punishment applied")
                     result = "Member has reached the 6 warn point punishment. A kick punishment was applied"
 
@@ -122,7 +127,7 @@ class warncog(Cog):
                         )
                         await member.send(embed=banmsg)
                     except:
-                        pass
+                        return
                     await member.kick(reason="Kick punishment applied")
                     result = "Member has reached the 10 warn point punishment. A ban punishment was applied"
 
@@ -139,7 +144,49 @@ class warncog(Cog):
                     await ctx.followup.send(
                         f"Warning sent. Check {adwarn_channel.mention}",
                         ephemeral=True)
+            elif ctx.guild.id == loa:
+                if ctx.channel.id == 954594959074418738:
+                    warn_data = LOAWarn(member, ctx.user, warn_id)
+                    if warn_data.give_adwarn(channel, reason) == False:
+                        return
+
+                    warn_data.give_adwarn(channel, reason)
+                    warnpoints = warn_data.get_warn_points()
+                    embed.add_field(name="Warn ID", value=warn_id, inline=True)
+                    embed.add_field(name="Warn Points",
+                                    value=warnpoints,
+                                    inline=True)
+
+                    with open('assets/moderation.json', 'r') as f:
+                        data = "".join(f.readlines())
+
+                    jsondata = loads(data)
+
+                    if jsondata[warnpoints - 1] == 0:
+                        result = "No punishment given"
+                    elif jsondata[warnpoints - 1] == 20:
+                        await member.ban(reason="Reached maxinum warnings")
+                        result = "Banned. Reached maxinum warnings"
+                    else:
+                        timeout: int = jsondata[warnpoints - 1]['timeout']
+                        await member.edit(
+                            timeout=utcnow() + timedelta(minutes=int(timeout)),
+                            reason="{} timeout punishment applied".format(
+                                format_timespan(float(timeout * 60))))
+                        result = "{} timeout punishment applied".format(
+                            format_timespan(float(timeout * 60)))
+
+                    embed.add_field(name="Punishment",
+                                    value=result,
+                                    inline=False)
+                    openmod_channel = await ctx.guild.fetch_channel(
+                        745107170827305080)
+                    await openmod_channel.send(member.mention, embed=embed)
+                else:
+                    await ctx.followup.send(
+                        "Please do the commands in {}".format(
+                            ctx.guild.get_channel(954594959074418738).mention))
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(warncog(bot), guild=Object(hazead))
+    await bot.add_cog(warncog(bot), guilds=[Object(hazead), Object(loa)])

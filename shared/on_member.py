@@ -41,8 +41,8 @@ class member(Cog):
             try:
                 bye = f"{member} left us."
                 await channel.send(bye)
-            except Exception as e:
-                raise e
+            except:
+                return
 
         elif member.guild.id == 841671029066956831:
             channel = self.bot.get_channel(841672222136991757)
@@ -74,10 +74,10 @@ class member(Cog):
                         title=f"{member} ({member.id}) has resigned.",
                         color=Color.green())
                     await channel.send(embed=accepted)
-            except Exception as e:
-                pass
+            except:
+                return
         else:
-            pass
+            return
 
 
 async def setup(bot: Bot):

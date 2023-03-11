@@ -57,4 +57,4 @@ class Start_Appeal(ui.View):
         self.value = True
         await ctx.response.send_modal(
             Strike_Appeal(self.bot, self.strike_id, self.department))
-        self.stop()
+

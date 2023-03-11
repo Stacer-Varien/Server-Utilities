@@ -4,7 +4,7 @@ from humanfriendly import parse_timespan
 from discord import *
 from discord import app_commands as Serverutil
 from discord.ext.commands import GroupCog, Bot
-from config import hazead, orleans, loa, lss
+from config import hazead, loa, lss
 
 from assets.functions import Plans
 
