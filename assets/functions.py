@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os
-from discord import Guild, Interaction, TextChannel, User
+from discord import Guild, Interaction, Member, TextChannel, User
 from assets.not_allowed import no_invites, no_pings
 from discord.ext.commands import Bot
 from config import db
@@ -42,10 +42,12 @@ class Appeal():
             ))
         db.commit()
 
+
 class LOAWarn():
+
     def __init__(self,
                  user: User,
-                 moderator: User,
+                 moderator: User=None,
                  warn_id: int = None) -> None:
         self.user = user
         self.moderator = moderator
@@ -67,8 +69,6 @@ class LOAWarn():
                               (self.user.id, ))
             db.commit()
             return data
-
-
 
     def give_adwarn(self, channel: TextChannel, reason: str):
         data = db.execute("SELECT * FROM loaAdwarnData WHERE user_id = ?",
@@ -133,11 +133,12 @@ class LOAWarn():
             ))
         db.commit()
 
+
 class Warn():
 
     def __init__(self,
                  user: User,
-                 moderator: User,
+                 moderator: User=None,
                  warn_id: int = None) -> None:
         self.user = user
         self.moderator = moderator
@@ -274,26 +275,26 @@ class Strike():
 
     def __init__(self,
                  department: Optional[str] = None,
-                 member: Optional[User] = None) -> None:
+                 strike_id: Optional[int] = None) -> None:
         self.department = department
-        self.member = member
+        self.strike_id = strike_id
 
-    def give(self, strike_id: int, appeal_id: int):
+    def give(self, member: User, appeal_id: int):
         db.execute(
             "INSERT OR IGNORE INTO strikeData (department, user_id, strike_id, appeal_id) VALUES (?,?,?,?)",
             (
                 self.department,
-                self.member.id,
-                strike_id,
+                member.id,
+                self.strike_id,
                 appeal_id,
             ))
         db.commit()
 
-    def get_strikes(self):
+    def get_strikes(self, member: User):
         data = db.execute(
             "SELECT * FROM strikeData WHERE department = ? AND user_id = ?", (
                 self.department,
-                self.member.id,
+                member.id,
             )).fetchall()
 
         if data == None:
@@ -301,11 +302,11 @@ class Strike():
         else:
             return len(data)
 
-    def check_id(self, strike_id: int):
+    def check_id(self):
         data = db.execute(
             "SELECT * FROM strikeData WHERE strike_id = ? AND department = ?",
             (
-                strike_id,
+                self.strike_id,
                 self.department,
             )).fetchone()
 
@@ -314,37 +315,18 @@ class Strike():
         else:
             return data
 
-    def revoke(self, strike_id: int):
+    def revoke(self):
         db.execute(
-            "DELETE FROM strikeData WHERE strike_id = ? AND department = ?",
-            (strike_id, self.department))
-        db.commit()
-
-    def get_appeal_id(self, strike_id: int):
-        data = db.execute(
-            "SELECT appeal_id FROM strikeData WHERE strike_id = ? AND department = ?",
-            (strike_id, self.department)).fetchone()
-        db.commit()
-        return data[0]
-
-    def fetch_striked_staff(self, appeal_id: int):
-        data = db.execute(
-            "SELECT * FROM strikeData WHERE appeal_id = ? AND department = ?",
-            (
-                appeal_id,
+            "DELETE FROM strikeData WHERE strike_id = ? AND department = ?", (
+                self.strike_id,
                 self.department,
-            )).fetchone()
+            ))
         db.commit()
-
-        if data == None:
-            return None
-        else:
-            return data
 
 
 class Partner():
 
-    def __init__(self, user: User, server: Guild):
+    def __init__(self, user: Member, server: Guild):
         self.user = user
         self.server = server
 
@@ -501,7 +483,10 @@ class Resign():
     def resign_apply(self):
         db.execute(
             "INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)",
-            (self.member.id, 0,))
+            (
+                self.member.id,
+                0,
+            ))
         db.commit()
 
     def check_resign(self):

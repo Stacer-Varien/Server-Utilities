@@ -4,9 +4,9 @@ from assets.menus import ProductSelect
 from humanfriendly import parse_timespan
 from discord import Embed, Color, Interaction, Member, CategoryChannel, Object
 from discord import app_commands as Serverutil
-from discord.ext.commands import Bot, GroupCog
-from assets.functions import Break, Resign, Strike
-from assets.strike_modal import Start_Appeal
+from discord.ext.commands import Bot, GroupCog, Cog
+from assets.functions import Break, LOAWarn, Resign, Strike
+from assets.strike_modal import Strike_Appeal
 from typing import Literal, Optional
 from config import lss
 
@@ -256,15 +256,16 @@ class strikecog(GroupCog, name='strike'):
         self.bot = bot
 
     async def addstrike(self, ctx: Interaction, member: Member,
-                        department: str, reason: str, strike: Strike):
+                        department: str, reason: str):
         channel = self.bot.get_channel(841672405444591657)
         strike_id = randint(0, 99999)
         appeal_id = randint(0, 99999)
-        strike.give(strike_id, appeal_id)
-        if strike.get_strikes() == None:
+        strike = Strike(department, strike_id)
+        strike.give(member, appeal_id)
+        if strike.get_strikes(member) == None:
             strikes = 0
         else:
-            strikes = strike.get_strikes()
+            strikes = strike.get_strikes(member)
 
         embed = Embed(title="You have been striked", color=Color.red())
         embed.add_field(name="Strike count", value=strikes, inline=True)
@@ -297,11 +298,9 @@ class strikecog(GroupCog, name='strike'):
 
         #mod
         CSO = ctx.guild.get_role(949147509660483614)
-        CAO = ctx.guild.get_role(1076650317392916591)
-        CSOA = ctx.guild.get_role(1074770323293085716)
-        CSOT = ctx.guild.get_role(1074770253294342144)
         MODS = ctx.guild.get_role(1074770253294342144)
         MODT = ctx.guild.get_role(1074770253294342144)
+        MODTM = ctx.guild.get_role(1074770253294342144)
 
         ALL = [CT, OM, COO, CHR, TL, SS]
 
@@ -313,37 +312,20 @@ class strikecog(GroupCog, name='strike'):
 
         else:
             if department == 'Moderation':
-
-                if MODT in ctx.user.roles and MODT in member.roles:
-                    MODERS = [CSO, CAO, CSOA, CSOT, MODS]
-                    if any(role.id for role in MODERS
-                           for role in ctx.user.roles):
-                        if ctx.user.get_role(CSO.id).position >= member.get_role(
-                                CAO.id
-                        ) or ctx.user.get_role(CAO.id).position >= member.get_role(
-                                CSOA.id).position or ctx.user.get_role(
-                                    CSOA.id).position >= member.get_role(
-                                        CSOT.id).position or ctx.user.get_role(
-                                            CSOT.id).position >= member.get_role(
-                                                MODS.id
-                                            ).position or ctx.user.get_role(
-                                                MODS.id
-                                            ).position > member.get_role(
-                                                1074770103415083099).position:
-                            strike = Strike(department, member)
-                    await self.addstrike(ctx, member, department, reason,
-                                         strike)
+                if MODS in ctx.user.roles and MODT in member.roles and ctx.user.top_role.position > MODT.position:
+                    await self.addstrike(ctx, member, department, reason)
             elif department == "Marketing":
-                if ctx.user.get_role(
-                        950013921895538688).position > member.get_role(
+                if ctx.guild.get_role(
+                        950013921895538688
+                ) in ctx.users.roles and ctx.guild.get_role(
+                        881084354422538281
+                ) in member.roles and ctx.user.top_role.position > ctx.guild.get_role(
                             881084354422538281).position:
-                    strike = Strike(department, member)
-                    await self.addstrike(ctx, member, department, reason,
-                                         strike)
+                    Strike(department, member)
+                    await self.addstrike(ctx, member, department, reason)
 
             elif any(role.id for role in ALL for role in ctx.user.roles):
-                strike = Strike(department, member)
-                await self.addstrike(ctx, member, department, reason, strike)
+                await self.addstrike(ctx, member, department, reason)
 
             else:
                 await ctx.followup.send(
@@ -360,13 +342,13 @@ class strikecog(GroupCog, name='strike'):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672405444591657)
 
-        strike = Strike(department)
-        check = strike.check_id(strike_id)
+        strike = Strike(department, strike_id)
+        check = strike.check_id()
         if check == None:
             await ctx.followup.send("Strike ID does not exist")
         else:
             member = check[1]
-            strike.revoke(strike_id)
+            strike.revoke()
             strikes = Strike(department, member).get_strikes()
             m = await self.bot.fetch_user(member)
 
@@ -387,34 +369,29 @@ class strikecog(GroupCog, name='strike'):
     async def appeal(self, ctx: Interaction, strike_id: int,
                      department: Literal["Management", "Human Resources",
                                          "Moderation", "Marketing"]):
-        view = Start_Appeal(self.bot, strike_id, department)
-        msg = """
-Before you start appealing your strike, please make sure:
-    1. Your reason is valid and accurate
-    2. You have proof in media links if necessary
-        
-If you feel it meets those conditions, click the button below.
-Also just to let you know, your user ID is logged when doing this appeal so if you troll, we will take actions.
-"""
-
-        await ctx.response.send_message(msg, view=view, ephemeral=True)
+        check = Strike(department, strike_id).check_id()
+        if check == None:
+            await ctx.response.send_message("Invalid Strike ID")
+        else:
+            await ctx.channel.typing()
+            await ctx.response.send_modal(
+                Strike_Appeal(self.bot, strike_id, department))
 
     @Serverutil.command(description="Approve or deny a strike")
     @Serverutil.checks.has_any_role(core_team, om, chr, coo, team_leader,
                                     staff_supervisor)
-    async def appealverdict(self, ctx: Interaction, strike_appeal_id: int,
+    async def appealverdict(self, ctx: Interaction, strike_id: int,
                             department: Literal["Management",
                                                 "Human Resources",
                                                 "Moderation", "Marketing"],
                             verdict: Literal["accept", "deny"]):
         await ctx.response.defer()
         channel = self.bot.get_channel(841672405444591657)
-        strike = Strike(department)
-        user = strike.fetch_striked_staff(strike_appeal_id)
+        strike = Strike(department, strike_id)
+        user = strike.check_id()
 
         if user == None:
-            await ctx.followup.send("Invalid Strike Appeal ID passed",
-                                    delete_after=5)
+            await ctx.followup.send("Invalid Strike Appeal ID passed")
 
         elif user[0] != department:
             await ctx.followup.send("Invalid department entered",
@@ -422,12 +399,11 @@ Also just to let you know, your user ID is logged when doing this appeal so if y
 
         else:
             if verdict == "accept":
-                strike.revoke(user[2])
-
-                strikes = strike.get_strikes()
-
+                strike.revoke()
                 staff_member = ctx.guild.get_member(user[1])
-                msg = "{}, your appeal for your strike has been appealled. You now have {} strikes".format(
+                strikes = strike.get_strikes(staff_member)
+
+                msg = "{}, your appeal for your strike has been appealed. You now have {} strikes".format(
                     staff_member.mention, strikes)
 
             elif verdict == "deny":
@@ -508,7 +484,7 @@ class resigncog(GroupCog, name='resign'):
         elif data[0] == ctx.user.id:
             await ctx.followup.send("You can't deny your own resignation")
 
-        elif member.top_role >= ctx.user.top_role:
+        elif member.top_role.position >= ctx.user.top_role.position:
             await ctx.followup.send(
                 "You cannot deny a resignation from someone who has a higher role than you"
             )
@@ -592,8 +568,36 @@ What you can get for getting any of our plans:
 """
                 await ctx.followup.send(embed=embed)
 
+class others(Cog):
+    def __init__(self, bot:Bot) -> None:
+        self.bot=bot
 
-async def setup(bot: Bot)->None:
+    @Serverutil.command(description="Removes an adwarn")
+    @Serverutil.describe(warnid="Put in the warn ID")
+    @Serverutil.checks.has_any_role(1074770103415083099)
+    async def revoke(self, ctx: Interaction, member: Member, warnid: str):
+        await ctx.response.defer()
+        if ctx.channel.id == 954594959074418738:
+            check = LOAWarn(user=member, warn_id=warnid).check_warn()
+
+            if check == None:
+                await ctx.followup.send("Invalid Warn ID or wrong member")
+            else:
+                LOAWarn(user=member, warn_id=warnid).remove_warn()
+            try:
+                await member.send(
+                    f"Hello {member.mention},\nUpon looking into your appeal, we have decided to revoke your warn (**Warn ID:** {warnid}).\nWe apologies for this and promised that we will be more careful when doing ad moderations against you and other members.\nThank you and enjoy your day!"
+                )
+            except:
+                pass
+
+            await ctx.followup.send(
+                "Warning revoked and message sent to member")
+        else:
+            await ctx.followup.send(
+                "Please use the command in <#954594959074418738>")
+
+async def setup(bot: Bot) -> None:
     await bot.add_cog(breakcog(bot), guild=Object(id=lss))
     await bot.add_cog(strikecog(bot), guild=Object(id=lss))
     await bot.add_cog(resigncog(bot), guild=Object(id=lss))

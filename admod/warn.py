@@ -90,7 +90,7 @@ class warncog(Cog):
                                 inline=True)
 
                 if warnpoints == 3:
-                    await member.edit(timeout=utcnow() + timedelta(hours=2),
+                    await member.edit(timed_out_until=(utcnow() + timedelta(hours=2)),
                                       reason="2 hour mute punishment applied")
                     result = "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"
 
@@ -162,15 +162,19 @@ class warncog(Cog):
 
                     jsondata = loads(data)
 
-                    if jsondata[warnpoints - 1] == 0:
+                    if all(jsondata[warnpoints - 1]['timeout'] == 0 and jsondata[warnpoints - 1]['ban']== False):
                         result = "No punishment given"
-                    elif jsondata[warnpoints - 1] == 20:
+                    elif all(jsondata[warnpoints - 1]['timeout'] == 0 and jsondata[warnpoints - 1]['ban']== True):
                         await member.ban(reason="Reached maxinum warnings")
                         result = "Banned. Reached maxinum warnings"
                     else:
                         timeout: int = jsondata[warnpoints - 1]['timeout']
+                        if timeout==0:
+                            timed=None
+                        else:
+                            timed=(utcnow() + timedelta(minutes=timeout))
                         await member.edit(
-                            timeout=utcnow() + timedelta(minutes=int(timeout)),
+                            timed_out_until=timed,
                             reason="{} timeout punishment applied".format(
                                 format_timespan(float(timeout * 60))))
                         result = "{} timeout punishment applied".format(
@@ -186,7 +190,6 @@ class warncog(Cog):
                     await ctx.followup.send(
                         "Please do the commands in {}".format(
                             ctx.guild.get_channel(954594959074418738).mention))
-
 
 async def setup(bot: Bot):
     await bot.add_cog(warncog(bot), guilds=[Object(hazead), Object(loa)])
