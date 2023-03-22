@@ -81,6 +81,6 @@
     },
     {
         "timeout": 0,
-        "ban": true
+        "ban": false
     }
 ]

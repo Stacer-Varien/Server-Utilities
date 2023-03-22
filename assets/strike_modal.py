@@ -1,6 +1,5 @@
 from discord import *
 from discord.ext.commands import Bot
-from assets.functions import Strike
 from config import db
 
 

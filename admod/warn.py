@@ -162,11 +162,8 @@ class warncog(Cog):
 
                     jsondata = loads(data)
 
-                    if all(jsondata[warnpoints - 1]['timeout'] == 0 and jsondata[warnpoints - 1]['ban']== False):
+                    if jsondata[warnpoints - 1]['timeout'] == 0 and jsondata[warnpoints - 1]['ban']== False:
                         result = "No punishment given"
-                    elif all(jsondata[warnpoints - 1]['timeout'] == 0 and jsondata[warnpoints - 1]['ban']== True):
-                        await member.ban(reason="Reached maxinum warnings")
-                        result = "Banned. Reached maxinum warnings"
                     else:
                         timeout: int = jsondata[warnpoints - 1]['timeout']
                         if timeout==0:
@@ -178,7 +175,7 @@ class warncog(Cog):
                             reason="{} timeout punishment applied".format(
                                 format_timespan(float(timeout * 60))))
                         result = "{} timeout punishment applied".format(
-                            format_timespan(float(timeout * 60)))
+                                format_timespan(float(timeout * 60)))
 
                     embed.add_field(name="Punishment",
                                     value=result,
@@ -186,6 +183,8 @@ class warncog(Cog):
                     openmod_channel = await ctx.guild.fetch_channel(
                         745107170827305080)
                     await openmod_channel.send(member.mention, embed=embed)
+                    await ctx.followup.send(
+                        f"Warning sent. Check {openmod_channel.mention}")
                 else:
                     await ctx.followup.send(
                         "Please do the commands in {}".format(

@@ -77,10 +77,10 @@ class LOAWarn():
                            (self.user.id, )).fetchone()
         db.commit()
         current_time = datetime.now()
-        next_warn = current_time + timedelta(hours=1)
+        next_warn = current_time + timedelta(minutes=30)
         if data == None:
             db.execute(
-                "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?,?)",
+                "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
                 (
                     self.user.id,
                     '{} - {}'.format(channel.mention, reason),
@@ -90,14 +90,22 @@ class LOAWarn():
 
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (self.user.id, 1, round(next_warn.timestamp())))
+                (self.user.id,
+                 1,
+                 round(next_warn.timestamp()),
+                ))
             db.commit()
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
+                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ? WHERE user_id= ?",
                 (
                     1,
+                    self.user.id,
+                ))
+            db.execute(
+                "UPDATE loaAdwarnData_v2 SET time = ? WHERE user_id= ?",
+                (
                     round(next_warn.timestamp()),
                     self.user.id,
                 ))
@@ -275,38 +283,37 @@ class Strike():
 
     def __init__(self,
                  department: Optional[str] = None,
-                 strike_id: Optional[int] = None) -> None:
+                 member:Optional[User]=None) -> None:
         self.department = department
-        self.strike_id = strike_id
+        self.member=member
 
-    def give(self, member: User, appeal_id: int):
+    def give(self, strike_id: int):
         db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, strike_id, appeal_id) VALUES (?,?,?,?)",
+            "INSERT OR IGNORE INTO strikeData (department, user_id, strike_id) VALUES (?,?,?)",
             (
                 self.department,
-                member.id,
-                self.strike_id,
-                appeal_id,
+                self.member.id,
+                strike_id,
             ))
         db.commit()
 
-    def get_strikes(self, member: User):
+    def get_strikes(self):
         data = db.execute(
             "SELECT * FROM strikeData WHERE department = ? AND user_id = ?", (
                 self.department,
-                member.id,
+                self.member.id,
             )).fetchall()
 
         if data == None:
-            return None
+            return 0
         else:
             return len(data)
 
-    def check_id(self):
+    def check_id(self, strike_id:int):
         data = db.execute(
             "SELECT * FROM strikeData WHERE strike_id = ? AND department = ?",
             (
-                self.strike_id,
+                strike_id,
                 self.department,
             )).fetchone()
 
@@ -315,10 +322,11 @@ class Strike():
         else:
             return data
 
-    def revoke(self):
+    def revoke(self, strike_id:int):
         db.execute(
-            "DELETE FROM strikeData WHERE strike_id = ? AND department = ?", (
-                self.strike_id,
+            "DELETE FROM strikeData WHERE strike_id = ? AND user_id = ? AND department = ?", (
+                strike_id,
+                self.member.id,
                 self.department,
             ))
         db.commit()
@@ -458,7 +466,7 @@ class Break():
             ))
         db.commit()
 
-    def deny_break(break_id: int, server: int):
+    def deny_break(self, break_id: int, server: int):
         db.execute("DELETE FROM breakData WHERE break_id = ? and guild_id = ?",
                    (
                        break_id,
