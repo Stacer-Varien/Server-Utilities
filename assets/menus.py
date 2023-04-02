@@ -38,7 +38,7 @@ Add-ons:
 - Real Custom Channel ( You may put anything you want in the channel at anytime, but no more roles will be pinged and the content must fit the <#705956109592035389> ) : 350
 - Per day after the first 7 days: 100
 """
-            await ctx.response.edit_message(embed=shouts)
+            await ctx.edit_original_response(embed=shouts)
         elif self.values[0] == "Giveaways and Auto Advertisements":
             giveads = Embed(color=Color.blue())
             giveads.title = "Giveaways & Auto Advertisements"
@@ -60,7 +60,7 @@ Add-ons:
 - Every 30 minutes : 400
 - Each channel of your choice : 300
 """
-            await ctx.response.send_message(embed=giveads)
+            await ctx.edit_original_response(embed=giveads)
         elif self.values[0] == "Memberships":
             memberships = Embed(color=Color.blue())
             memberships.title = "Memberships"
@@ -88,8 +88,9 @@ What is included in Executive Membership:
 - 20% off per each <#869201807828725790> purchasement
 
 ^ = Available in Lead of Advertising, LOA Safety Centre and Lead of Gaming
+The shoutouts are sent with shoutout ping
 """
-            await ctx.response.send_message(embed=memberships)
+            await ctx.edit_original_response(embed=memberships)
         elif self.values[0] == "Open Network Auto Advertisement":
             openads = Embed(color=Color.blue())
             openads.title = "Open Network Auto Advertisement"
@@ -102,7 +103,7 @@ Add-ons:
 - Server advertisement less than 50 characters: 200
 - Per day after default: 400 
 """
-            await ctx.edit_original_message(embed=openads)
+            await ctx.edit_original_response(embed=openads)
         elif self.values[0] == "Special Packages":
             special = Embed(color=Color.blue())
             special.title = "Special Packages"
@@ -119,7 +120,7 @@ Custom Channel on the top of the server:
 - per announcement: 5000
 - Default stay for 1 day, after default stay time per day: 1000  
 """
-            await ctx.edit_original_message(embed=special)
+            await ctx.edit_original_response(embed=special)
 
 
 class ProductSelect(ui.View):
@@ -127,3 +128,86 @@ class ProductSelect(ui.View):
     def __init__(self):
         super().__init__(timeout=360)
         self.add_item(ProductMenu())
+
+
+class PrivacyMenu(ui.Select):
+
+    def __init__(self):
+        options = [
+            SelectOption(label="Orleans"),
+            SelectOption(label="HAZE Advertising"),
+            SelectOption(label="Varien's Homework Folder"),
+            SelectOption(label="LOA and LSS")
+        ]
+        super().__init__(placeholder="Select a server",
+                         max_values=1,
+                         min_values=1,
+                         options=options)
+
+    async def callback(self, ctx: Interaction):
+        embed=Embed()
+        embed.color=Color.random()
+        if self.values[0]=='Orleans':
+            embed.title="Privacy Policy effecting Orleans"
+            embed.add_field(name="Privacy Policy", value="N/A", inline=False)
+            embed.add_field(name="Functions", value="The channel, <#1041309643449827360> is checked for media content and prohibits members to chat in that channel by deleting that message. If a media content has a message content, the bot will allow it.", inline=False)
+            await ctx.edit_original_response(embed=embed)
+        elif self.values[0] == 'HAZE Advertising':
+            embed.title = "Privacy Policy effecting HAZE Advertising"
+            embed.add_field(name="Privacy Policy", value="""
+Storing and Access of Data
+Data such as adwarns and plans are stored in the database. Plans can be viewed to authorised personnel while adwarn data is controlled as the basic data is viewed to everyone while the true data is viewed by the developer.
+
+Removal of Data
+Data can be removed if a member's adwarn appeal has been approved and a plan has ended from the database.
+            """, inline=False)
+            embed.add_field(
+                name="Functions",
+                value=
+                """
+1. In non-advertising channels, if the message contains a public ping, the message with that ping gets deleted and the author is automatically adwarned.
+
+2. Members can get automatically punished by the bot if they have reached a condition depending on how many adwarns they have""",
+                inline=False)
+            await ctx.edit_original_response(embed=embed)
+        elif self.values[0] == "Varien's Homework Folder":
+            embed.title = "Privacy Policy effecting Varien's Homework Folder"
+            embed.add_field(name="Privacy Policy",
+                            value="""
+Storing of Data
+Members that have the 'Untrusted' role in the server are automatically logged into the database with the 48 hour limit. Only the 'Untrusted' data is stored in the database and is not public for everyone to view.
+
+Removal of Data
+Members that have the 'Verified' role are automatically removed from the database.
+            """,
+                            inline=False)
+            embed.add_field(name="Functions",
+                            value="""
+1. In the non-main NSFW channels, the bot deletes a message if it has more than 5 media contents
+
+2. If a member has the 'Untrusted' role, the bot logs it and waits 48 hours for the member to verify. If the member has failed to verify, they are automatically banned""",
+                            inline=False)
+            await ctx.edit_original_response(embed=embed)
+
+        elif self.values[0] == 'LOA and LSS':
+            embed.title = "Privacy Policy effecting LOA and LSS"
+            embed.add_field(name="Privacy Policy",
+                            value="""
+Storing of Data
+Data such as adwarns, breaks, resignations, plans and strikes are stored in the database. Adwarns and strikes are controlled as the basic data is viewed by everyone while the true data is viewed by the developer. Resignations and plans can only be viewed by authorised personnel.
+
+Removal of Data
+Data is removed if an adwarn has been cleared, breaks approved or denied, end of plans, cleared strike and/or approved or denied resignation.
+            """,
+                            inline=False)
+            embed.add_field(name="Functions",
+                            value="N/A",
+                            inline=False)
+            await ctx.edit_original_response(embed=embed)
+
+
+class PrivacySelect(ui.View):
+
+    def __init__(self):
+        super().__init__(timeout=360)
+        self.add_item(PrivacyMenu())

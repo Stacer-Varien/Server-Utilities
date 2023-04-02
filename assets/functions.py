@@ -433,7 +433,7 @@ class Break():
 
     def fetch_break_id(self, break_id: int, server: int):
         data = db.execute(
-            "SELECT * FROM breakData WHERE break_id = ? AND guild_id = ?", (
+            "SELECT * FROM breakData WHERE user_id = ? AND break_id = ? AND guild_id = ?", (self.member.id,
                 break_id,
                 server,
             )).fetchone()
@@ -558,8 +558,8 @@ class Plans():
         db.commit()
         return data
 
-    def remove_plan(self, plan_id: int):
-        db.execute('DELETE FROM planData WHERE plan_id= ? AND server_id= ?', (
+    def remove_plan(self, buyer:User, plan_id: int):
+        db.execute('DELETE FROM planData WHERE user_id = ? AND plan_id= ? AND server_id= ?', (buyer.id,
             plan_id,
             self.server,
         ))

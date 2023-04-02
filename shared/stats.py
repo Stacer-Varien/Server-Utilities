@@ -5,7 +5,8 @@ from collections import OrderedDict
 from json import loads
 from discord import Embed, Interaction, Color, Object
 from discord import app_commands as Serverutil, __version__ as discord_version
-from discord.ext.commands import Cog, Bot
+from discord.ext.commands import Cog, Bot, GroupCog
+from assets.menus import PrivacySelect
 from config import lss, hazead, loa, orleans
 
 format = "%a, %d %b %Y | %H:%M:%S"
@@ -83,6 +84,39 @@ class slashinfo(Cog):
             await ctx.followup.send("This is a user account, not a bot account"
                                     )
 
+class botpro(GroupCog, name="bot"):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    @Serverutil.command(name='tos', description='View the ToS of Server Utilities')
+    async def tos(self, ctx:Interaction):
+        embed=Embed()
+        embed.color=Color.random()
+        embed.title="Terms of Service when using Server Utilities"
+        embed.description="""
+**Use of Alt Accounts**
+There is no limits to the use of alt accounts. However, using them to try and break the bot in some way is not allowed.
+
+**Defamation and Reputational Harm**
+Spreading rumours and false reports about Server Utilities (such as calling it a nuke bot), causing unwanted drama or attacking me or Server Utilities is punishable.
+
+**Buying Server Utilities**
+Under no circumstances, Server Utilities (including its token) is not for sale.
+
+**Adding Server Utilities**
+Server Utilities, under no condition by a 3rd party, is not up for grabs or free to have. The bot is ONLY for my servers including LOA and LSS (it was added conditionally)
+
+**Copyright**
+Even though Server Utilities's repository is public and free to use for educational and/or experimental purposes, you are not allowed to impersonate it and/or sell the source code as it is under a Conditioned MIT License and Common Clause License. (To learn more about the Licenses, please use `/bot license`)
+        """
+        await ctx.response.send_message(embed=embed, delete_after=180)
+
+    @Serverutil.command(name='privcay', description='View the Privacy Policy affect the servers')
+    async def privacy(self, ctx:Interaction):
+        embed=Embed()
+        embed.description="The Privacy Policy explains how the bot stores it's data. It also includes how the bot functions works in the server"
+        view=PrivacySelect()
+        await ctx.response.send_message(embed=embed, view=view)
 
 async def setup(bot: Bot):
     await bot.add_cog(slashinfo(bot),
@@ -92,3 +126,10 @@ async def setup(bot: Bot):
                     Object(id=orleans),
                     Object(id=loa)
                 ])
+    await bot.add_cog(botpro(bot),
+                      guilds=[
+                          Object(id=lss),
+                          Object(id=hazead),
+                          Object(id=orleans),
+                          Object(id=loa)
+                      ])

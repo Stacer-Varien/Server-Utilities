@@ -1,9 +1,7 @@
-from json import loads
 from discord import app_commands as Serverutil
 from discord import *
 from discord.abc import *
 from discord.ext.commands import Cog, Bot
-from humanfriendly import format_timespan
 from config import hazead, loa
 from random import randint
 from datetime import timedelta
@@ -41,12 +39,13 @@ class warncog(Cog):
                             'Advertising in wrong channel', 'Custom reason'],
             custom: Optional[str] = None,
             belongsto: Optional[TextChannel] = None):
-        await ctx.response.defer(ephemeral=True)
+        await ctx.response.defer()
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
             failed = Embed(description="You can't warn yourself")
             await ctx.followup.send(embed=failed)
         embed = Embed()
+        embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
         if reason == 'Advertising in wrong channel' and not belongsto:
             await ctx.followup.send(
                 "Please include a channel to mention where the ad should be placed next time"
@@ -63,7 +62,7 @@ class warncog(Cog):
                                 value=reason,
                                 inline=False)
                 embed.add_field(name="Belongs to",
-                                value=belongsto,
+                                value=belongsto.mention,
                                 inline=False)
             elif reason == 'Custom reason' and custom != None:
                 embed.add_field(name="Reason for warn",
@@ -157,25 +156,32 @@ class warncog(Cog):
                                     value=warnpoints,
                                     inline=True)
 
-                    with open('assets/moderation.json', 'r') as f:
-                        data = "".join(f.readlines())
 
-                    jsondata = loads(data)
-
-                    if jsondata[warnpoints - 1]['timeout'] == 0 and jsondata[warnpoints - 1]['ban']== False:
+                    if warnpoints <=5:
                         result = "No punishment given"
-                    else:
-                        timeout: int = jsondata[warnpoints - 1]['timeout']
-                        if timeout==0:
-                            timed=None
-                        else:
-                            timed=(utcnow() + timedelta(minutes=timeout))
+                    elif warnpoints==6:
                         await member.edit(
-                            timed_out_until=timed,
-                            reason="{} timeout punishment applied".format(
-                                format_timespan(float(timeout * 60))))
-                        result = "{} timeout punishment applied".format(
-                                format_timespan(float(timeout * 60)))
+                            timed_out_until=(utcnow() + timedelta(hours=6)),
+                            reason="6 hour timeout punishment applied")
+                        result = "6 hour timeout punishment applied"
+                    elif warnpoints == 7:
+                        await member.edit(
+                            timed_out_until=(utcnow() + timedelta(hours=6)),
+                            reason="12 hour timeout punishment applied")
+                        result = "12 hour timeout punishment applied"
+                    elif warnpoints == 8:
+                        await member.edit(
+                            timed_out_until=(utcnow() + timedelta(hours=6)),
+                            reason="24 hour timeout punishment applied")
+                        result = "24 hour timeout punishment applied"
+                    elif warnpoints == 9:
+                        await member.kick(
+                            reason="Reached warn condition for kick")
+                        result = "Kick"
+                    elif warnpoints == 10:
+                        await member.kick(
+                            reason="Reached warn condition for ban")
+                        result = "Ban"
 
                     embed.add_field(name="Punishment",
                                     value=result,
@@ -188,7 +194,7 @@ class warncog(Cog):
                 else:
                     await ctx.followup.send(
                         "Please do the commands in {}".format(
-                            ctx.guild.get_channel(954594959074418738).mention))
+                            ctx.guild.get_channel(954594959074418738).mention), ephemeral=True)
 
 async def setup(bot: Bot):
     await bot.add_cog(warncog(bot), guilds=[Object(hazead), Object(loa)])

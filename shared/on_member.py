@@ -17,7 +17,7 @@ class member(Cog):
         if member.guild.id == HAZE_ADS:
             channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
             try:
-                welcome = f"{member.mention}\n\nHello and welcome to {member.guild.name}!\nBefore you can start advertising and chatting, please read the <#925790259877412876> and <#925790259877412883> so you don't get in trouble. Now please, enjoy your stay and start advertising yourself!\n\n **__Special Servers:__**\n1. Lead of Advertising: https://discord.gg/gpDcZfF\n2. Semi-Erasor https://discord.gg/VhgWsfN8ku\n3. Orleans https://discord.gg/Vfa796yvNq"
+                welcome = f"{member.mention}\n\nHello and welcome to {member.guild.name}!\nBefore you can start advertising and chatting, please read the <#925790259877412876> and <#925790259877412883> so you don't get in trouble. Now please, enjoy your stay and start advertising yourself!\n\n **__Special Servers:__**\n1. Lead of Advertising: https://discord.gg/gpDcZfF\n2. Semi-Erasor https://discord.gg/VhgWsfN8ku\n3. Orleans https://discord.gg/Vfa796yvNq\n4. Safe Space https://discord.gg/HXQFSfZfws"
 
                 embed = Embed(colour=Colour.blue())
                 if member.avatar != None:

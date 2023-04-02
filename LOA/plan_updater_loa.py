@@ -11,7 +11,7 @@ class plan_updater_cog_loa(Cog):
         self.bot = bot
         self.update_plans_loa.start()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=5)
     async def update_plans_loa(self):
         loa_plan_log = await self.bot.fetch_channel(990246941029990420)
 
@@ -35,7 +35,7 @@ class plan_updater_cog_loa(Cog):
                     await loa_plan_log.send("{}, {} has ended".format(
                         setter.mention, plan_id),
                                             embed=embed)
-                    plans.remove_plan(plan_id)
+                    plans.remove_plan(buyer, plan_id)
                 else:
                     pass
 
