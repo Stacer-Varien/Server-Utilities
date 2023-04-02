@@ -1,19 +1,18 @@
-from datetime import *
-
-from nextcord.ext import tasks
-from nextcord.ext.commands import Cog, Bot
-
-from config import db
+from datetime import datetime
+from assets.functions import Break
+from discord.ext import tasks
+from discord.ext.commands import Cog, Bot
 
 
 class break_updater(Cog):
+
     def __init__(self, bot: Bot):
         self.bot = bot
         self.check_break.start()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(minutes=5)
     async def check_break(self):
-        check_breaks = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
+        check_breaks = Break().check_loa_breaks()
         loa = await self.bot.fetch_guild(841671029066956831)
         break_role = loa.get_role(841682795277713498)
         break_channel = await loa.fetch_channel(841676953613631499)
@@ -23,14 +22,16 @@ class break_updater(Cog):
                 if int(round(datetime.now().timestamp())) > int(a[7]):
                     member = await loa.fetch_member(a[0])
 
-                    await member.remove_roles(break_role, reason="Break has ended")
+                    await member.remove_roles(break_role,
+                                              reason="Break has ended")
 
-                    db.execute("DELETE FROM breakData WHERE user_id = ?", (member.id,))
-                    db.commit()
-                    await break_channel.send("{}, your break has ended".format(member.mention))
+                    Break(member).remove_loa_break()
+
+                    await break_channel.send("{}, your break has ended".format(
+                        member.mention))
             except:
-                pass
+                continue
 
 
-def setup(bot: Bot):
-    bot.add_cog(break_updater(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(break_updater(bot))

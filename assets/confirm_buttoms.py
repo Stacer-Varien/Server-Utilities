@@ -1,4 +1,4 @@
-from nextcord import *
+from discord import ui, ButtonStyle, Interaction
 
 
 class Confirmation(ui.View):
@@ -15,6 +15,3 @@ class Confirmation(ui.View):
     async def cancel(self, button: ui.Button, ctx: Interaction):
         self.value = False
         self.stop()
-
-
-
