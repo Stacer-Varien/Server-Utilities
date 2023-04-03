@@ -45,7 +45,6 @@ class warncog(Cog):
             failed = Embed(description="You can't warn yourself")
             await ctx.followup.send(embed=failed)
         embed = Embed()
-        embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
         if reason == 'Advertising in wrong channel' and not belongsto:
             await ctx.followup.send(
                 "Please include a channel to mention where the ad should be placed next time"
@@ -57,6 +56,7 @@ class warncog(Cog):
             warn_id = randint(0, 100000)
             appeal_id = randint(0, 100000)
             embed = Embed(title="You have been warned", color=0xFF0000)
+            embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
             if reason == 'Advertising in wrong channel' and belongsto != None:
                 embed.add_field(name="Reason for warn",
                                 value=reason,

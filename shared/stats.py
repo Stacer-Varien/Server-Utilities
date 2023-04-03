@@ -116,7 +116,69 @@ Even though Server Utilities's repository is public and free to use for educatio
         embed=Embed()
         embed.description="The Privacy Policy explains how the bot stores it's data. It also includes how the bot functions works in the server"
         view=PrivacySelect()
-        await ctx.response.send_message(embed=embed, view=view)
+        await ctx.response.send_message(embed=embed, view=view, delete_after=240)
+
+    @Serverutil.command(name='license', description="View the licenses of the bot")
+    async def license(sefl, ctx:Interaction):
+        content="""
+Conditioned MIT License
+
+Copyright (c) 2022 Gary Jordaan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of Server Utilities and associated documentation files, to deal
+in the bot without restriction, including without limitation the rights
+to use, modify, merge, and to permit persons to whom the bot is
+furnished to do so, subject to the following conditions:
+
+1. The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of Server Utilities.
+
+2. The bot and/or source code should not be copied and claimed by its own by the 3rd party.
+
+3. The bot should not be the same as the original bot.
+
+4. The bot and/or it's source code should not be sold to anyone in any way or form.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+“Commons Clause” License Condition v1.0
+
+The Software is provided to you by the Licensor under the License, as defined 
+below, subject to the following condition.
+
+Without limiting other conditions in the License, the grant of rights under 
+the License will not include, and the License does not grant to you, the right
+to Sell the Software.
+
+For purposes of the foregoing, “Sell” means practicing any or all of the rights 
+granted to you under the License to provide to third parties, for a fee or other 
+consideration (including without limitation fees for hosting or consulting/ support 
+services related to the Software), a product or service whose value derives, entirely 
+or substantially, from the functionality of the Software. Any license notice or 
+attribution required by the License must also include this Commons Clause License 
+Condition notice.
+
+Software: Server Utilities
+
+License: Conditioned MIT License
+
+Licensor: Gary Jordaan
+"""
+
+        embed=Embed()
+        embed.color=Color.random()
+        embed.title="Server Utilities' Licenses"
+        embed.description=content
+
+        await ctx.response.send_message(embed=embed, delete_after=180)
 
 async def setup(bot: Bot):
     await bot.add_cog(slashinfo(bot),

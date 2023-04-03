@@ -38,7 +38,7 @@ Add-ons:
 - Real Custom Channel ( You may put anything you want in the channel at anytime, but no more roles will be pinged and the content must fit the <#705956109592035389> ) : 350
 - Per day after the first 7 days: 100
 """
-            await ctx.edit_original_response(embed=shouts)
+            await ctx.response.edit_message(embed=shouts)
         elif self.values[0] == "Giveaways and Auto Advertisements":
             giveads = Embed(color=Color.blue())
             giveads.title = "Giveaways & Auto Advertisements"
@@ -60,7 +60,7 @@ Add-ons:
 - Every 30 minutes : 400
 - Each channel of your choice : 300
 """
-            await ctx.edit_original_response(embed=giveads)
+            await ctx.response.edit_message(embed=giveads)
         elif self.values[0] == "Memberships":
             memberships = Embed(color=Color.blue())
             memberships.title = "Memberships"
@@ -90,7 +90,7 @@ What is included in Executive Membership:
 ^ = Available in Lead of Advertising, LOA Safety Centre and Lead of Gaming
 The shoutouts are sent with shoutout ping
 """
-            await ctx.edit_original_response(embed=memberships)
+            await ctx.response.edit_message(embed=memberships)
         elif self.values[0] == "Open Network Auto Advertisement":
             openads = Embed(color=Color.blue())
             openads.title = "Open Network Auto Advertisement"
@@ -103,7 +103,7 @@ Add-ons:
 - Server advertisement less than 50 characters: 200
 - Per day after default: 400 
 """
-            await ctx.edit_original_response(embed=openads)
+            await ctx.response.edit_message(embed=openads)
         elif self.values[0] == "Special Packages":
             special = Embed(color=Color.blue())
             special.title = "Special Packages"
@@ -120,7 +120,7 @@ Custom Channel on the top of the server:
 - per announcement: 5000
 - Default stay for 1 day, after default stay time per day: 1000  
 """
-            await ctx.edit_original_response(embed=special)
+            await ctx.response.edit_message(embed=special)
 
 
 class ProductSelect(ui.View):
@@ -151,7 +151,7 @@ class PrivacyMenu(ui.Select):
             embed.title="Privacy Policy effecting Orleans"
             embed.add_field(name="Privacy Policy", value="N/A", inline=False)
             embed.add_field(name="Functions", value="The channel, <#1041309643449827360> is checked for media content and prohibits members to chat in that channel by deleting that message. If a media content has a message content, the bot will allow it.", inline=False)
-            await ctx.edit_original_response(embed=embed)
+            await ctx.response.edit_message(embed=embed)
         elif self.values[0] == 'HAZE Advertising':
             embed.title = "Privacy Policy effecting HAZE Advertising"
             embed.add_field(name="Privacy Policy", value="""
@@ -169,7 +169,7 @@ Data can be removed if a member's adwarn appeal has been approved and a plan has
 
 2. Members can get automatically punished by the bot if they have reached a condition depending on how many adwarns they have""",
                 inline=False)
-            await ctx.edit_original_response(embed=embed)
+            await ctx.response.edit_message(embed=embed)
         elif self.values[0] == "Varien's Homework Folder":
             embed.title = "Privacy Policy effecting Varien's Homework Folder"
             embed.add_field(name="Privacy Policy",
@@ -187,7 +187,7 @@ Members that have the 'Verified' role are automatically removed from the databas
 
 2. If a member has the 'Untrusted' role, the bot logs it and waits 48 hours for the member to verify. If the member has failed to verify, they are automatically banned""",
                             inline=False)
-            await ctx.edit_original_response(embed=embed)
+            await ctx.response.edit_message(embed=embed)
 
         elif self.values[0] == 'LOA and LSS':
             embed.title = "Privacy Policy effecting LOA and LSS"
@@ -203,7 +203,7 @@ Data is removed if an adwarn has been cleared, breaks approved or denied, end of
             embed.add_field(name="Functions",
                             value="N/A",
                             inline=False)
-            await ctx.edit_original_response(embed=embed)
+            await ctx.response.edit_message(embed=embed)
 
 
 class PrivacySelect(ui.View):
