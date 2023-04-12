@@ -21,8 +21,7 @@ staff_supervisor = 962628294627438682  # strike
 om = 841671956999045141  # break
 
 
-class breakcog(GroupCog, name='break'):
-
+class breakcog(GroupCog, name="break"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -30,15 +29,15 @@ class breakcog(GroupCog, name='break'):
     @Serverutil.describe(
         duration_type="Is it timed or until further notice?",
         reason="Why do you want to go on break?",
-        duration=
-        "If you have selected the timed option, how long are you planning to take break?"
+        duration="If you have selected the timed option, how long are you planning to take break?",
     )
-    async def apply(self,
-                    ctx: Interaction,
-                    duration_type: Literal["Timed (1h, 1h30m, etc)",
-                                           "Until further notice"],
-                    reason: str,
-                    duration: Optional[str] = None) -> None:
+    async def apply(
+        self,
+        ctx: Interaction,
+        duration_type: Literal["Timed (1h, 1h30m, etc)", "Until further notice"],
+        reason: str,
+        duration: Optional[str] = None,
+    ) -> None:
         await ctx.response.defer()
         break_id = randint(1, 99999)
         break_role = ctx.guild.get_role(841682795277713498)
@@ -47,86 +46,103 @@ class breakcog(GroupCog, name='break'):
         if break_role in ctx.user.roles:
             await ctx.followup.send("You are already on break")
         else:
-            if ctx.user.id == 533792698331824138:
-                break_log = await self.bot.fetch_channel(1001053890277556235)
-
-                if duration_type == "Until further notice":
-                    duration = "Until further notice"
-                    Break(ctx.user).add_break_request(
-                        ctx.guild.id, break_id, duration, reason, 1,
-                        round(datetime.now().timestamp()), 99999999999)
-
-                elif duration_type == "Timed (1h, 1h30m, etc)":
-                    time = round((datetime.now() + timedelta(
-                        seconds=parse_timespan(duration))).timestamp())
-                    duration = "<t:{}:D>".format(time)
-                    Break(ctx.user).add_break_request(
-                        ctx.guild.id, break_id, duration, reason, 1,
-                        round(datetime.now().timestamp()), time)
-
-                own_break = Embed(description="You are now on break",
-                                  color=Color.blue())
-                own_break.add_field(name="Duration",
-                                    value=duration,
-                                    inline=False)
-
-                await ctx.user.add_roles(break_role, reason="Owner on break")
-                await channel.send(ctx.user.mention, embed=own_break)
-
-                auto_break = Embed(title="Break Automatically Given")
-                auto_break.add_field(name="Staff Member",
-                                     value=ctx.user,
-                                     inline=False)
-                auto_break.add_field(name="Role",
-                                     value=ctx.user.top_role,
-                                     inline=False)
-                auto_break.add_field(name="Duration",
-                                     value=duration,
-                                     inline=False)
-                auto_break.add_field(name="Reason", value=reason, inline=False)
-
-                await break_log.send(embed=auto_break)
-
+            if duration_type == "Timed (1h, 1h30m, etc)" and duration == None:
+                await ctx.followup.send("You are missing the `duration` option")
+            elif duration_type == "Until further notice" and duration != None:
+                await ctx.followup.send(
+                    "You cannot use the `duration` option if you are going away until further notice"
+                )
             else:
-                requested_break = Embed(title="New Break Request")
-                requested_break.add_field(name="Staff Member",
-                                          value=ctx.user,
-                                          inline=False)
-                requested_break.add_field(name="Role",
-                                          value=ctx.user.top_role,
-                                          inline=False)
+                if ctx.user.id == 533792698331824138:
+                    break_log = await self.bot.fetch_channel(1001053890277556235)
 
-                if duration_type == "Until further notice":
-                    duration = "Until further notice"
+                    if duration_type == "Until further notice":
+                        duration = "Until further notice"
+                        Break(ctx.user).add_break_request(
+                            ctx.guild.id,
+                            break_id,
+                            duration,
+                            reason,
+                            1,
+                            round(datetime.now().timestamp()),
+                            99999999999,
+                        )
 
-                elif duration_type == "Timed (1h, 1h30m, etc)":
-                    parse_timespan(duration)
-                    duration = duration
-                requested_break.add_field(name="Duration",
-                                          value=duration,
-                                          inline=False)
-                requested_break.add_field(name="Reason",
-                                          value=reason,
-                                          inline=False)
-                requested_break.add_field(name="Break ID",
-                                          value=break_id,
-                                          inline=False)
-                requested_break.set_footer(
-                    text=
-                    "To approve or deny this request, use `/break approve MEMBER BREAK_ID` or `/break deny MEMBER BREAK_ID`"
-                )
-                Break(ctx.user).add_break_request(
-                    ctx.guild.id,
-                    break_id,
-                    duration,
-                    reason,
-                    0,
-                    0,
-                    0,
-                )
+                    elif duration_type == "Timed (1h, 1h30m, etc)":
+                        time = round(
+                            (
+                                datetime.now()
+                                + timedelta(seconds=parse_timespan(duration))
+                            ).timestamp()
+                        )
+                        duration = "<t:{}:D>".format(time)
+                        Break(ctx.user).add_break_request(
+                            ctx.guild.id,
+                            break_id,
+                            duration,
+                            reason,
+                            1,
+                            round(datetime.now().timestamp()),
+                            time,
+                        )
 
-                await channel.send(embed=requested_break)
-                await ctx.followup.send("Break successfully requested")
+                    own_break = Embed(
+                        description="You are now on break", color=Color.blue()
+                    )
+                    own_break.add_field(name="Duration", value=duration, inline=False)
+
+                    await ctx.user.add_roles(break_role, reason="Owner on break")
+                    await channel.send(ctx.user.mention, embed=own_break)
+
+                    auto_break = Embed(title="Break Automatically Given")
+                    auto_break.add_field(
+                        name="Staff Member", value=ctx.user, inline=False
+                    )
+                    auto_break.add_field(
+                        name="Role", value=ctx.user.top_role, inline=False
+                    )
+                    auto_break.add_field(name="Duration", value=duration, inline=False)
+                    auto_break.add_field(name="Reason", value=reason, inline=False)
+
+                    await break_log.send(embed=auto_break)
+
+                else:
+                    requested_break = Embed(title="New Break Request")
+                    requested_break.add_field(
+                        name="Staff Member", value=ctx.user, inline=False
+                    )
+                    requested_break.add_field(
+                        name="Role", value=ctx.user.top_role, inline=False
+                    )
+
+                    if duration_type == "Until further notice":
+                        duration = "Until further notice"
+
+                    elif duration_type == "Timed (1h, 1h30m, etc)":
+                        parse_timespan(duration)
+                        duration = duration
+                    requested_break.add_field(
+                        name="Duration", value=duration, inline=False
+                    )
+                    requested_break.add_field(name="Reason", value=reason, inline=False)
+                    requested_break.add_field(
+                        name="Break ID", value=break_id, inline=False
+                    )
+                    requested_break.set_footer(
+                        text="To approve or deny this request, use `/break approve MEMBER BREAK_ID` or `/break deny MEMBER BREAK_ID`"
+                    )
+                    Break(ctx.user).add_break_request(
+                        ctx.guild.id,
+                        break_id,
+                        duration,
+                        reason,
+                        0,
+                        0,
+                        0,
+                    )
+
+                    await channel.send(embed=requested_break)
+                    await ctx.followup.send("Break successfully requested")
 
     @Serverutil.command(description="Approve the break")
     @Serverutil.checks.has_any_role(core_team, om)
@@ -138,8 +154,7 @@ class breakcog(GroupCog, name='break'):
             await ctx.followup.send("Invalid break ID passed")
 
         elif data[0] == ctx.user.id:
-            await ctx.followup.send(
-                "You can't approve your own break request...")
+            await ctx.followup.send("You can't approve your own break request...")
 
         else:
             break_channel = await self.bot.fetch_channel(841676953613631499)
@@ -148,36 +163,27 @@ class breakcog(GroupCog, name='break'):
             member = ctx.guild.get_member(data[0])
 
             accepted_break = Embed(title="Break Approved")
-            accepted_break.add_field(name="Staff Member",
-                                     value=member,
-                                     inline=False)
-            accepted_break.add_field(name="Role",
-                                     value=member.top_role,
-                                     inline=False)
+            accepted_break.add_field(name="Staff Member", value=member, inline=False)
+            accepted_break.add_field(name="Role", value=member.top_role, inline=False)
 
             try:
                 time = parse_timespan(data[3])
-                duration = round(
-                    (datetime.now() + timedelta(seconds=time)).timestamp())
+                duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
                 timing = "<t:{}:D>".format(duration)
-                Break(member).approve_break(ctx.guild.id,
-                                            round(datetime.now().timestamp()),
-                                            duration)
+                Break(member).approve_break(
+                    ctx.guild.id, round(datetime.now().timestamp()), duration
+                )
             except:
                 timing = "Until further notice"
-                Break(member).approve_break(ctx.guild.id,
-                                            round(datetime.now().timestamp()),
-                                            9999999999)
+                Break(member).approve_break(
+                    ctx.guild.id, round(datetime.now().timestamp()), 9999999999
+                )
 
-            accepted_break.add_field(name="Duration",
-                                     value=timing,
-                                     inline=False)
-            accepted_break.add_field(name="Reason",
-                                     value=data[4],
-                                     inline=False)
-            accepted_break.add_field(name="User who approved it",
-                                     value=ctx.user,
-                                     inline=False)
+            accepted_break.add_field(name="Duration", value=timing, inline=False)
+            accepted_break.add_field(name="Reason", value=data[4], inline=False)
+            accepted_break.add_field(
+                name="User who approved it", value=ctx.user, inline=False
+            )
 
             break_role = ctx.guild.get_role(841682795277713498)
             await member.add_roles(break_role, reason="Staff is on break")
@@ -186,13 +192,16 @@ class breakcog(GroupCog, name='break'):
             if ctx.channel.id == 841676953613631499:
                 await ctx.channel.send(
                     "{}, your break has been approved by {}".format(
-                        member.mention, ctx.user))
+                        member.mention, ctx.user
+                    )
+                )
 
             else:
-
                 await break_channel.send(
                     "{}, your break has been approved by {}".format(
-                        member.mention, ctx.user))
+                        member.mention, ctx.user
+                    )
+                )
                 await ctx.followup.send(f"Accepted break of {member}")
 
     @Serverutil.command(name="deny", description="Deny the break")
@@ -206,15 +215,16 @@ class breakcog(GroupCog, name='break'):
                 await ctx.followup.send("Invalid break ID passed")
 
             else:
-                break_channel = await self.bot.fetch_channel(841676953613631499
-                                                             )
+                break_channel = await self.bot.fetch_channel(841676953613631499)
 
                 member = ctx.guild.get_member(data[0])
 
                 if ctx.channel.id == 841676953613631499:
                     await ctx.channel.send(
                         "{}, your break has been denied by {}".format(
-                            member.mention, ctx.user))
+                            member.mention, ctx.user
+                        )
+                    )
 
                 else:
                     await ctx.followup.send(f"Denied break of {member}")
@@ -224,31 +234,32 @@ class breakcog(GroupCog, name='break'):
 
                 Break(member).deny_break(break_id, ctx.guild.id)
 
-    @Serverutil.command(name='end', description="End your break early")
+    @Serverutil.command(name="end", description="End your break early")
     async def end(self, ctx: Interaction):
         await ctx.response.defer()
         if ctx.guild.id == 841671029066956831:
             break_role = ctx.guild.get_role(841682795277713498)
 
             if break_role in ctx.user.roles:
-                await ctx.user.remove_roles(break_role,
-                                            reason="Staff returned from break")
-                await ctx.followup.send(
-                    "Your break has ended.\nWelcome back! :tada:")
+                await ctx.user.remove_roles(
+                    break_role, reason="Staff returned from break"
+                )
+                await ctx.followup.send("Your break has ended.\nWelcome back! :tada:")
                 Break(ctx.user).end_break(ctx.guild.id)
 
             else:
                 await ctx.followup.send(
-                    "You are not on break. Please request for a break first.")
+                    "You are not on break. Please request for a break first."
+                )
 
 
-class strikecog(GroupCog, name='strike'):
-
+class strikecog(GroupCog, name="strike"):
     def __init__(self, bot: Bot):
-        self.bot = bot
+        self.bot = bot    
 
-    async def addstrike(self, ctx: Interaction, member: Member,
-                        department: str, reason: str):
+    async def addstrike(
+        self, ctx: Interaction, member: Member, department: str, reason: str
+    ):
         channel = self.bot.get_channel(841672405444591657)
         strike_id = randint(0, 99999)
         strike = Strike(department, member)
@@ -262,66 +273,58 @@ class strikecog(GroupCog, name='strike'):
         embed.add_field(name="Reason", value=reason, inline=True)
         embed.add_field(name="Strike ID", value=strike_id)
         embed.set_footer(
-            text=
-            "To appeal for your strike, please do `/strike appeal STRIKE ID`")
+            text="To appeal for your strike, please do `/strike appeal STRIKE ID`"
+        )
         await channel.send(member.mention, embed=embed)
         await ctx.followup.send("Strike given to {}".format(member))
 
     @Serverutil.command(
-        description=
-        "Give a strike to a staff member for bad performance/unprofessionalism"
+        description="Give a strike to a staff member for bad performance/unprofessionalism"
     )
-    async def give(self, ctx: Interaction, member: Member,
-                   department: Literal["Management", "Human Resources",
-                                       "Moderation", "Marketing"],
-                   reason: str):
+    @Serverutil.checks.has_any_role(
+        841671779394781225,
+        841671956999045141,
+        955722820464283658,
+        949147158572056636,
+        841682891599773767,
+        962628294627438682,
+        1095048263985549382,
+    )
+    async def give(
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        reason: str,
+    ):
         await ctx.response.defer(ephemeral=True)
 
-        #all
         CT = ctx.guild.get_role(841671779394781225)
-        OM = ctx.guild.get_role(841671956999045141)
-        COO = ctx.guild.get_role(955722820464283658)
-        CHR = ctx.guild.get_role(949147158572056636)
-        TL = ctx.guild.get_role(841682891599773767)
-        SS = ctx.guild.get_role(962628294627438682)
-
-        ALL = [CT, OM, COO, CHR, TL, SS]
 
         if CT in member.roles:
             await ctx.followup.send(
-                "You can't strike someone from the {} since they have been granted strike immunity"
-                .format(CT.name),
-                ephemeral=True)
+                "You can't strike someone from the {} since they have been granted strike immunity".format(
+                    CT.name
+                ),
+                ephemeral=True,
+            )
 
         else:
-            if department == "Marketing":
-                if ctx.guild.get_role(
-                        950013921895538688
-                ) in ctx.user.roles and ctx.guild.get_role(
-                        881084354422538281
-                ) in member.roles and ctx.user.top_role.position > ctx.guild.get_role(
-                        881084354422538281).position:
-                    await self.addstrike(ctx, member, department, reason)
+            await self.addstrike(ctx, member, department, reason)
 
-            elif any(role.id for role in ALL for role in ctx.user.roles):
-                await self.addstrike(ctx, member, department, reason)
+    
 
-            else:
-                await ctx.followup.send(
-                    "You do not have the required roles to do a strike")
-
-    group = Serverutil.Group(name="mod", description="...")
-
-    @group.command(
-        description=
-        "Give a strike to a moderator for bad performance/unprofessionalism")
-    @Serverutil.describe(member="Which moderator?",
-                         reason="What is the reason for the strike?")
+    @Serverutil.command(
+        description="Give a strike to a moderator for bad performance/unprofessionalism"
+    )
+    @Serverutil.describe(
+        member="Which moderator?", reason="What is the reason for the strike?"
+    )
     @Serverutil.checks.has_any_role(1074770189582872606)
-    async def give(self, ctx: Interaction, member: Member, reason: str):
+    async def mod(self, ctx: Interaction, member: Member, reason: str):
         await ctx.response.defer(ephemeral=True)
 
-        #mod
+        # mod
         MODT = ctx.guild.get_role(1075400097615052900)
         if ctx.guild.get_role(949147509660483614) in member.roles:
             await ctx.followup.send("You can't strike someone who is a CSO...")
@@ -331,13 +334,19 @@ class strikecog(GroupCog, name='strike'):
                     await self.addstrike(ctx, member, "Moderation", reason)
 
     @Serverutil.command(
-        description="Remove a strike if a staff member has shown improvement")
-    @Serverutil.checks.has_any_role(core_team, chr, coo, team_leader,
-                                    staff_supervisor, om)
-    async def remove(self, ctx: Interaction, member: Member, strike_id: int,
-                     department: Literal["Management", "Human Resources",
-                                         "Moderation", "Marketing"],
-                     reason: str):
+        description="Remove a strike if a staff member has shown improvement"
+    )
+    @Serverutil.checks.has_any_role(
+        core_team, chr, coo, team_leader, staff_supervisor, om
+    )
+    async def remove(
+        self,
+        ctx: Interaction,
+        member: Member,
+        strike_id: int,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        reason: str,
+    ):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672405444591657)
 
@@ -351,39 +360,49 @@ class strikecog(GroupCog, name='strike'):
             strikes = strike.get_strikes()
             m = await self.bot.fetch_user(member)
 
-            embed = Embed(title="Your strike has been removed",
-                          color=Color.green()).add_field(
-                              name="Strike count", value=strikes,
-                              inline=True).add_field(name="Reason",
-                                                     value=reason,
-                                                     inline=True)
+            embed = (
+                Embed(title="Your strike has been removed", color=Color.green())
+                .add_field(name="Strike count", value=strikes, inline=True)
+                .add_field(name="Reason", value=reason, inline=True)
+            )
             await channel.send(m.mention, embed=embed)
 
             await ctx.followup.send("Strike removed from {}".format(m))
 
-    @Serverutil.command(description="Appeal your strike")
+    group2 = Serverutil.Group(name="appeal", description="...")
+
+    @group2.command(description="Appeal your strike")
     @Serverutil.describe(
         strike_id="Enter the strike ID you wish to appeal here",
-        department="Which department you were striked in?")
-    async def appeal(self, ctx: Interaction, strike_id: int,
-                     department: Literal["Management", "Human Resources",
-                                         "Moderation", "Marketing"]):
+        department="Which department you were striked in?",
+    )
+    async def apply(
+        self,
+        ctx: Interaction,
+        strike_id: int,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+    ):
         check = Strike(department, ctx.user).check_id(strike_id)
         if check == None:
             await ctx.response.send_message("Invalid Strike ID")
         else:
             await ctx.channel.typing()
             await ctx.response.send_modal(
-                Strike_Appeal(self.bot, strike_id, department))
+                Strike_Appeal(self.bot, strike_id, department)
+            )
 
-    group2 = Serverutil.Group(name="appeal", description="...")
 
     @group2.command(description="Approve a strike appeal")
-    @Serverutil.checks.has_any_role(core_team, om, chr, coo, team_leader,
-                                    staff_supervisor)
-    async def approve(self, ctx: Interaction, member: Member, strike_id: int,
-                      department: Literal["Management", "Human Resources",
-                                          "Moderation", "Marketing"]):
+    @Serverutil.checks.has_any_role(
+        core_team, om, chr, coo, team_leader, staff_supervisor
+    )
+    async def approve(
+        self,
+        ctx: Interaction,
+        member: Member,
+        strike_id: int,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+    ):
         await ctx.response.defer()
         channel = self.bot.get_channel(841672405444591657)
         strike = Strike(department, member)
@@ -401,7 +420,8 @@ class strikecog(GroupCog, name='strike'):
             strikes = strike.get_strikes()
 
             msg = "{}, your appeal for your strike has been approved. You now have {} strikes".format(
-                staff_member.mention, strikes)
+                staff_member.mention, strikes
+            )
 
             if ctx.channel.id == 841672405444591657:
                 await ctx.channel.send(msg)
@@ -411,11 +431,16 @@ class strikecog(GroupCog, name='strike'):
                 await ctx.followup.send("Appeal approved")
 
     @group2.command(description="Deny a strike appeal")
-    @Serverutil.checks.has_any_role(core_team, om, chr, coo, team_leader,
-                                    staff_supervisor)
-    async def deny(self, ctx: Interaction, member: Member, strike_id: int,
-                   department: Literal["Management", "Human Resources",
-                                       "Moderation", "Marketing"]):
+    @Serverutil.checks.has_any_role(
+        core_team, om, chr, coo, team_leader, staff_supervisor
+    )
+    async def deny(
+        self,
+        ctx: Interaction,
+        member: Member,
+        strike_id: int,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+    ):
         await ctx.response.defer()
         channel = self.bot.get_channel(841672405444591657)
         strike = Strike(department, member)
@@ -430,7 +455,8 @@ class strikecog(GroupCog, name='strike'):
         else:
             staff_member = ctx.guild.get_member(user[1])
             msg = "{}, your appeal for your strike has been denied.".format(
-                staff_member.mention)
+                staff_member.mention
+            )
 
             if ctx.channel.id == 841672405444591657:
                 await ctx.channel.send(msg)
@@ -440,8 +466,7 @@ class strikecog(GroupCog, name='strike'):
                 await ctx.followup.send("Appeal denied")
 
 
-class resigncog(GroupCog, name='resign'):
-
+class resigncog(GroupCog, name="resign"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -452,16 +477,14 @@ class resigncog(GroupCog, name='resign'):
 
         channel = await self.bot.fetch_channel(1002513633760260166)
 
-        request = Embed(title="Resignation request of {} | {}".format(
-            ctx.user, ctx.user.id),
-                        color=ctx.user.color)
+        request = Embed(
+            title="Resignation request of {} | {}".format(ctx.user, ctx.user.id),
+            color=ctx.user.color,
+        )
         request.add_field(name="Department", value=department, inline=False)
-        request.add_field(name="Reason of Resigning",
-                          value=reason,
-                          inline=False)
+        request.add_field(name="Reason of Resigning", value=reason, inline=False)
         request.set_footer(
-            text=
-            "To accept or deny the resignation, use `/resign approve USER_ID` or `/resign approve USER_ID`"
+            text="To accept or deny the resignation, use `/resign approve USER_ID` or `/resign approve USER_ID`"
         )
 
         await ctx.followup.send("Your resignation has been requested")
@@ -519,8 +542,7 @@ class resigncog(GroupCog, name='resign'):
             await ctx.followup.send("Denied resignation of {}".format(member))
 
 
-class pricelistcog(GroupCog, name='pricelist'):
-
+class pricelistcog(GroupCog, name="pricelist"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -591,15 +613,18 @@ What you can get for getting any of our plans:
 
 
 class others(Cog):
-
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @Serverutil.command(description="Removes an adwarn")
     @Serverutil.describe(warnid="Put in the warn ID")
-    @Serverutil.checks.has_any_role(889019375988916264, 749608853376598116,
-                                    849778145087062046, 947109389855248504,
-                                    919410986249756673)
+    @Serverutil.checks.has_any_role(
+        889019375988916264,
+        749608853376598116,
+        849778145087062046,
+        947109389855248504,
+        919410986249756673,
+    )
     async def revoke(self, ctx: Interaction, member: Member, warnid: str):
         await ctx.response.defer()
         if ctx.channel.id == 954594959074418738:
@@ -616,11 +641,9 @@ class others(Cog):
             except:
                 pass
 
-            await ctx.followup.send(
-                "Warning revoked and message sent to member")
+            await ctx.followup.send("Warning revoked and message sent to member")
         else:
-            await ctx.followup.send(
-                "Please use the command in <#954594959074418738>")
+            await ctx.followup.send("Please use the command in <#954594959074418738>")
 
 
 async def setup(bot: Bot) -> None:

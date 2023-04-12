@@ -77,7 +77,7 @@ class LOAWarn():
                            (self.user.id, )).fetchone()
         db.commit()
         current_time = datetime.now()
-        next_warn = current_time + timedelta(minutes=30)
+        next_warn = current_time + timedelta(seconds=30)
         if data == None:
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
