@@ -5,7 +5,6 @@ from discord.ext.commands import Cog, Bot
 
 
 class break_updater(Cog):
-
     def __init__(self, bot: Bot):
         self.bot = bot
         self.check_break.start()
@@ -22,13 +21,13 @@ class break_updater(Cog):
                 if int(round(datetime.now().timestamp())) > int(a[7]):
                     member = await loa.fetch_member(a[0])
 
-                    await member.remove_roles(break_role,
-                                              reason="Break has ended")
+                    await member.remove_roles(break_role, reason="Break has ended")
 
                     Break(member).remove_loa_break()
 
-                    await break_channel.send("{}, your break has ended".format(
-                        member.mention))
+                    await break_channel.send(
+                        "{}, your break has ended".format(member.mention)
+                    )
             except:
                 continue
 

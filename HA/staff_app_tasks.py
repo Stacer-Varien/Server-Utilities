@@ -6,7 +6,6 @@ from assets.applications import AppButtons
 
 
 class application(Cog):
-
     def __init__(self, bot: Bot):
         self.bot = bot
         self.reload_apps.start()
@@ -14,7 +13,9 @@ class application(Cog):
     @tasks.loop(minutes=3)
     async def reload_apps(self):
         embed = Embed()
-        embed.description = "Click on the available (grey buttons) positions that you wish to apply for"
+        embed.description = (
+            "Click on the available (grey buttons) positions that you wish to apply for"
+        )
         embed.color = Color.dark_blue()
         view = AppButtons()
 

@@ -8,7 +8,6 @@ HAZE_ADS = 925790259160166460
 
 
 class member(Cog):
-
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -25,8 +24,7 @@ class member(Cog):
                 else:
                     pass
                 embed.set_image(
-                    url=
-                    "https://media.discordapp.net/attachments/829041410556690452/951799345324376065/swim-ad.gif"
+                    url="https://media.discordapp.net/attachments/829041410556690452/951799345324376065/swim-ad.gif"
                 )
                 await channel.send(welcome, embed=embed)
             except Exception as e:
@@ -48,31 +46,36 @@ class member(Cog):
             channel = self.bot.get_channel(841672222136991757)
             try:
                 check_resignation_data = db.execute(
-                    "SELECT accepted FROM resignData WHERE user_id = ?",
-                    (member.id, )).fetchone(
-                    )  # checks for their user ID in the database if it exists
+                    "SELECT accepted FROM resignData WHERE user_id = ?", (member.id,)
+                ).fetchone()  # checks for their user ID in the database if it exists
 
-                if check_resignation_data == None:  # if they just left without requesting for resigning
+                if (
+                    check_resignation_data == None
+                ):  # if they just left without requesting for resigning
                     no_resign = Embed(
                         title=f"{member} ({member.id}) left the server",
-                        color=Color.red())
+                        color=Color.red(),
+                    )
                     await channel.send(embed=no_resign)
 
-                elif check_resignation_data[
-                        0] == 0:  # if they left without an accepted resignation
+                elif (
+                    check_resignation_data[0] == 0
+                ):  # if they left without an accepted resignation
                     not_accepted = Embed(
                         title=f"{member} ({member.id}) left the server",
-                        color=Color.red())
+                        color=Color.red(),
+                    )
                     await channel.send(embed=not_accepted)
 
-                elif check_resignation_data[
-                        0] == 1:  # if their resignation has been accepted
-                    db.execute("DELETE FROM resignData WHERE user_id = ?",
-                               (member.id, ))
+                elif (
+                    check_resignation_data[0] == 1
+                ):  # if their resignation has been accepted
+                    db.execute("DELETE FROM resignData WHERE user_id = ?", (member.id,))
                     db.commit()
                     accepted = Embed(
                         title=f"{member} ({member.id}) has resigned.",
-                        color=Color.green())
+                        color=Color.green(),
+                    )
                     await channel.send(embed=accepted)
             except:
                 return

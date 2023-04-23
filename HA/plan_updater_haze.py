@@ -6,7 +6,6 @@ from assets.functions import Plans
 
 
 class plan_updater_cog(Cog):
-
     def __init__(self, bot: Bot):
         self.bot = bot
         self.update_plans.start()
@@ -33,9 +32,9 @@ class plan_updater_cog(Cog):
                     embed.add_field(name="Buyer", value=buyer, inline=False)
                     embed.add_field(name="Product", value=plan, inline=False)
                     embed.add_field(name="Ending", value=ending, inline=False)
-                    await ha_planlog.send("{}, {} has ended".format(
-                        setter.mention, plan_id),
-                                          embed=embed)
+                    await ha_planlog.send(
+                        "{}, {} has ended".format(setter.mention, plan_id), embed=embed
+                    )
                     plans.remove_plan(buyer, plan_id)
                 else:
                     pass

@@ -8,8 +8,8 @@ pack = [pip, packages]
 
 if platform.system() == "Linux":
     for i in pack:
-        os.system('python3 -m pip ' + i)
+        os.system("python3 -m pip " + i)
 
 elif platform.system() == "Windows":
     for i in pack:
-        os.system('python.exe -m pip ' + i)
+        os.system("python.exe -m pip " + i)

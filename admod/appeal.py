@@ -7,8 +7,7 @@ from config import hazead
 from discord import Message
 
 
-class appealcog(GroupCog, name='appeal'):
-
+class appealcog(GroupCog, name="appeal"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -26,7 +25,8 @@ class appealcog(GroupCog, name='appeal'):
             try:
                 await ctx.followup.send(
                     "Please make sure your DMs are opened to start the appealing process",
-                    ephemeral=True)
+                    ephemeral=True,
+                )
 
                 await ctx.user.send(
                     "Please tell us why we should revoke your warn. Please supply video or images if required.\nYou have 3 minutes to tell"
@@ -45,9 +45,9 @@ class appealcog(GroupCog, name='appeal'):
                         return m.author == ctx.user and m.attachments
 
                 try:
-                    msg: Message = await self.bot.wait_for('message',
-                                                           check=check,
-                                                           timeout=180)
+                    msg: Message = await self.bot.wait_for(
+                        "message", check=check, timeout=180
+                    )
 
                     await ctx.user.send(
                         "Thank you for appealing for your warn. The appropriate staff member will review it and will send updates if any action is needed\nPlease do not rush us or your appeal will be denied."
@@ -58,35 +58,33 @@ class appealcog(GroupCog, name='appeal'):
                     appeal_id = check_warn[4]
 
                     appeal = Embed(title=f"{ctx.user}'s appeal")
-                    appeal.add_field(name="Warn ID",
-                                     value=warn_id,
-                                     inline=True)
-                    appeal.add_field(name="Appeal ID",
-                                     value=appeal_id,
-                                     inline=True)
-                    appeal.add_field(name="Warn reason",
-                                     value=f"{reason}\nWarned by: {moderator}")
-                    appeal.add_field(name="How to approve or deny?",
-                                     value=f"{reason}\nWarned by: {moderator}")
+                    appeal.add_field(name="Warn ID", value=warn_id, inline=True)
+                    appeal.add_field(name="Appeal ID", value=appeal_id, inline=True)
+                    appeal.add_field(
+                        name="Warn reason", value=f"{reason}\nWarned by: {moderator}"
+                    )
+                    appeal.add_field(
+                        name="How to approve or deny?",
+                        value=f"{reason}\nWarned by: {moderator}",
+                    )
                     appeal.set_footer(
-                        text=
-                        "To approve the appeal, use `/verdict accept appeal_id`. To deny the appeal, use `/verdict deny appeal_id`"
+                        text="To approve the appeal, use `/verdict accept appeal_id`. To deny the appeal, use `/verdict deny appeal_id`"
                     )
 
                     try:
                         image_urls = [x.url for x in msg.attachments]
                         images = "\n".join(image_urls)
-                        await appeal_log.send("{}\n{}".format(msg, images),
-                                              embed=appeal)
+                        await appeal_log.send(
+                            "{}\n{}".format(msg, images), embed=appeal
+                        )
                     except:
                         await appeal_log.send(msg, embed=appeal)
                 except TimeoutError:
-                    await ctx.user.send(
-                        "You have ran out of time. Please try again.")
+                    await ctx.user.send("You have ran out of time. Please try again.")
             except:
                 await ctx.followup.send(
-                    "Please open your DMs to start the appeal process",
-                    ephemeral=True)
+                    "Please open your DMs to start the appeal process", ephemeral=True
+                )
 
     @serverutil.command(description="Approve an appeal")
     @serverutil.checks.has_role(925790259319558157)
@@ -116,13 +114,12 @@ class appealcog(GroupCog, name='appeal'):
                 except:
                     pass
 
-                await ctx.followup.send(
-                    "Warning revoked and message sent to member")
+                await ctx.followup.send("Warning revoked and message sent to member")
         else:
             channel = await self.bot.fetch_channel(951783773006073906)
-            await ctx.followup.send("Please do the command in {}".format(
-                channel.mention),
-                                    ephemeral=True)
+            await ctx.followup.send(
+                "Please do the command in {}".format(channel.mention), ephemeral=True
+            )
 
     @serverutil.command(description="Deny an appeal")
     @serverutil.checks.has_role(925790259319558157)
@@ -149,12 +146,13 @@ class appealcog(GroupCog, name='appeal'):
                     pass
 
                 await ctx.followup.send(
-                    "Warning not revoked and message sent to member")
+                    "Warning not revoked and message sent to member"
+                )
         else:
             channel = await self.bot.fetch_channel(951783773006073906)
-            await ctx.followup.send("Please do the command in {}".format(
-                channel.mention),
-                                    ephemeral=True)
+            await ctx.followup.send(
+                "Please do the command in {}".format(channel.mention), ephemeral=True
+            )
 
 
 async def setup(bot: Bot):
