@@ -256,6 +256,14 @@ class Warn():
         except:
             return 1
 
+    def get_time(self) -> int:
+        timedata = db.execute(
+                "SELECT time FROM warnData_v2 WHERE user_id = ?",
+                (self.user.id, )).fetchone()
+        db.commit()
+        return timedata[0]
+
+
     def get_warn_id(self):
         data = db.execute("SELECT warn_id FROM warnData WHERE user_id = ?",
                           (self.user.id, )).fetchone()
@@ -287,13 +295,12 @@ class Strike():
         self.department = department
         self.member=member
 
-    def give(self, strike_id: int):
+    def give(self):
         db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, strike_id) VALUES (?,?,?)",
+            "INSERT OR IGNORE INTO strikeData (department, user_id) VALUES (?,?)",
             (
                 self.department,
                 self.member.id,
-                strike_id,
             ))
         db.commit()
 
@@ -309,11 +316,11 @@ class Strike():
         else:
             return len(data)
 
-    def check_id(self, strike_id:int):
+    def check(self):
         data = db.execute(
-            "SELECT * FROM strikeData WHERE strike_id = ? AND department = ?",
+            "SELECT * FROM strikeData WHERE user_id = ? AND department = ?",
             (
-                strike_id,
+                self.member.id,
                 self.department,
             )).fetchone()
 
@@ -322,10 +329,9 @@ class Strike():
         else:
             return data
 
-    def revoke(self, strike_id:int):
+    def revoke(self):
         db.execute(
-            "DELETE FROM strikeData WHERE strike_id = ? AND user_id = ? AND department = ?", (
-                strike_id,
+            "DELETE FROM strikeData WHERE user_id = ? AND department = ?", (
                 self.member.id,
                 self.department,
             ))
