@@ -515,7 +515,7 @@ class Resign():
         db.commit()
 
     def deny_resign(self):
-        db.execute("DELETE FROM resignData WHERE WHERE user_id = ?",
+        db.execute("DELETE FROM resignData WHERE user_id = ?",
                    (self.member.id, ))
         db.commit()
 

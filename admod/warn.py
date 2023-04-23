@@ -2,7 +2,7 @@ from discord import app_commands as Serverutil
 from discord import *
 from discord.abc import *
 from discord.ext.commands import Cog, Bot
-from config import hazead, loa
+from config import hazead
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
@@ -24,8 +24,8 @@ class warncog(Cog):
         belongsto=
         "Which channel should the ad go to? (only if you selected wrong channel option)"
     )
-    @Serverutil.checks.has_any_role(980142809094971423, 925790259319558154,
-                                    925790259319558157)
+    @Serverutil.checks.has_any_role(925790259319558154, 925790259294396455,
+                                    1011971782426767390, 925790259319558157, 925790259319558159, 925790259319558158)
     async def adwarn(
             self,
             ctx: Interaction,
@@ -126,7 +126,7 @@ class warncog(Cog):
                         )
                         await member.send(embed=banmsg)
                     except:
-                        return
+                        pass
                     await member.kick(reason="Kick punishment applied")
                     result = "Member has reached the 10 warn point punishment. A ban punishment was applied"
 
@@ -143,58 +143,6 @@ class warncog(Cog):
                     await ctx.followup.send(
                         f"Warning sent. Check {adwarn_channel.mention}",
                         ephemeral=True)
-            elif ctx.guild.id == loa:
-                if ctx.channel.id == 954594959074418738:
-                    warn_data = LOAWarn(member, ctx.user, warn_id)
-                    if warn_data.give_adwarn(channel, reason) == False:
-                        return
-
-                    warn_data.give_adwarn(channel, reason)
-                    warnpoints = warn_data.get_warn_points()
-                    embed.add_field(name="Warn ID", value=warn_id, inline=True)
-                    embed.add_field(name="Warn Points",
-                                    value=warnpoints,
-                                    inline=True)
-
-
-                    if warnpoints <=5:
-                        result = "No punishment given"
-                    elif warnpoints==6:
-                        await member.edit(
-                            timed_out_until=(utcnow() + timedelta(hours=6)),
-                            reason="6 hour timeout punishment applied")
-                        result = "6 hour timeout punishment applied"
-                    elif warnpoints == 7:
-                        await member.edit(
-                            timed_out_until=(utcnow() + timedelta(hours=6)),
-                            reason="12 hour timeout punishment applied")
-                        result = "12 hour timeout punishment applied"
-                    elif warnpoints == 8:
-                        await member.edit(
-                            timed_out_until=(utcnow() + timedelta(hours=6)),
-                            reason="24 hour timeout punishment applied")
-                        result = "24 hour timeout punishment applied"
-                    elif warnpoints == 9:
-                        await member.kick(
-                            reason="Reached warn condition for kick")
-                        result = "Kick"
-                    elif warnpoints == 10:
-                        await member.kick(
-                            reason="Reached warn condition for ban")
-                        result = "Ban"
-
-                    embed.add_field(name="Punishment",
-                                    value=result,
-                                    inline=False)
-                    openmod_channel = await ctx.guild.fetch_channel(
-                        745107170827305080)
-                    await openmod_channel.send(member.mention, embed=embed)
-                    await ctx.followup.send(
-                        f"Warning sent. Check {openmod_channel.mention}")
-                else:
-                    await ctx.followup.send(
-                        "Please do the commands in {}".format(
-                            ctx.guild.get_channel(954594959074418738).mention), ephemeral=True)
 
 async def setup(bot: Bot):
-    await bot.add_cog(warncog(bot), guilds=[Object(hazead), Object(loa)])
+    await bot.add_cog(warncog(bot), guild=Object(hazead))
