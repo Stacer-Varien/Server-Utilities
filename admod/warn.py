@@ -15,31 +15,7 @@ class warncog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @Serverutil.command(description="Adwarn someone for violating the ad rules"
-                        )
-    @Serverutil.describe(
-        channel="Where was the ad deleted?",
-        reason="What is the reason for the warn?",
-        custom="Write your own reason (only if you picked custom reason)",
-        belongsto=
-        "Which channel should the ad go to? (only if you selected wrong channel option)"
-    )
-    @Serverutil.checks.has_any_role(925790259319558154, 925790259294396455,
-                                    1011971782426767390, 925790259319558157, 925790259319558159, 925790259319558158)
-    async def adwarn(
-            self,
-            ctx: Interaction,
-            member: Member,
-            channel: TextChannel,
-            reason: Literal['Invite reward server', 'NSFW server',
-                            'Ad description involves violating the ToS',
-                            'Invalid/Expired Invite', 'Public ping used',
-                            'Very little to no description',
-                            'Back to back advertising',
-                            'Advertising in wrong channel', 'Custom reason'],
-            custom: Optional[str] = None,
-            belongsto: Optional[TextChannel] = None):
-        await ctx.response.defer()
+    async def warn_message(self, ctx:Interaction, member:Member, channel:TextChannel, reason, custom:Optional[str]=None, belongsto:Optional[TextChannel]=None):
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
             failed = Embed(description="You can't warn yourself")
@@ -73,11 +49,11 @@ class warncog(Cog):
                                 value=reason,
                                 inline=False)
 
-            if ctx.guild.id == hazead:
-                warn_data = Warn(member, ctx.user, warn_id)
-                if warn_data.give_adwarn(channel, reason, appeal_id) == False:
-                    return
 
+            warn_data = Warn(member, ctx.user, warn_id)
+            if warn_data.give_adwarn(channel, reason, appeal_id) == False:
+                    return await ctx.followup.send(f"The member was warned recently. Please wait after <t:{warn_data.get_time()}:t>")
+            else:
                 if reason == 'Custom reason' and custom != None:
                     warn_data.give_adwarn(channel, custom)
                 else:
@@ -100,7 +76,7 @@ class warncog(Cog):
                         )
                         await member.send(embed=timeoutmsg)
                     except:
-                        return
+                        pass
 
                 elif warnpoints == 6:
                     try:
@@ -110,7 +86,7 @@ class warncog(Cog):
                         )
                         await member.send(embed=kickmsg)
                     except:
-                        return
+                        pass
                     await member.kick(reason="Kick punishment applied")
                     result = "Member has reached the 6 warn point punishment. A kick punishment was applied"
 
@@ -143,6 +119,39 @@ class warncog(Cog):
                     await ctx.followup.send(
                         f"Warning sent. Check {adwarn_channel.mention}",
                         ephemeral=True)
+
+    @Serverutil.command(description="Adwarn someone for violating the ad rules"
+                        )
+    @Serverutil.describe(
+        channel="Where was the ad deleted?",
+        reason="What is the reason for the warn?",
+        custom="Write your own reason (only if you picked custom reason)",
+        belongsto=
+        "Which channel should the ad go to? (only if you selected wrong channel option)"
+    )
+    async def adwarn(
+            self,
+            ctx: Interaction,
+            member: Member,
+            channel: TextChannel,
+            reason: Literal['Invite reward server', 'NSFW server',
+                            'Ad description involves violating the ToS',
+                            'Invalid/Expired Invite', 'Public ping used',
+                            'Very little to no description',
+                            'Back to back advertising',
+                            'Advertising in wrong channel', 'Custom reason'],
+            custom: Optional[str] = None,
+            belongsto: Optional[TextChannel] = None):
+        await ctx.response.defer()
+        mod_roles=[925790259294396455, 925790259319558154, 1011971782426767390]
+        
+        if mod_roles not in ctx.user.roles:
+            await ctx.followup.send("You do not have the required roles to use this command", ephemeral=True)
+        elif ctx.user.guild_permissions(kick_members=False):
+            await ctx.followup.send("You do not have the permissions to do this", ephemeral=True)
+        else:
+            await self.warn_message(ctx, member, channel, reason, custom, belongsto)
+
 
 async def setup(bot: Bot):
     await bot.add_cog(warncog(bot), guild=Object(hazead))
