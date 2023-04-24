@@ -2,178 +2,69 @@ from datetime import datetime, timedelta
 import os
 from discord import Guild, Interaction, Member, TextChannel, User
 from assets.not_allowed import no_invites, no_pings
-from discord.ext.commands import Bot
 from config import db
 from typing import Optional
 
 
-def convert_loop_time(time: float):
-    """Convert a float from humanfriendly.parse_timespan to task times for the autoad maker"""
-    if time < 60:
-        return f"seconds={time}"
-    elif time < 3600:
-        return f"minutes={time/60}"
-    elif time < 86400 or time >= 86400:
-        return f"hours={time/3600}"
-
-
-class Appeal():
-
+class Appeal:
     def __init__(self, user, appeal_id: int):
         self.user = user
         self.appeal_id = appeal_id
 
-    def check_appeal(self):
-        data = db.execute("SELECT * FROM warnData WHERE appeal_id = ?",
-                          (self.appeal_id, )).fetchone()
+    def check(self):
+        data = db.execute(
+            "SELECT * FROM warnData WHERE appeal_id = ?", (self.appeal_id,)
+        ).fetchone()
         if data == None:
             return None
         else:
             return data
 
-    def remove_warn(self, member_id: int):
-        db.execute("DELETE FROM warnData WHERE appeal_id = ?",
-                   (self.appeal_id, ))
+    def remove(self, member_id: int):
+        db.execute("DELETE FROM warnData WHERE appeal_id = ?", (self.appeal_id,))
         db.execute(
-            "UPDATE warnDATA_v2 SET warn_point = warn_point - ? where user_id = ?",
+            "UPDATE warnDATA_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
             (
                 1,
                 member_id,
-            ))
+            ),
+        )
         db.commit()
 
 
-class LOAWarn():
-
-    def __init__(self,
-                 user: User,
-                 moderator: User=None,
-                 warn_id: int = None) -> None:
+class Warn:
+    def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
         self.user = user
         self.moderator = moderator
         self.warn_id = warn_id
 
-    def check_warn(self):
+    def check(self):
         data = db.execute(
-            "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?", (
-                self.user.id,
-                self.warn_id,
-            )).fetchone()
-        db.commit()
-
-        if data == None:
-            return None
-
-        else:
-            data = db.execute("SELECT * FROM warnDATA WHERE user_id = ?",
-                              (self.user.id, ))
-            db.commit()
-            return data
-
-    def give_adwarn(self, channel: TextChannel, reason: str):
-        data = db.execute("SELECT * FROM loaAdwarnData WHERE user_id = ?",
-                          (self.user.id, )).fetchone()
-        data2 = db.execute("SELECT * FROM loaAdwarnData_v2 WHERE user_id= ?",
-                           (self.user.id, )).fetchone()
-        db.commit()
-        current_time = datetime.now()
-        next_warn = current_time + timedelta(seconds=30)
-        if data == None:
-            db.execute(
-                "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
-                (
-                    self.user.id,
-                    '{} - {}'.format(channel.mention, reason),
-                    self.warn_id,
-                    self.moderator.id,
-                ))
-
-            db.execute(
-                "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (self.user.id,
-                 1,
-                 round(next_warn.timestamp()),
-                ))
-            db.commit()
-
-        elif int(data2[2]) < round(current_time.timestamp()):
-            db.execute(
-                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ? WHERE user_id= ?",
-                (
-                    1,
-                    self.user.id,
-                ))
-            db.execute(
-                "UPDATE loaAdwarnData_v2 SET time = ? WHERE user_id= ?",
-                (
-                    round(next_warn.timestamp()),
-                    self.user.id,
-                ))
-            db.commit()
-
-        elif int(data2[2]) > round(current_time.timestamp()):
-            return False
-
-    def get_warn_points(self) -> int:
-        try:
-            warnpointdata = db.execute(
-                "SELECT warn_point FROM loaAdwarnData_v2 WHERE user_id = ?",
-                (self.user.id, )).fetchone()
-            db.commit()
-            return warnpointdata[0]
-        except:
-            return 1
-
-    def get_warn_id(self):
-        data = db.execute(
-            "SELECT warn_id FROM loaAdwarnData WHERE user_id = ?",
-            (self.user.id, )).fetchone()
-        return data[0]
-
-    def remove_warn(self):
-        db.execute("DELETE FROM loaAdwarnData WHERE warn_id = ?",
-                   (self.warn_id, ))
-        db.execute(
-            "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? where user_id = ?",
+            "SELECT * FROM warnDATA WHERE user_id = ? AND warn_id = ?",
             (
-                1,
-                self.user.id,
-            ))
-        db.commit()
-
-
-class Warn():
-
-    def __init__(self,
-                 user: User,
-                 moderator: User=None,
-                 warn_id: int = None) -> None:
-        self.user = user
-        self.moderator = moderator
-        self.warn_id = warn_id
-
-    def check_warn(self):
-        data = db.execute(
-            "SELECT * FROM warnDATA WHERE user_id = ? AND warn_id = ?", (
                 self.user.id,
                 self.warn_id,
-            )).fetchone()
+            ),
+        ).fetchone()
         db.commit()
 
         if data == None:
             return None
 
         else:
-            data = db.execute("SELECT * FROM warnDATA WHERE user_id = ?",
-                              (self.user.id, ))
+            data = db.execute(
+                "SELECT * FROM warnDATA WHERE user_id = ?", (self.user.id,)
+            )
             db.commit()
             return data
 
-    def give_adwarn_auto(self, channel: TextChannel, appeal_id: int):
-        data = db.execute("SELECT * FROM warnData WHERE user_id = ?",
-                          (self.user.id, )).fetchone()
-        data2 = db.execute("SELECT * FROM warnData_v2 WHERE user_id= ?",
-                           (self.user.id, )).fetchone()
+    def auto_give(self, channel: TextChannel, appeal_id: int):
+        data = db.execute(
+            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
+        data2 = db.execute(
+            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)
+        ).fetchone()
         db.commit()
         current_time = datetime.now()
         next_warn = current_time + timedelta(hours=1)
@@ -188,7 +79,8 @@ class Warn():
                     reason,
                     self.warn_id,
                     appeal_id,
-                ))
+                ),
+            )
 
             db.execute(
                 "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
@@ -203,17 +95,20 @@ class Warn():
                     1,
                     round(next_warn.timestamp()),
                     self.user.id,
-                ))
+                ),
+            )
             db.commit()
 
         elif int(data2[2]) > round(current_time.timestamp()):
             return False
 
-    def give_adwarn(self, channel: TextChannel, reason: str, appeal_id: int):
-        data = db.execute("SELECT * FROM warnData WHERE user_id = ?",
-                          (self.user.id, )).fetchone()
-        data2 = db.execute("SELECT * FROM warnData_v2 WHERE user_id= ?",
-                           (self.user.id, )).fetchone()
+    def give(self, channel: TextChannel, reason: str, appeal_id: int):
+        data = db.execute(
+            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
+        data2 = db.execute(
+            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)
+        ).fetchone()
         db.commit()
         current_time = datetime.now()
         next_warn = current_time + timedelta(hours=1)
@@ -223,14 +118,16 @@ class Warn():
                 (
                     self.user.id,
                     self.moderator.id,
-                    '{} - {}'.format(channel.mention, reason),
+                    "{} - {}".format(channel.mention, reason),
                     self.warn_id,
                     appeal_id,
-                ))
+                ),
+            )
 
             db.execute(
                 "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (self.user.id, 1, round(next_warn.timestamp())))
+                (self.user.id, 1, round(next_warn.timestamp())),
+            )
             db.commit()
 
         elif int(data2[2]) < round(current_time.timestamp()):
@@ -240,17 +137,18 @@ class Warn():
                     1,
                     round(next_warn.timestamp()),
                     self.user.id,
-                ))
+                ),
+            )
             db.commit()
 
         elif int(data2[2]) > round(current_time.timestamp()):
             return False
 
-    def get_warn_points(self) -> int:
+    def get_points(self) -> int:
         try:
             warnpointdata = db.execute(
-                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?",
-                (self.user.id, )).fetchone()
+                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
+            ).fetchone()
             db.commit()
             return warnpointdata[0]
         except:
@@ -258,20 +156,20 @@ class Warn():
 
     def get_time(self) -> int:
         timedata = db.execute(
-                "SELECT time FROM warnData_v2 WHERE user_id = ?",
-                (self.user.id, )).fetchone()
+            "SELECT time FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
         db.commit()
         return timedata[0]
 
-
-    def get_warn_id(self):
-        data = db.execute("SELECT warn_id FROM warnData WHERE user_id = ?",
-                          (self.user.id, )).fetchone()
+    def get_id(self):
+        data = db.execute(
+            "SELECT warn_id FROM warnData WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
         return data[0]
 
 
 def check_illegal_invites(message, channel: int):
-    if 'discord.gg' in message:
+    if "discord.gg" in message:
         if channel in no_invites:
             return True
         else:
@@ -279,7 +177,7 @@ def check_illegal_invites(message, channel: int):
 
 
 def check_illegal_mentions(message, channel: int):
-    pings = ['@everyone', '@here']
+    pings = ["@everyone", "@here"]
     if any(word in message for word in pings):
         if channel in no_pings:
             return True
@@ -287,29 +185,42 @@ def check_illegal_mentions(message, channel: int):
             return False
 
 
-class Strike():
-
-    def __init__(self,
-                 department: Optional[str] = None,
-                 member:Optional[User]=None) -> None:
+class Strike:
+    def __init__(
+        self, department: Optional[str] = None, member: Optional[User] = None
+    ) -> None:
         self.department = department
-        self.member=member
+        self.member = member
+        
 
     def give(self):
-        db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id) VALUES (?,?)",
+        data = db.execute(
+            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?,?,?)",
             (
                 self.department,
                 self.member.id,
-            ))
+                1,
+            ),
+        )
+        if data.rowcount == 0:
+            db.execute(
+                "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
+                (
+                    1,
+                    self.department,
+                    self.member.id,
+                ),
+            )
         db.commit()
 
-    def get_strikes(self):
+    def counts(self):
         data = db.execute(
-            "SELECT * FROM strikeData WHERE department = ? AND user_id = ?", (
+            "SELECT * FROM strikeData WHERE department = ? AND user_id = ?",
+            (
                 self.department,
                 self.member.id,
-            )).fetchall()
+            ),
+        ).fetchall()
 
         if data == None:
             return 0
@@ -322,7 +233,8 @@ class Strike():
             (
                 self.member.id,
                 self.department,
-            )).fetchone()
+            ),
+        ).fetchone()
 
         if data == None:
             return None
@@ -331,15 +243,26 @@ class Strike():
 
     def revoke(self):
         db.execute(
-            "DELETE FROM strikeData WHERE user_id = ? AND department = ?", (
+            "UPDATE strikeData SET count = count - ? WHERE user_id = ? and department = ?",
+            (
+                1,
                 self.member.id,
                 self.department,
-            ))
+            ),
+        )
         db.commit()
+        if self.counts() == 0:
+            db.execute(
+                "DELETE FROM strikeData WHERE user_id = ? AND department = ?",
+                (
+                    self.member.id,
+                    self.department,
+                ),
+            )
+            db.commit()
 
 
-class Partner():
-
+class Partner:
     def __init__(self, user: Member, server: Guild):
         self.user = user
         self.server = server
@@ -363,8 +286,7 @@ class Partner():
 
     async def approve(self, ctx: Interaction):
         if self.server.id == 740584420645535775:
-            with open("partnerships/orleans/{}.txt".format(self.user.id),
-                      'r') as f:
+            with open("partnerships/orleans/{}.txt".format(self.user.id), "r") as f:
                 content = "".join(f.readlines())
             os.remove("partnerships/orleans/{}.txt".format(self.user.id))
             partner_role = self.server.get_role(1051047558224543844)
@@ -372,12 +294,10 @@ class Partner():
                 pass
             else:
                 await self.user.add_roles(partner_role, reason="New Partner")
-            partner_channnel = await self.server.fetch_channel(
-                1040380792406298645)
+            partner_channnel = await self.server.fetch_channel(1040380792406298645)
             await partner_channnel.send(content=content)
         elif self.server.id == 925790259160166460:
-            with open("partnerships/hazeads/{}.txt".format(self.user.id),
-                      'r') as f:
+            with open("partnerships/hazeads/{}.txt".format(self.user.id), "r") as f:
                 content = "".join(f.readlines())
             os.remove("partnerships/hazeads/{}.txt".format(self.user.id))
             partner_role = self.server.get_role(950354444669841428)
@@ -385,8 +305,7 @@ class Partner():
                 pass
             else:
                 await self.user.add_roles(partner_role, reason="New Partner")
-            partner_channnel = await self.server.fetch_channel(
-                1040380792406298645)
+            partner_channnel = await self.server.fetch_channel(1040380792406298645)
             await partner_channnel.send(content=content)
         return await ctx.followup.send("Partnership approved")
 
@@ -398,51 +317,58 @@ class Partner():
 
         try:
             await self.user.send(
-                f"Your partnership request was denied because:\n{reason}")
+                f"Your partnership request was denied because:\n{reason}"
+            )
             msg = "Partnership denied and reason sent"
         except:
             msg = "Partnership denied"
         return await ctx.followup.send(msg)
 
 
-class Break():
-
+class Break:
     def __init__(self, member: Optional[User] = None) -> None:
         self.member = member
 
     def check_loa_breaks(self):
-        data = db.execute("SELECT * FROM breakData WHERE accepted = ?",
-                          (1, )).fetchall()
+        data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
         db.commit()
         return data
 
     def remove_loa_break(self):
-        db.execute("DELETE FROM breakData WHERE user_id = ?",
-                   (self.member.id, ))
+        db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
-    def add_break_request(self, server: int, break_id: int, duration: str,
-                          reason: str, accepted: int, start: int, ends: int):
+    def add_break_request(
+        self,
+        server: int,
+        duration: str,
+        reason: str,
+        accepted: int,
+        start: int,
+        ends: int,
+    ):
         db.execute(
-            "INSERT OR IGNORE INTO breakData (user_id, guild_id, break_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT OR IGNORE INTO breakData (user_id, guild_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?)",
             (
                 self.member.id,
                 server,
-                break_id,
                 duration,
                 reason,
                 accepted,
                 start,
                 ends,
-            ))
+            ),
+        )
         db.commit()
 
-    def fetch_break_id(self, break_id: int, server: int):
+    def check(self, server: int):
         data = db.execute(
-            "SELECT * FROM breakData WHERE user_id = ? AND break_id = ? AND guild_id = ?", (self.member.id,
-                break_id,
+            "SELECT * FROM breakData WHERE user_id = ? AND guild_id = ?",
+            (
+                self.member.id,
                 server,
-            )).fetchone()
+            ),
+        ).fetchone()
         if data == None:
             return None
         else:
@@ -455,42 +381,48 @@ class Break():
                 1,
                 self.member.id,
                 server,
-            ))
+            ),
+        )
         db.execute(
             "UPDATE breakData SET start = ? WHERE user_id = ? and guild_id = ?",
             (
                 start,
                 self.member.id,
                 server,
-            ))
+            ),
+        )
         db.execute(
             "UPDATE breakData SET ends = ? WHERE user_id = ? and guild_id = ?",
             (
                 ends,
                 self.member.id,
                 server,
-            ))
+            ),
+        )
         db.commit()
 
-    def deny_break(self, break_id: int, server: int):
-        db.execute("DELETE FROM breakData WHERE break_id = ? and guild_id = ?",
-                   (
-                       break_id,
-                       server,
-                   ))
+    def deny_break(self, server: int):
+        db.execute(
+            "DELETE FROM breakData WHERE user_id = ? and guild_id = ?",
+            (
+                self.member.id,
+                server,
+            ),
+        )
         db.commit()
 
     def end_break(self, server: int):
-        db.execute("DELETE FROM breakData WHERE user_id = ? and guild_id = ?",
-                   (
-                       self.member.id,
-                       server,
-                   ))
+        db.execute(
+            "DELETE FROM breakData WHERE user_id = ? and guild_id = ?",
+            (
+                self.member.id,
+                server,
+            ),
+        )
         db.commit()
 
 
-class Resign():
-
+class Resign:
     def __init__(self, member: User):
         self.member = member
 
@@ -500,12 +432,14 @@ class Resign():
             (
                 self.member.id,
                 0,
-            ))
+            ),
+        )
         db.commit()
 
     def check_resign(self):
-        data = db.execute("SELECT * FROM resignData WHERE user_id = ?",
-                          (self.member.id, )).fetchone()
+        data = db.execute(
+            "SELECT * FROM resignData WHERE user_id = ?", (self.member.id,)
+        ).fetchone()
         db.commit()
 
         if data == None:
@@ -514,25 +448,25 @@ class Resign():
             return data
 
     def approve_resign(self):
-        db.execute("UPDATE resignData SET accepted = ? WHERE user_id = ?", (
-            1,
-            self.member.id,
-        ))
+        db.execute(
+            "UPDATE resignData SET accepted = ? WHERE user_id = ?",
+            (
+                1,
+                self.member.id,
+            ),
+        )
         db.commit()
 
     def deny_resign(self):
-        db.execute("DELETE FROM resignData WHERE user_id = ?",
-                   (self.member.id, ))
+        db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
 
-class Plans():
-
+class Plans:
     def __init__(self, server: int):
         self.server = server
 
-    def add_plan(self, user: User, until: int, plan: str, claimee: User,
-                 plan_id: int):
+    def add_plan(self, user: User, until: int, plan: str, claimee: User, plan_id: int):
         db.execute(
             "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
             (
@@ -543,15 +477,18 @@ class Plans():
                 claimee.id,
                 plan_id,
                 self.server,
-            ))
+            ),
+        )
         db.commit()
 
     def get_plan(self, plan_id: int):
         data = db.execute(
-            "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?", (
+            "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?",
+            (
                 plan_id,
                 self.server,
-            )).fetchone()
+            ),
+        ).fetchone()
 
         if data == None:
             return None
@@ -559,32 +496,19 @@ class Plans():
             return data
 
     def check_plans(self):
-        data = db.execute("SELECT * FROM planData where server_id = ?",
-                          (self.server, )).fetchall()
+        data = db.execute(
+            "SELECT * FROM planData where server_id = ?", (self.server,)
+        ).fetchall()
         db.commit()
         return data
 
-    def remove_plan(self, buyer:User, plan_id: int):
-        db.execute('DELETE FROM planData WHERE user_id = ? AND plan_id= ? AND server_id= ?', (buyer.id,
-            plan_id,
-            self.server,
-        ))
+    def remove_plan(self, buyer: User, plan_id: int):
+        db.execute(
+            "DELETE FROM planData WHERE user_id = ? AND plan_id= ? AND server_id= ?",
+            (
+                buyer.id,
+                plan_id,
+                self.server,
+            ),
+        )
         db.commit()
-
-
-class AutoAd():
-
-    def __init__(self, bot: Bot, server: Guild):
-        self.bot = bot
-        self.server = server
-
-    async def check_channel(self, channels: str):
-        if self.server.id == 841671029066956831:
-            server = await self.bot.fetch_guild(841671029066956831)
-        elif self.server.id == 925790259160166460:
-            server = await self.bot.fetch_guild(925790259160166460)
-        try:
-            for channel in channels:
-                await server.fetch_channel(int(channel))
-        except:
-            return None

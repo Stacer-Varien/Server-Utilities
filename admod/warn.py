@@ -6,7 +6,7 @@ from config import hazead
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
-from assets.functions import *
+from assets.functions import Warn
 from typing import Optional, Literal
 
 
