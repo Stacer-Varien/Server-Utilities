@@ -39,7 +39,6 @@ class breakcog(GroupCog, name="break"):
         duration: Optional[str] = None,
     ) -> None:
         await ctx.response.defer()
-        break_id = randint(1, 99999)
         break_role = ctx.guild.get_role(841682795277713498)
         channel = await self.bot.fetch_channel(841676953613631499)
 
@@ -60,7 +59,6 @@ class breakcog(GroupCog, name="break"):
                         duration = "Until further notice"
                         Break(ctx.user).add_break_request(
                             ctx.guild.id,
-                            break_id,
                             duration,
                             reason,
                             1,
@@ -78,7 +76,6 @@ class breakcog(GroupCog, name="break"):
                         duration = "<t:{}:D>".format(time)
                         Break(ctx.user).add_break_request(
                             ctx.guild.id,
-                            break_id,
                             duration,
                             reason,
                             1,
@@ -125,15 +122,11 @@ class breakcog(GroupCog, name="break"):
                         name="Duration", value=duration, inline=False
                     )
                     requested_break.add_field(name="Reason", value=reason, inline=False)
-                    requested_break.add_field(
-                        name="Break ID", value=break_id, inline=False
-                    )
                     requested_break.set_footer(
-                        text="To approve or deny this request, use `/break approve MEMBER BREAK_ID` or `/break deny MEMBER BREAK_ID`"
+                        text="To approve or deny this request, use `/break approve MEMBER` or `/break deny MEMBER`"
                     )
                     Break(ctx.user).add_break_request(
                         ctx.guild.id,
-                        break_id,
                         duration,
                         reason,
                         0,
@@ -146,12 +139,12 @@ class breakcog(GroupCog, name="break"):
 
     @Serverutil.command(description="Approve the break")
     @Serverutil.checks.has_any_role(core_team, om)
-    async def approve(self, ctx: Interaction, member: Member, break_id: int):
+    async def approve(self, ctx: Interaction, member: Member):
         await ctx.response.defer(thinking=True)
-        data = Break(member).fetch_break_id(break_id, ctx.guild.id)
+        data = Break(member).check(ctx.guild.id)
 
         if data == None:
-            await ctx.followup.send("Invalid break ID passed")
+            await ctx.followup.send("This member never applied for break")
 
         elif data[0] == ctx.user.id:
             await ctx.followup.send("You can't approve your own break request...")
@@ -170,12 +163,12 @@ class breakcog(GroupCog, name="break"):
                 time = parse_timespan(data[3])
                 duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
                 timing = "<t:{}:D>".format(duration)
-                Break(member).approve_break(
+                Break(member).approve(
                     ctx.guild.id, round(datetime.now().timestamp()), duration
                 )
             except:
                 timing = "Until further notice"
-                Break(member).approve_break(
+                Break(member).approve(
                     ctx.guild.id, round(datetime.now().timestamp()), 9999999999
                 )
 
@@ -206,13 +199,13 @@ class breakcog(GroupCog, name="break"):
 
     @Serverutil.command(name="deny", description="Deny the break")
     @Serverutil.checks.has_any_role(core_team, om)
-    async def _deny(self, ctx: Interaction, member: Member, break_id: int):
+    async def _deny(self, ctx: Interaction, member: Member):
         await ctx.response.defer(thinking=True)
         if ctx.guild.id == 841671029066956831:
-            data = Break(member).fetch_break_id(break_id, ctx.guild.id)
+            data = Break(member).check(ctx.guild.id)
 
             if data == None:
-                await ctx.followup.send("Invalid break ID passed")
+                await ctx.followup.send("This member never applied for break")
 
             else:
                 break_channel = await self.bot.fetch_channel(841676953613631499)
@@ -232,7 +225,7 @@ class breakcog(GroupCog, name="break"):
                         f"{member.mention}, your break has been denied by {ctx.user}"
                     )
 
-                Break(member).deny_break(break_id, ctx.guild.id)
+                Break(member).deny(ctx.guild.id)
 
     @Serverutil.command(name="end", description="End your break early")
     async def end(self, ctx: Interaction):
@@ -245,7 +238,7 @@ class breakcog(GroupCog, name="break"):
                     break_role, reason="Staff returned from break"
                 )
                 await ctx.followup.send("Your break has ended.\nWelcome back! :tada:")
-                Break(ctx.user).end_break(ctx.guild.id)
+                Break(ctx.user).end(ctx.guild.id)
 
             else:
                 await ctx.followup.send(
@@ -264,7 +257,7 @@ class strikecog(GroupCog, name="strike"):
         strike = Strike(department, member)
         strike.give()
 
-        strikes = strike.get_strikes()
+        strikes = strike.counts()
 
         embed = Embed(title="You have been striked", color=Color.red())
         embed.add_field(name="Department", value=department, inline=True)
@@ -354,7 +347,7 @@ class strikecog(GroupCog, name="strike"):
         else:
             member = check[1]
             strike.revoke()
-            strikes = strike.get_strikes()
+            strikes = strike.counts()
             m = await self.bot.fetch_user(member)
 
             embed = (
@@ -410,7 +403,7 @@ class strikecog(GroupCog, name="strike"):
         else:
             strike.revoke()
             staff_member = ctx.guild.get_member(user[1])
-            strikes = strike.get_strikes()
+            strikes = strike.counts()
 
             msg = "{}, your strike appeal has been approved. You now have {} strikes".format(
                 staff_member.mention, strikes

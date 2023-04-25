@@ -37,7 +37,6 @@ class warncog(Cog):
 
         else:
             warn_id = randint(0, 100000)
-            appeal_id = randint(0, 100000)
             embed = Embed(title="You have been warned", color=0xFF0000)
             embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
             if reason == "Advertising in wrong channel" and belongsto != None:
@@ -51,16 +50,16 @@ class warncog(Cog):
                 embed.add_field(name="Reason for warn", value=reason, inline=False)
 
             warn_data = Warn(member, ctx.user, warn_id)
-            if warn_data.give_adwarn(channel, reason, appeal_id) == False:
+            if warn_data.give(channel, reason) == False:
                 return await ctx.followup.send(
                     f"The member was warned recently. Please wait after <t:{warn_data.get_time()}:t>"
                 )
             else:
                 if reason == "Custom reason" and custom != None:
-                    warn_data.give_adwarn(channel, custom)
+                    warn_data.give(channel, custom)
                 else:
-                    warn_data.give_adwarn(channel, reason)
-                warnpoints = warn_data.get_warn_points()
+                    warn_data.give(channel, reason)
+                warnpoints = warn_data.get_points()
                 embed.add_field(name="Warn ID", value=warn_id, inline=True)
                 embed.add_field(name="Warn Points", value=warnpoints, inline=True)
 
