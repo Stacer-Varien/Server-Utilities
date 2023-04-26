@@ -2,7 +2,7 @@ import platform
 import os
 
 pip = "install -U pip"
-packages = "install -U discord requests python-dotenv humanfriendly datetime git+https://github.com/Gorialis/jishaku"
+packages = "install -U discord requests python-dotenv humanfriendly datetime tabulate git+https://github.com/Gorialis/jishaku"
 
 pack = [pip, packages]
 
