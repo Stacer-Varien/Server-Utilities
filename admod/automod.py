@@ -21,14 +21,14 @@ class automodcog(Cog):
                     appeal_id = f"{randint(0,100000)}"
                     warn_data = Warn(message.author, self.bot.user, warn_id)
 
-                    if warn_data.give_adwarn_auto(message.channel, appeal_id) == False:
+                    if warn_data.auto_give(message.channel, appeal_id) == False:
                         pass
                     else:
-                        warn_data.give_adwarn_auto(message.channel, appeal_id)
+                        warn_data.auto_give(message.channel, appeal_id)
                         adwarn_channel = message.guild.get_channel(925790260695281703)
                         reason = f"Incorrectly advertising in {message.channel.mention}"
 
-                        warn_points = warn_data.get_warn_points()
+                        warn_points = warn_data.get_points()
 
                         embed = Embed(title="You have been warned", color=0xFF0000)
                         embed.add_field(

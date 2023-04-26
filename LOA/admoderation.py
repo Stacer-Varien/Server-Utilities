@@ -1,4 +1,12 @@
-from discord import Color, Embed, Interaction, Member, Object, TextChannel, app_commands as Serverutil
+from discord import (
+    Color,
+    Embed,
+    Interaction,
+    Member,
+    Object,
+    TextChannel,
+    app_commands as Serverutil,
+)
 from discord.ext.commands import Cog, Bot
 from config import loa
 from random import randint
@@ -16,7 +24,7 @@ class LOAwarncog(Cog):
         ctx: Interaction,
         member: Member,
         channel: TextChannel,
-        reason:str,
+        reason: str,
     ):
         adwarn_channel = ctx.guild.get_channel(745107170827305080)
         if member == ctx.user:
@@ -26,7 +34,9 @@ class LOAwarncog(Cog):
             embed = Embed()
             warn_id = randint(0, 100000)
             embed = Embed(title="Moderation Record", color=0xFF0000)
-            embed.add_field(name="Channel of incident occured", value=channel.mention, inline=False)
+            embed.add_field(
+                name="Channel of incident occured", value=channel.mention, inline=False
+            )
             embed.add_field(name="Moderator", value=ctx.user.mention, inline=False)
             embed.add_field(name="Reason", value=reason, inline=False)
 
@@ -112,9 +122,11 @@ class LOAwarncog(Cog):
                     result = "No warn point punishment applied"
 
                     embed.add_field(name="Result", value=result, inline=False)
-                    LOA_ASPECT=self.bot.get_user(710733052699213844)
+                    LOA_ASPECT = self.bot.get_user(710733052699213844)
                     embed.set_footer(
-                        text="If you feel this warn was a mistake, please DM {} to appeal".format(LOA_ASPECT)
+                        text="If you feel this warn was a mistake, please DM {} to appeal".format(
+                            LOA_ASPECT
+                        )
                     )
                     embed.set_thumbnail(url=member.display_avatar)
                     await adwarn_channel.send(member.mention, embed=embed)
@@ -125,7 +137,7 @@ class LOAwarncog(Cog):
     @Serverutil.command(description="Adwarn someone for violating the ad rules")
     @Serverutil.describe(
         channel="Where was the ad deleted?",
-        reason="What is the reason for the warn?",
+        reason="What was the reason for the warn?",
     )
     async def adwarn(
         self,
@@ -137,17 +149,23 @@ class LOAwarncog(Cog):
         await ctx.response.defer()
         await self.warn_message(ctx, member, channel, reason)
 
-    @Serverutil.command(description="Remove someone's warning if it was appealed or given by mistake")
-    async def revoke(self, ctx:Interaction, member:Member, warn_id:str):
+    @Serverutil.command(
+        description="Remove someone's warning if it was appealed or given by mistake"
+    )
+    async def revoke(self, ctx: Interaction, member: Member, warn_id: str):
         await ctx.response.defer()
-        data=LOAWarn(member, warn_id=warn_id)
+        data = LOAWarn(member, warn_id=warn_id)
         if data.check() == None:
             await ctx.followup.send("Incorrect Warn ID/Member given")
         else:
             adwarn_channel = ctx.guild.get_channel(745107170827305080)
-            embed=Embed(color=Color.random())
-            embed.description="Your warning has been revoked. You now have {} warn points".format(data.get_points())
-            member=await ctx.guild.fetch_member(data.check()[0])
+            embed = Embed(color=Color.random())
+            embed.description = (
+                "Your warning has been revoked. You now have {} warn points".format(
+                    data.get_points()
+                )
+            )
+            member = await ctx.guild.fetch_member(data.check()[0])
             await ctx.followup.send("{}'s warn has been removed.".format(member))
             await adwarn_channel.send(member.mention, embed=embed)
 

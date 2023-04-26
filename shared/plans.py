@@ -32,7 +32,7 @@ class plancog(GroupCog, name="plan"):
         else:
             guild = 704888699590279221
 
-        Plans(guild).add_plan(
+        Plans(guild).add(
             member, round(ending_time.timestamp()), plan, ctx.user, plan_id
         )
 
@@ -65,13 +65,13 @@ class plancog(GroupCog, name="plan"):
             guild = loa
 
         plan = Plans(guild)
-        result = plan.get_plan(plan_id)
+        result = plan.get(plan_id)
 
         if result == None:
             await ctx.followup.send("Invalid Plan ID.")
 
         else:
-            plan.remove_plan(plan_id)
+            plan.remove(plan_id)
             await ctx.followup.send("Plan removed")
 
 

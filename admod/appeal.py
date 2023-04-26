@@ -1,5 +1,5 @@
 from asyncio import TimeoutError
-from discord import app_commands as serverutil
+from discord import Member, app_commands as serverutil
 from discord import Interaction, Embed, Object
 from discord.ext.commands import GroupCog, Bot
 from assets.functions import Warn, Appeal
@@ -15,7 +15,7 @@ class appealcog(GroupCog, name="appeal"):
     @serverutil.describe(warn_id="Insert the warn ID that you want to appeal")
     async def apply(self, ctx: Interaction, warn_id: int):
         await ctx.response.defer()
-        check_warn = Warn(ctx.user, warn_id).check_warn()
+        check_warn = Warn(ctx.user, warn_id).check()
         if check_warn == None:
             await ctx.followup.send("Invalid warn ID", ephemeral=True)
 
@@ -68,7 +68,7 @@ class appealcog(GroupCog, name="appeal"):
                         value=f"{reason}\nWarned by: {moderator}",
                     )
                     appeal.set_footer(
-                        text="To approve the appeal, use `/verdict accept appeal_id`. To deny the appeal, use `/verdict deny appeal_id`"
+                        text="To approve the appeal, use `/appeal accept appeal_id`. To deny the appeal, use `/appeal deny appeal_id`"
                     )
 
                     try:
@@ -89,14 +89,14 @@ class appealcog(GroupCog, name="appeal"):
     @serverutil.command(description="Approve an appeal")
     @serverutil.checks.has_role(925790259319558157)
     @serverutil.describe(
-        appeal_id="Insert the appeal ID shown from the member's appeal message"
+        appeal_id="Insert the appeal ID shown from the member's appeal"
     )
-    async def approve(self, ctx: Interaction, appeal_id: int):
+    async def approve(self, ctx: Interaction, member: Member, appeal_id: int):
         await ctx.response.defer()
 
         if ctx.channel.id == 951783773006073906:
-            appeal_data = Appeal(appeal_id)
-            check = appeal_data.check_appeal()
+            appeal_data = Appeal(member, appeal_id)
+            check = appeal_data.check()
 
             if check == None:
                 await ctx.followup.send(f"Invalid appeal ID")
@@ -105,7 +105,7 @@ class appealcog(GroupCog, name="appeal"):
                 warn_id = check[3]
                 member = await self.bot.fetch_user(member_id)
 
-                appeal_data.remove_warn(member_id)
+                appeal_data.remove()
 
                 try:
                     await member.send(
@@ -124,14 +124,14 @@ class appealcog(GroupCog, name="appeal"):
     @serverutil.command(description="Deny an appeal")
     @serverutil.checks.has_role(925790259319558157)
     @serverutil.describe(
-        appeal_id="Insert the appeal ID shown from the member's appeal message"
+        appeal_id="Insert the appeal ID shown from the member's appeal"
     )
-    async def deny(self, ctx: Interaction, appeal_id: int, reason: str):
+    async def deny(self, ctx: Interaction, member: Member, appeal_id: int, reason: str):
         await ctx.response.defer()
 
         if ctx.channel.id == 951783773006073906:
-            appeal_data = Appeal(appeal_id)
-            check = appeal_data.check_appeal()
+            appeal_data = Appeal(member, appeal_id)
+            check = appeal_data.check()
 
             if check == None:
                 await ctx.followup.send(f"Invalid appeal ID")

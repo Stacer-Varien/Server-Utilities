@@ -1,6 +1,11 @@
-from discord import app_commands as Serverutil
-from discord import *
-from discord.abc import *
+from discord import (
+    Embed,
+    Interaction,
+    Member,
+    Object,
+    TextChannel,
+    app_commands as Serverutil,
+)
 from discord.ext.commands import Cog, Bot
 from config import hazead
 from random import randint

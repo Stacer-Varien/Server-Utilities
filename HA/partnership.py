@@ -1,6 +1,5 @@
 import os
-from discord import *
-from discord import app_commands as Serverutil
+from discord import Color, Embed, Interaction, Member, Message, Object, app_commands as Serverutil
 from discord.ext.commands import GroupCog, Bot
 from assets.functions import Partner
 from config import hazead, orleans

@@ -16,7 +16,7 @@ class member(Cog):
         if member.guild.id == HAZE_ADS:
             channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
             try:
-                welcome = f"{member.mention}\n\nHello and welcome to {member.guild.name}!\nBefore you can start advertising and chatting, please read the <#925790259877412876> and <#925790259877412883> so you don't get in trouble. Now please, enjoy your stay and start advertising yourself!\n\n **__Special Servers:__**\n1. Lead of Advertising: https://discord.gg/gpDcZfF\n2. Semi-Erasor https://discord.gg/VhgWsfN8ku\n3. Orleans https://discord.gg/Vfa796yvNq\n4. Safe Space https://discord.gg/HXQFSfZfws"
+                welcome = f"{member.mention}\n\nHello and welcome to {member.guild.name}!\nBefore you can start advertising and chatting, please read the <#925790259877412876> and <#925790259877412883> so you don't get in trouble. Now please, enjoy your stay and start advertising yourself!\n\n **__Special Servers:__**\n1. Lead of Advertising: https://discord.gg/gpDcZfF\n2. Semi-Erasor https://discord.gg/VhgWsfN8ku\n3. Orleans https://discord.gg/Vfa796yvNq"
 
                 embed = Embed(colour=Colour.blue())
                 if member.avatar != None:
@@ -40,7 +40,7 @@ class member(Cog):
                 bye = f"{member} left us."
                 await channel.send(bye)
             except:
-                return
+                pass
 
         elif member.guild.id == 841671029066956831:
             channel = self.bot.get_channel(841672222136991757)
@@ -62,7 +62,7 @@ class member(Cog):
                     check_resignation_data[0] == 0
                 ):  # if they left without an accepted resignation
                     not_accepted = Embed(
-                        title=f"{member} ({member.id}) left the server",
+                        title=f"{member} ({member.id}) left the server without an approved resignation",
                         color=Color.red(),
                     )
                     await channel.send(embed=not_accepted)
@@ -78,9 +78,9 @@ class member(Cog):
                     )
                     await channel.send(embed=accepted)
             except:
-                return
+                pass
         else:
-            return
+            pass
 
 
 async def setup(bot: Bot):

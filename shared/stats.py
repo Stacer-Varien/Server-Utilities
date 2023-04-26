@@ -6,7 +6,6 @@ from json import loads
 from discord import Embed, Interaction, Color, Object
 from discord import app_commands as Serverutil, __version__ as discord_version
 from discord.ext.commands import Cog, Bot, GroupCog
-from assets.menus import PrivacySelect
 from config import lss, hazead, loa, orleans
 
 format = "%a, %d %b %Y | %H:%M:%S"
@@ -26,11 +25,11 @@ class slashinfo(Cog):
     @Serverutil.command(description="See the bot's status from development to now")
     async def stats(self, ctx: Interaction):
         await ctx.response.defer()
-        botowner = self.bot.get_user(597829930964877369)
+        botowner = self.bot.application.owner
         embed = Embed(title="Bot stats", color=Color.blue())
         embed.add_field(
             name="Developer",
-            value=f"• **Name:** {botowner}\n• **ID:** {botowner.id}",
+            value=f"• **Name:** {str(botowner)}\n• **ID:** {botowner.id}",
             inline=True,
         )
         embed.add_field(name="Bot ID", value=self.bot.user.id, inline=True)
@@ -117,21 +116,12 @@ Even though Server Utilities's repository is public and free to use for educatio
         """
         await ctx.response.send_message(embed=embed, delete_after=180)
 
-    @Serverutil.command(
-        name="privacy", description="View the Privacy Policy affect the servers"
-    )
-    async def privacy(self, ctx: Interaction):
-        embed = Embed()
-        embed.description = "The Privacy Policy explains how the bot stores it's data. It also includes how the bot functions works in the server"
-        view = PrivacySelect()
-        await ctx.response.send_message(embed=embed, view=view, delete_after=240)
-
     @Serverutil.command(name="license", description="View the licenses of the bot")
     async def license(sefl, ctx: Interaction):
         content = """
 Conditioned MIT License
 
-Copyright (c) 2022 Gary Jordaan
+Copyright (c) 2022 Varien-1936
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of Server Utilities and associated documentation files, to deal
@@ -178,7 +168,7 @@ Software: Server Utilities
 
 License: Conditioned MIT License
 
-Licensor: Gary Jordaan
+Licensor: Varien-1936
 """
 
         embed = Embed()

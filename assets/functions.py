@@ -9,26 +9,36 @@ from tabulate import tabulate
 
 
 class Appeal:
-    def __init__(self, user, appeal_id: int):
+    def __init__(self, user: User, appeal_id: int):
         self.user = user
         self.appeal_id = appeal_id
 
     def check(self):
         data = db.execute(
-            "SELECT * FROM warnData WHERE appeal_id = ?", (self.appeal_id,)
+            "SELECT * FROM warnData WHERE user_id = ? AND appeal_id = ?",
+            (
+                self.user.id,
+                self.appeal_id,
+            ),
         ).fetchone()
         if data == None:
             return None
         else:
             return data
 
-    def remove(self, member_id: int):
-        db.execute("DELETE FROM warnData WHERE appeal_id = ?", (self.appeal_id,))
+    def remove(self):
+        db.execute(
+            "DELETE FROM warnData WHERE appeal_id = ? AND user_id = ?",
+            (
+                self.appeal_id,
+                self.user.id,
+            ),
+        )
         db.execute(
             "UPDATE warnDATA_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
             (
                 1,
-                member_id,
+                self.user.id,
             ),
         )
         db.commit()

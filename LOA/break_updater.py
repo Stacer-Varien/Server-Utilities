@@ -11,7 +11,7 @@ class break_updater(Cog):
 
     @tasks.loop(minutes=5)
     async def check_break(self):
-        check_breaks = Break().check_loa_breaks()
+        check_breaks = Break().check_breaks()
         loa = await self.bot.fetch_guild(841671029066956831)
         break_role = loa.get_role(841682795277713498)
         break_channel = await loa.fetch_channel(841676953613631499)
@@ -23,7 +23,7 @@ class break_updater(Cog):
 
                     await member.remove_roles(break_role, reason="Break has ended")
 
-                    Break(member).remove_loa_break()
+                    Break(member).remove()
 
                     await break_channel.send(
                         "{}, your break has ended".format(member.mention)

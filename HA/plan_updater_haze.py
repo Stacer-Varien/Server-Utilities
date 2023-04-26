@@ -16,11 +16,11 @@ class plan_updater_cog(Cog):
 
         plans = Plans(925790259160166460)
 
-        if plans.check_plans() == None:
+        if plans.check() == None:
             pass
 
         else:
-            for i in plans.check_plans():
+            for i in plans.check():
                 buyer = await self.bot.fetch_user(i[0])
                 ending = i[2]
                 plan = i[3]
@@ -35,7 +35,7 @@ class plan_updater_cog(Cog):
                     await ha_planlog.send(
                         "{}, {} has ended".format(setter.mention, plan_id), embed=embed
                     )
-                    plans.remove_plan(buyer, plan_id)
+                    plans.remove(buyer, plan_id)
                 else:
                     pass
 

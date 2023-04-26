@@ -1,7 +1,6 @@
 from discord import Embed, Color
 from discord.ext.commands import Cog, Bot
 from discord.ext import tasks
-
 from assets.applications import AppButtons
 
 
