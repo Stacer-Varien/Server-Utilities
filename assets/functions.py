@@ -9,6 +9,7 @@ from tabulate import tabulate
 
 
 class Appeal:
+
     def __init__(self, user: User, appeal_id: int):
         self.user = user
         self.appeal_id = appeal_id
@@ -45,7 +46,11 @@ class Appeal:
 
 
 class LOAWarn:
-    def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
+
+    def __init__(self,
+                 user: User,
+                 moderator: User = None,
+                 warn_id: int = None) -> None:
         self.user = user
         self.moderator = moderator
         self.warn_id = warn_id
@@ -67,12 +72,10 @@ class LOAWarn:
             return data
 
     def give(self, channel: TextChannel, reason: str):
-        data = db.execute(
-            "SELECT * FROM loaAdwarnData WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        data2 = db.execute(
-            "SELECT * FROM loaAdwarnData_v2 WHERE user_id= ?", (self.user.id,)
-        ).fetchone()
+        data = db.execute("SELECT * FROM loaAdwarnData WHERE user_id = ?",
+                          (self.user.id, )).fetchone()
+        data2 = db.execute("SELECT * FROM loaAdwarnData_v2 WHERE user_id= ?",
+                           (self.user.id, )).fetchone()
         db.commit()
         current_time = datetime.now()
         next_warn = current_time + timedelta(minutes=45)
@@ -121,7 +124,7 @@ class LOAWarn:
         try:
             warnpointdata = db.execute(
                 "SELECT warn_point FROM loaAdwarnData_v2 WHERE user_id = ?",
-                (self.user.id,),
+                (self.user.id, ),
             ).fetchone()
             db.commit()
             return warnpointdata[0]
@@ -129,9 +132,10 @@ class LOAWarn:
             return 1
 
     def remove(self):
+        data=self.check()
         db.execute(
             "DELETE FROM loaAdwarnData WHERE warn_id = ? and user_id = ?",
-            (self.warn_id,),
+            (self.warn_id, ),
         )
         db.execute(
             "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
@@ -140,28 +144,30 @@ class LOAWarn:
                 self.user.id,
             ),
         )
+        db.execute("UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?", (1, int(data[3])))
         db.commit()
 
         if self.get_points() == 0:
-            db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
-            )
+            db.execute("DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
+                       (self.user.id, ))
             db.commit()
 
     def get_time(self) -> int:
         timedata = db.execute(
-            "SELECT time FROM LOAwarnData_v2 WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
+            "SELECT time FROM loaAdwarnData_v2 WHERE user_id = ?",
+            (self.user.id, )).fetchone()
         db.commit()
         return timedata[0]
 
 
 class LOAMod:
-    def __init__(self, mod: User) -> None:
+
+    def __init__(self, mod: Optional[User] = None) -> None:
         self.mod = mod
 
     def prior_week_end(self):
-        return datetime.now() + timedelta(days=((datetime.now().isoweekday() + 3) % 7))
+        return datetime.now() + timedelta(days=(
+            (datetime.now().isoweekday() + 3) % 7))
 
     def prior_week_start(self):
         return self.prior_week_end() - timedelta(days=6)
@@ -170,10 +176,9 @@ class LOAMod:
         start = round(self.prior_week_start().timestamp())
         end = round(self.prior_week_end().timestamp())
         data = db.execute(
-            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, mod_mention, points, start, end) VALUES (?,?,?,?)",
+            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
             (
                 self.mod.id,
-                str(self.mod.mention),
                 1,
                 start,
                 end,
@@ -190,17 +195,30 @@ class LOAMod:
         db.commit()
 
     def reset_week(self):
-        db.execute("DELETE FROM LOAwarnData_v3;")
+        db.execute("DELETE FROM LOAwarnData_v3 WHERE start = ? AND end = ?", (
+            round(self.prior_week_start().timestamp()),
+            round(self.prior_week_end().timestamp()),
+        ))
         db.commit()
 
-    async def checks(self):
-        data = db.execute("SELECT mod_mention, points FROM LOAwarnData_v3")
+    async def checks(self, bot: Bot):
+        data = db.execute("SELECT * FROM LOAwarnData_v3").fetchall()
+        mods = []
+        for i in data:
+            mod = await bot.fetch_user(int(i[0]))
+            points = i[1]
+            mods.append([str(mod), str(points)])
+
         col_names = ["Moderator", "Points"]
-        return tabulate(data, headers=col_names, tablefmt="pretty")
+        return tabulate(mods, headers=col_names, tablefmt="pretty")
 
 
 class Warn:
-    def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
+
+    def __init__(self,
+                 user: User,
+                 moderator: User = None,
+                 warn_id: int = None) -> None:
         self.user = user
         self.moderator = moderator
         self.warn_id = warn_id
@@ -222,12 +240,10 @@ class Warn:
             return data
 
     def auto_give(self, channel: TextChannel, appeal_id: int):
-        data = db.execute(
-            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        data2 = db.execute(
-            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)
-        ).fetchone()
+        data = db.execute("SELECT * FROM warnData WHERE user_id = ?",
+                          (self.user.id, )).fetchone()
+        data2 = db.execute("SELECT * FROM warnData_v2 WHERE user_id= ?",
+                           (self.user.id, )).fetchone()
         db.commit()
         current_time = datetime.now()
         next_warn = current_time + timedelta(hours=1)
@@ -266,12 +282,10 @@ class Warn:
             return False
 
     def give(self, channel: TextChannel, reason: str):
-        data = db.execute(
-            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        data2 = db.execute(
-            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)
-        ).fetchone()
+        data = db.execute("SELECT * FROM warnData WHERE user_id = ?",
+                          (self.user.id, )).fetchone()
+        data2 = db.execute("SELECT * FROM warnData_v2 WHERE user_id= ?",
+                           (self.user.id, )).fetchone()
         db.commit()
         current_time = datetime.now()
         next_warn = current_time + timedelta(hours=1)
@@ -309,17 +323,16 @@ class Warn:
     def get_points(self) -> int:
         try:
             warnpointdata = db.execute(
-                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
-            ).fetchone()
+                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?",
+                (self.user.id, )).fetchone()
             db.commit()
             return warnpointdata[0]
         except:
             return 1
 
     def get_time(self) -> int:
-        timedata = db.execute(
-            "SELECT time FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
+        timedata = db.execute("SELECT time FROM warnData_v2 WHERE user_id = ?",
+                              (self.user.id, )).fetchone()
         db.commit()
         return timedata[0]
 
@@ -342,9 +355,10 @@ def check_illegal_mentions(message, channel: int):
 
 
 class Strike:
-    def __init__(
-        self, department: Optional[str] = None, member: Optional[User] = None
-    ) -> None:
+
+    def __init__(self,
+                 department: Optional[str] = None,
+                 member: Optional[User] = None) -> None:
         self.department = department
         self.member = member
 
@@ -418,6 +432,7 @@ class Strike:
 
 
 class Partner:
+
     def __init__(self, user: Member, server: Guild):
         self.user = user
         self.server = server
@@ -441,7 +456,8 @@ class Partner:
 
     async def approve(self, ctx: Interaction):
         if self.server.id == 740584420645535775:
-            with open("partnerships/orleans/{}.txt".format(self.user.id), "r") as f:
+            with open("partnerships/orleans/{}.txt".format(self.user.id),
+                      "r") as f:
                 content = "".join(f.readlines())
             os.remove("partnerships/orleans/{}.txt".format(self.user.id))
             partner_role = self.server.get_role(1051047558224543844)
@@ -449,10 +465,12 @@ class Partner:
                 pass
             else:
                 await self.user.add_roles(partner_role, reason="New Partner")
-            partner_channnel = await self.server.fetch_channel(1040380792406298645)
+            partner_channnel = await self.server.fetch_channel(
+                1040380792406298645)
             await partner_channnel.send(content=content)
         elif self.server.id == 925790259160166460:
-            with open("partnerships/hazeads/{}.txt".format(self.user.id), "r") as f:
+            with open("partnerships/hazeads/{}.txt".format(self.user.id),
+                      "r") as f:
                 content = "".join(f.readlines())
             os.remove("partnerships/hazeads/{}.txt".format(self.user.id))
             partner_role = self.server.get_role(950354444669841428)
@@ -460,7 +478,8 @@ class Partner:
                 pass
             else:
                 await self.user.add_roles(partner_role, reason="New Partner")
-            partner_channnel = await self.server.fetch_channel(1040380792406298645)
+            partner_channnel = await self.server.fetch_channel(
+                1040380792406298645)
             await partner_channnel.send(content=content)
         return await ctx.followup.send("Partnership approved")
 
@@ -472,8 +491,7 @@ class Partner:
 
         try:
             await self.user.send(
-                f"Your partnership request was denied because:\n{reason}"
-            )
+                f"Your partnership request was denied because:\n{reason}")
             msg = "Partnership denied and reason sent"
         except:
             msg = "Partnership denied"
@@ -481,16 +499,19 @@ class Partner:
 
 
 class Break:
+
     def __init__(self, member: Optional[User] = None) -> None:
         self.member = member
 
     def check_breaks(self):
-        data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
+        data = db.execute("SELECT * FROM breakData WHERE accepted = ?",
+                          (1, )).fetchall()
         db.commit()
         return data
 
     def remove(self):
-        db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
+        db.execute("DELETE FROM breakData WHERE user_id = ?",
+                   (self.member.id, ))
         db.commit()
 
     def add_request(
@@ -578,6 +599,7 @@ class Break:
 
 
 class Resign:
+
     def __init__(self, member: User):
         self.member = member
 
@@ -592,9 +614,8 @@ class Resign:
         db.commit()
 
     def check(self):
-        data = db.execute(
-            "SELECT * FROM resignData WHERE user_id = ?", (self.member.id,)
-        ).fetchone()
+        data = db.execute("SELECT * FROM resignData WHERE user_id = ?",
+                          (self.member.id, )).fetchone()
         db.commit()
 
         if data == None:
@@ -613,15 +634,18 @@ class Resign:
         db.commit()
 
     def deny(self):
-        db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
+        db.execute("DELETE FROM resignData WHERE user_id = ?",
+                   (self.member.id, ))
         db.commit()
 
 
 class Plans:
+
     def __init__(self, server: int):
         self.server = server
 
-    def add(self, user: User, until: int, plan: str, claimee: User, plan_id: int):
+    def add(self, user: User, until: int, plan: str, claimee: User,
+            plan_id: int):
         db.execute(
             "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
             (
@@ -651,9 +675,8 @@ class Plans:
             return data
 
     def check(self):
-        data = db.execute(
-            "SELECT * FROM planData where server_id = ?", (self.server,)
-        ).fetchall()
+        data = db.execute("SELECT * FROM planData where server_id = ?",
+                          (self.server, )).fetchall()
         db.commit()
         return data
 

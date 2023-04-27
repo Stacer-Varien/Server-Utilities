@@ -7,15 +7,68 @@ from discord import (
     TextChannel,
     app_commands as Serverutil,
 )
-from discord.ext.commands import Cog, Bot
+from discord.ext.commands import Cog, Bot, GroupCog
 from config import loa
 from random import randint
-from datetime import timedelta
+from datetime import datetime, timedelta
 from discord.utils import utcnow
-from assets.functions import LOAWarn
+from assets.functions import LOAWarn, LOAMod
+
+
+class LOAmodCog(GroupCog):
+
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    modgroup = Serverutil.Group(name="checks", description="...")
+
+    @modgroup.command(
+        name='stats',
+        description="Check who has performed their tasks for the week")
+    @Serverutil.checks.has_role(1075400097615052900)
+    async def _stats(self, ctx: Interaction):
+        await ctx.response.defer()
+        embed = Embed(color=Color.blue())
+        embed.description = await LOAMod().checks()
+        embed.set_footer(
+            text=
+            "If a moderator's name is not there, they have not commited an adwarn."
+        )
+        await ctx.followup.send(embed=embed)
+
+    @modgroup.command(name='reset', description="Resets last week's checks")
+    @Serverutil.checks.has_any_role(1074770189582872606, 1074770253294342144,
+                                    1074770323293085716, 1076650317392916591,
+                                    949147509660483614)
+    async def _reset(self, ctx: Interaction):
+        await ctx.response.defer()
+        if round(datetime.now().timestamp()) <= round(
+                LOAMod().prior_week_end().timestamp()):
+            await ctx.followup.send(
+                "DON'T RESET YET!\n\nWait after <:t{}:t> to reset the checks from the database"
+                .format(round(LOAMod().prior_week_end().timestamp())))
+        else:
+            LOAMod().reset_week()
+            await ctx.followup.send(
+                "Moderator checks for last week have been reseted")
+
+    @_stats.error
+    async def _stats_error(self, ctx: Interaction,
+                           error: Serverutil.AppCommandError):
+        if isinstance(error, Serverutil.MissingAnyRole):
+            embed = Embed(description=error, color=Color.red())
+            await ctx.followup.send(embed)
+
+    @_reset.error
+    async def _reset_error(self, ctx: Interaction,
+                           error: Serverutil.AppCommandError):
+        if isinstance(error, Serverutil.MissingAnyRole):
+            embed = Embed(description=error, color=Color.red())
+            await ctx.followup.send(embed)
 
 
 class LOAwarncog(Cog):
+
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -34,10 +87,12 @@ class LOAwarncog(Cog):
             embed = Embed()
             warn_id = randint(0, 100000)
             embed = Embed(title="Moderation Record", color=0xFF0000)
-            embed.add_field(
-                name="Channel of incident occured", value=channel.mention, inline=False
-            )
-            embed.add_field(name="Moderator", value=ctx.user.mention, inline=False)
+            embed.add_field(name="Channel of incident occured",
+                            value=channel.mention,
+                            inline=False)
+            embed.add_field(name="Moderator",
+                            value=ctx.user.mention,
+                            inline=False)
             embed.add_field(name="Reason", value=reason, inline=False)
 
             warn_data = LOAWarn(member, ctx.user, warn_id)
@@ -49,7 +104,9 @@ class LOAwarncog(Cog):
                 warn_data.give(channel, reason)
                 warnpoints = warn_data.get_points()
                 embed.add_field(name="Warn ID", value=warn_id, inline=True)
-                embed.add_field(name="Warn Points", value=warnpoints, inline=True)
+                embed.add_field(name="Warn Points",
+                                value=warnpoints,
+                                inline=True)
 
                 if warnpoints == 6:
                     await member.edit(
@@ -60,7 +117,8 @@ class LOAwarncog(Cog):
 
                     try:
                         timeoutmsg = Embed(
-                            description=f"You have recieved a timeout of 8 hours from **{ctx.guild.name}** because you have reached 6 warn points"
+                            description=
+                            f"You have recieved a timeout of 8 hours from **{ctx.guild.name}** because you have reached 6 warn points"
                         )
                         await member.send(embed=timeoutmsg)
                     except:
@@ -75,7 +133,8 @@ class LOAwarncog(Cog):
 
                     try:
                         timeoutmsg = Embed(
-                            description=f"You have recieved a timeout of 12 hours from **{ctx.guild.name}** because you have reached 7 warn points"
+                            description=
+                            f"You have recieved a timeout of 12 hours from **{ctx.guild.name}** because you have reached 7 warn points"
                         )
                         await member.send(embed=timeoutmsg)
                     except:
@@ -90,7 +149,8 @@ class LOAwarncog(Cog):
 
                     try:
                         timeoutmsg = Embed(
-                            description=f"You have recieved a timeout of 24 hours from **{ctx.guild.name}** because you have reached 8 warn points"
+                            description=
+                            f"You have recieved a timeout of 24 hours from **{ctx.guild.name}** because you have reached 8 warn points"
                         )
                         await member.send(embed=timeoutmsg)
                     except:
@@ -99,7 +159,8 @@ class LOAwarncog(Cog):
                 elif warnpoints == 9:
                     try:
                         kickmsg = Embed(
-                            description=f"You are kicked from **{ctx.guild.name}** because you have reached 9 warn points"
+                            description=
+                            f"You are kicked from **{ctx.guild.name}** because you have reached 9 warn points"
                         )
                         await member.send(embed=kickmsg)
                     except:
@@ -110,7 +171,8 @@ class LOAwarncog(Cog):
                 elif warnpoints == 10:
                     try:
                         banmsg = Embed(
-                            description=f"You have been banned from **{ctx.guild.name}** bacuse you have reached the 10 warn point punishment.\n\nTo appeal for your ban, please fill in this form https://forms.gle/kpjMC9RMV1QkBY9t6"
+                            description=
+                            f"You have been banned from **{ctx.guild.name}** bacuse you have reached the 10 warn point punishment.\n\nTo appeal for your ban, please fill in this form https://forms.gle/kpjMC9RMV1QkBY9t6"
                         )
                         await member.send(embed=banmsg)
                     except:
@@ -124,17 +186,18 @@ class LOAwarncog(Cog):
                     embed.add_field(name="Result", value=result, inline=False)
                     LOA_ASPECT = self.bot.get_user(710733052699213844)
                     embed.set_footer(
-                        text="If you feel this warn was a mistake, please DM {} to appeal".format(
-                            LOA_ASPECT
-                        )
-                    )
+                        text=
+                        "If you feel this warn was a mistake, please DM {} to appeal"
+                        .format(LOA_ASPECT))
                     embed.set_thumbnail(url=member.display_avatar)
                     await adwarn_channel.send(member.mention, embed=embed)
                     await ctx.followup.send(
-                        f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
-                    )
+                        f"Warning sent. Check {adwarn_channel.mention}",
+                        ephemeral=True)
 
-    @Serverutil.command(description="Adwarn someone for violating the ad rules")
+    @Serverutil.command(description="Adwarn someone for violating the ad rules"
+                        )
+    @Serverutil.checks.has_any_role(980142809094971423)
     @Serverutil.describe(
         channel="Where was the ad deleted?",
         reason="What was the reason for the warn?",
@@ -150,8 +213,10 @@ class LOAwarncog(Cog):
         await self.warn_message(ctx, member, channel, reason)
 
     @Serverutil.command(
-        description="Remove someone's warning if it was appealed or given by mistake"
-    )
+        description=
+        "Remove someone's warning if it was appealed or given by mistake")
+    @Serverutil.checks.has_any_role(749608853376598116, 889019375988916264,
+                                    1076677389167378432, 947109389855248504)
     async def revoke(self, ctx: Interaction, member: Member, warn_id: str):
         await ctx.response.defer()
         data = LOAWarn(member, warn_id=warn_id)
@@ -161,12 +226,11 @@ class LOAwarncog(Cog):
             adwarn_channel = ctx.guild.get_channel(745107170827305080)
             embed = Embed(color=Color.random())
             embed.description = (
-                "Your warning has been revoked. You now have {} warn points".format(
-                    data.get_points()
-                )
-            )
+                "Your warning has been revoked. You now have {} warn points".
+                format(data.get_points()))
             member = await ctx.guild.fetch_member(data.check()[0])
-            await ctx.followup.send("{}'s warn has been removed.".format(member))
+            await ctx.followup.send(
+                "{}'s warn has been removed.".format(member))
             await adwarn_channel.send(member.mention, embed=embed)
 
 
