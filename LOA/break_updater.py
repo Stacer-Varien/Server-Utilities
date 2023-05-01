@@ -18,7 +18,7 @@ class break_updater(Cog):
 
         for a in check_breaks:
             try:
-                if int(round(datetime.now().timestamp())) > int(a[7]):
+                if int(round(datetime.now().timestamp())) > int(a[6]):
                     member = await loa.fetch_member(a[0])
 
                     await member.remove_roles(break_role, reason="Break has ended")

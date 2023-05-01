@@ -8,14 +8,14 @@ from discord import (
     app_commands as Serverutil,
 )
 from discord.ext.commands import Cog, Bot, GroupCog
-from config import loa
+from config import lss, loa
 from random import randint
 from datetime import datetime, timedelta
 from discord.utils import utcnow
 from assets.functions import LOAWarn, LOAMod
 
 
-class LOAmodCog(GroupCog):
+class LOAmodCog(GroupCog, name='moderation'):
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -29,7 +29,7 @@ class LOAmodCog(GroupCog):
     async def _stats(self, ctx: Interaction):
         await ctx.response.defer()
         embed = Embed(color=Color.blue())
-        embed.description = await LOAMod().checks()
+        embed.description = await LOAMod().checks(self.bot)
         embed.set_footer(
             text=
             "If a moderator's name is not there, they have not commited an adwarn."
@@ -224,15 +224,16 @@ class LOAwarncog(Cog):
             await ctx.followup.send("Incorrect Warn ID/Member given")
         else:
             adwarn_channel = ctx.guild.get_channel(745107170827305080)
+            data.remove()
             embed = Embed(color=Color.random())
             embed.description = (
                 "Your warning has been revoked. You now have {} warn points".
                 format(data.get_points()))
-            member = await ctx.guild.fetch_member(data.check()[0])
             await ctx.followup.send(
                 "{}'s warn has been removed.".format(member))
             await adwarn_channel.send(member.mention, embed=embed)
 
 
 async def setup(bot: Bot):
+    await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
     await bot.add_cog(LOAwarncog(bot), guild=Object(loa))
