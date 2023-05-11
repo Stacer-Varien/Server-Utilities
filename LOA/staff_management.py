@@ -156,7 +156,7 @@ class breakcog(GroupCog, name="break"):
                 requested_break.set_footer(
                     text="To approve or deny this request, use `/break approve MEMBER` or `/break deny MEMBER`"
                 )
-                Break(ctx.user).add_break_request(
+                Break(ctx.user).add_request(
                     ctx.guild.id,
                     duration,
                     reason,
