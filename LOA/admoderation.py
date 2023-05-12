@@ -3,6 +3,7 @@ from discord import (
     Embed,
     Interaction,
     Member,
+    Message,
     Object,
     TextChannel,
     app_commands as Serverutil,
@@ -24,7 +25,7 @@ class LOAmodCog(GroupCog, name='moderation'):
 
     @modgroup.command(
         name='stats',
-        description="Check who has performed their tasks for the week")
+        description="Check who has done the most ad moderations for the week")
     @Serverutil.checks.has_role(1075400097615052900)
     async def _stats(self, ctx: Interaction):
         await ctx.response.defer()
@@ -32,7 +33,7 @@ class LOAmodCog(GroupCog, name='moderation'):
         embed.description = await LOAMod().checks(self.bot)
         embed.set_footer(
             text=
-            "If a moderator's name is not there, they have not commited an adwarn."
+            "If a moderator's name is not there, they have not commited an adwarn command."
         )
         await ctx.followup.send(embed=embed)
 
@@ -42,11 +43,10 @@ class LOAmodCog(GroupCog, name='moderation'):
                                     949147509660483614)
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
-        if round(datetime.now().timestamp()) <= round(
-                LOAMod().prior_week_end().timestamp()):
+        if LOAMod().today<= LOAMod().sunday:
             await ctx.followup.send(
-                "DON'T RESET YET!\n\nWait after <:t{}:t> to reset the checks from the database"
-                .format(round(LOAMod().prior_week_end().timestamp())))
+                "DON'T RESET YET!\n\nYou can do a reset on {} to clear the database"
+                .format(LOAMod().sunday.strftime("%d-%m-%Y")))
         else:
             LOAMod().reset_week()
             await ctx.followup.send(
@@ -233,6 +233,51 @@ class LOAwarncog(Cog):
                 "{}'s warn has been removed.".format(member))
             await adwarn_channel.send(member.mention, embed=embed)
 
+    appealgroup=Serverutil.Group(name="appeal", description="...")
+
+    @appealgroup.command(description="Appeal for your warn if you feel it was a mistake")
+    @Serverutil.describe(warn_id="Insert the warn ID you wish to appeal")
+    async def apply(self, ctx:Interaction, warn_id:str):
+        await ctx.response.defer()
+        warn_data=LOAWarn(user=ctx.user, warn_id=warn_id).check()
+
+        if warn_data==None:
+            await ctx.followup.send("You do not have warning corresponding with this warn ID",ephemeral=True)
+        else:
+            try:
+                msg=await ctx.user.send("Please explain why your adwarn should be revoked? If applicable, please send media content to support your appeal. Please know that sending your ad ONLY would be considered as an instant DM advertising and your appeal will be denied.\n\nYou have 5 minutes to appeal")
+
+                await ctx.followup.send(f"[Click here]({msg.jump_url}) to process your appeal")
+
+                def check(m: Message):
+                    attachments = bool(m.attachments)
+                    content = bool(m.content)
+                    if attachments == True and content == True:
+                        return m.author == ctx.user and m.content and m.attachments
+                    elif content == True:
+                        return m.author == ctx.user and m.content
+                    elif attachments == True:
+                        return m.author == ctx.user and m.attachments
+                    elif attachments == True and content == False:
+                        return m.author == ctx.user and m.attachments
+                
+                try:
+                    msg: Message = await self.bot.wait_for(
+                        "message", check=check, timeout=600
+                    )
+
+                    await ctx.user.send(
+                        "Thank you for appealing for your warn. The appropriate staff member will review it and will send updates if any action is needed\nPlease do not rush us or your appeal will be denied."
+                    )
+
+                    embed=Embed(description="New Warn Appeal", color=Color.random())
+                    embed.add_field(name="Person who is appealling it", value=f"{ctx.user} | `{ctx.user.id}`", inline=False)
+                    embed.add_field(name="Warn ID", value=warn_id, inline=False)
+                    embed.add_field(name="Reason of warn", value=warn_data[1], inline=False)
+                    embed.add_field(name="Reason for appeal", value=msg.content, inline=False)
+                    embed.set_footer(text="To approve or deny this appeal, use `/appeal deny WARN_ID` or `/appeal approve WARN_ID`")
+
+                    
 
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))

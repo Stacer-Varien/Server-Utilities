@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
-from humanfriendly import parse_timespan, InvalidTimespan
+from humanfriendly import parse_timespan
 from discord import Embed, Color, Interaction, Member, Object
 from discord import app_commands as Serverutil
 from discord.ext.commands import Bot, GroupCog
 from assets.functions import Break, Resign, Strike
 from assets.strike_modal import Strike_Appeal
-from typing import Literal, Optional
+from typing import Literal
 from config import lss
 
 ha_admin = 925790259319558157
@@ -85,7 +85,7 @@ class breakcog(GroupCog, name="break"):
                 requested_break.set_footer(
                     text="To approve or deny this request, use `/break approve MEMBER` or `/break deny MEMBER`"
                 )
-                Break(ctx.user).add_break_request(
+                Break(ctx.user).add_request(
                     ctx.guild.id,
                     duration,
                     reason,
@@ -117,7 +117,7 @@ class breakcog(GroupCog, name="break"):
                     ).timestamp()
                 )
                 duration = "<t:{}:D>".format(time)
-                Break(ctx.user).add_break_request(
+                Break(ctx.user).add_request(
                     ctx.guild.id,
                     duration,
                     reason,

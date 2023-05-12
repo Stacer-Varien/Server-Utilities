@@ -458,7 +458,7 @@ class Strike:
 
     def revoke(self):
         db.execute(
-            "UPDATE strikeData SET count = count - ? WHERE user_id = ? and department = ?",
+            "UPDATE strikeData SET count = count - ? WHERE user_id = ? AND department = ?",
             (
                 1,
                 self.member.id,
