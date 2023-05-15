@@ -9,16 +9,16 @@ from tabulate import tabulate
 
 
 class Appeal:
-    def __init__(self, user: User, appeal_id: int):
+    def __init__(self, user: User, warn_id: int):
         self.user = user
-        self.appeal_id = appeal_id
+        self.warn_id = warn_id
 
     def check(self):
         data = db.execute(
-            "SELECT * FROM warnData WHERE user_id = ? AND appeal_id = ?",
+            "SELECT * FROM warnData WHERE user_id = ? AND warn_id = ?",
             (
                 self.user.id,
-                self.appeal_id,
+                self.warn_id,
             ),
         ).fetchone()
         if data == None:
@@ -53,14 +53,6 @@ class LOAWarn:
         self.monday = self.today - timedelta(days=self.today.weekday())
         self.sunday = self.monday + timedelta(days=6)
 
-    def prior_week_end(self):
-        return datetime.today() + timedelta(
-            days=((datetime.today().isoweekday() + 6) % 7)
-        )
-
-    def prior_week_start(self):
-        return self.prior_week_end() - timedelta(days=6)
-
     def check(self):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?",
@@ -85,8 +77,8 @@ class LOAWarn:
             "SELECT * FROM loaAdwarnData_v2 WHERE user_id= ?", (self.user.id,)
         ).fetchone()
         db.commit()
-        start = self.prior_week_start().strftime("%d%m%Y")
-        end = self.prior_week_end().strftime("%d%m%Y")
+        start = int(self.monday.strftime("%d%m%Y"))
+        end = int(self.sunday.strftime("%d%m%Y"))
         current_time = datetime.now()
         next_warn = current_time + timedelta(minutes=45)
         if data == None:

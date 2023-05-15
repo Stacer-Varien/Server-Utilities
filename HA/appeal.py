@@ -61,12 +61,8 @@ class appealcog(GroupCog, name="appeal"):
                     appeal.add_field(name="Warn ID", value=warn_id, inline=True)
                     appeal.add_field(name="Appeal ID", value=appeal_id, inline=True)
                     appeal.add_field(
-                        name="Warn reason", value=f"{reason}\nWarned by: {moderator}"
-                    )
-                    appeal.add_field(
-                        name="How to approve or deny?",
-                        value=f"{reason}\nWarned by: {moderator}",
-                    )
+                        name="Warn reason", value=f"{reason}\nWarned by: {moderator}",
+                    inline=False)
                     appeal.set_footer(
                         text="To approve the appeal, use `/appeal accept appeal_id`. To deny the appeal, use `/appeal deny appeal_id`"
                     )
@@ -75,10 +71,10 @@ class appealcog(GroupCog, name="appeal"):
                         image_urls = [x.url for x in msg.attachments]
                         images = "\n".join(image_urls)
                         await appeal_log.send(
-                            "{}\n{}".format(msg, images), embed=appeal
+                            "{}\n{}".format(msg.content, images), embed=appeal
                         )
                     except:
-                        await appeal_log.send(msg, embed=appeal)
+                        await appeal_log.send(msg.content, embed=appeal)
                 except TimeoutError:
                     await ctx.user.send("You have ran out of time. Please try again.")
             except:
