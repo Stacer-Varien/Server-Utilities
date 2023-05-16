@@ -13,7 +13,7 @@ from config import lss, loa
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
-from assets.functions import LOAWarn, LOAMod
+from assets.functions import LOAAppeal, LOAWarn, LOAMod
 
 class LOAmodCog(GroupCog, name="moderation"):
     def __init__(self, bot: Bot):
@@ -312,8 +312,28 @@ class AppealLOA(GroupCog, name="appeal"):
 
     
     @Serverutil.command(description="Approve an appeal for an adwarn")
-    async def approve(self, ctx:Interaction, user_id:str, ):
-        ...
+    async def approve(self, ctx:Interaction, user:Member, warn_id:str):
+        await ctx.response.defer()
+        warn_data = LOAWarn(user=user, warn_id=int(warn_id)).check()
+
+        if warn_data == None:
+            await ctx.followup.send(
+                "This user has not been warned or incorrect warn ID",
+                ephemeral=True,
+            )
+        else:
+            LOAAppeal(user, int(warn_id)).remove()
+            modchannel1=await ctx.guild.fetch_channel(954594959074418738)
+            if ctx.channel.id == 954594959074418738:
+                modchannel=await ctx.guild.fetch_channel(745107170827305080)
+                appealed=Embed(description=f"Your appeal has been approved. You now have {LOAWarn(user, warn_id=int(warn_id)).get_points()} adwarns", color=Color.random())
+                await ctx.followup.send("Appeal approved")
+                await modchannel.send(user.mention, embed=appealed)
+            else:
+                await ctx.followup.send("Please do this command in {}".format(modchannel1.mention))
+                
+
+        
 
 
 async def setup(bot: Bot):

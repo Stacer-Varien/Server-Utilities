@@ -28,9 +28,9 @@ class Appeal:
 
     def remove(self):
         db.execute(
-            "DELETE FROM warnData WHERE appeal_id = ? AND user_id = ?",
+            "DELETE FROM warnData WHERE warn_id = ? AND user_id = ?",
             (
-                self.appeal_id,
+                self.warn_id,
                 self.user.id,
             ),
         )
@@ -43,6 +43,26 @@ class Appeal:
         )
         db.commit()
 
+class LOAAppeal:
+    def __init__(self, user: User, warn_id: int):
+        self.user = user
+        self.warn_id = warn_id
+
+    def check(self):
+        data = db.execute(
+            "SELECT * FROM LOAwarnData WHERE user_id = ? AND warn_id = ?",
+            (
+                self.user.id,
+                self.warn_id,
+            ),
+        ).fetchone()
+        if data == None:
+            return None
+        else:
+            return data
+
+    def remove(self):
+        LOAWarn(self.user.id, warn_id=self.warn_id).remove()
 
 class LOAWarn:
     def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
@@ -209,8 +229,8 @@ class LOAMod:
             (
                 self.mod.id,
                 1,
-                start,
-                end,
+                int(start),
+                int(end),
             ),
         )
         if data.rowcount == 0:
