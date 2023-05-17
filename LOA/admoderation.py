@@ -15,6 +15,7 @@ from datetime import timedelta
 from discord.utils import utcnow
 from assets.functions import LOAAppeal, LOAWarn, LOAMod
 
+
 class LOAmodCog(GroupCog, name="moderation"):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -66,6 +67,7 @@ class LOAmodCog(GroupCog, name="moderation"):
         if isinstance(error, Serverutil.MissingAnyRole):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
+
 
 class LOAwarncog(Cog):
     def __init__(self, bot: Bot):
@@ -227,9 +229,10 @@ class LOAwarncog(Cog):
 
     appealgroup = Serverutil.Group(name="appeal", description="...")
 
+
 class AppealLOA(GroupCog, name="appeal"):
-    def __init__(self, bot:Bot):
-        self.bot=bot
+    def __init__(self, bot: Bot):
+        self.bot = bot
 
     async def adwarn_appeal(self, ctx: Interaction, warn_id: str):
         warn_data = LOAWarn(user=ctx.user, warn_id=int(warn_id)).check()
@@ -301,39 +304,41 @@ class AppealLOA(GroupCog, name="appeal"):
                     await ctx.user.send("Times up! Please try again later")
             except:
                 await ctx.followup.send("Please open your DMs to do the appeal process")
-    
-    @Serverutil.command(
-        description="Appeal for your warn if you feel it was a mistake"
-    )
+
+    @Serverutil.command(description="Appeal for your warn if you feel it was a mistake")
     @Serverutil.describe(warn_id="Insert the warn ID you wish to appeal")
     async def apply(self, ctx: Interaction, warn_id: str):
         await ctx.response.defer()
         await self.adwarn_appeal(ctx, warn_id)
 
-    
     @Serverutil.command(description="Approve an appeal for an adwarn")
-    async def approve(self, ctx:Interaction, user:Member, warn_id:str):
+    @Serverutil.checks.has_any_role(889019375988916264, 947109389855248504, 961433835277516822, 919410986249756673)
+    async def approve(self, ctx: Interaction, user: Member, warn_id: str):
         await ctx.response.defer()
-        warn_data = LOAWarn(user=user, warn_id=int(warn_id)).check()
+        warn_data = LOAWarn(user=user, warn_id=int(warn_id))
 
-        if warn_data == None:
+        if warn_data.check() == None:
             await ctx.followup.send(
                 "This user has not been warned or incorrect warn ID",
                 ephemeral=True,
             )
         else:
-            LOAAppeal(user, int(warn_id)).remove()
-            modchannel1=await ctx.guild.fetch_channel(954594959074418738)
+            warn_data.remove()
+            modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
             if ctx.channel.id == 954594959074418738:
-                modchannel=await ctx.guild.fetch_channel(745107170827305080)
-                appealed=Embed(description=f"Your appeal has been approved. You now have {LOAWarn(user, warn_id=int(warn_id)).get_points()} adwarns", color=Color.random())
+                modchannel = await ctx.guild.fetch_channel(745107170827305080)
+                appealed = Embed(
+                    description=f"Your appeal has been approved. You now have {warn_data.get_points()} adwarns",
+                    color=Color.random(),
+                )
                 await ctx.followup.send("Appeal approved")
                 await modchannel.send(user.mention, embed=appealed)
             else:
-                await ctx.followup.send("Please do this command in {}".format(modchannel1.mention))
-                
+                await ctx.followup.send(
+                    "Please do this command in {}".format(modchannel1.mention)
+                )
 
-        
+
 
 
 async def setup(bot: Bot):

@@ -43,26 +43,6 @@ class Appeal:
         )
         db.commit()
 
-class LOAAppeal:
-    def __init__(self, user: User, warn_id: int):
-        self.user = user
-        self.warn_id = warn_id
-
-    def check(self):
-        data = db.execute(
-            "SELECT * FROM LOAwarnData WHERE user_id = ? AND warn_id = ?",
-            (
-                self.user.id,
-                self.warn_id,
-            ),
-        ).fetchone()
-        if data == None:
-            return None
-        else:
-            return data
-
-    def remove(self):
-        LOAWarn(self.user.id, warn_id=self.warn_id).remove()
 
 class LOAWarn:
     def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
@@ -179,7 +159,7 @@ class LOAWarn:
     def remove(self):
         data = self.check()
         db.execute(
-            "DELETE FROM loaAdwarnData WHERE warn_id = ? and user_id = ?",
+            "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
             (
                 self.warn_id,
                 self.user.id,
@@ -202,13 +182,15 @@ class LOAWarn:
 
         if self.get_points() == 0:
             db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
+                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (
+                    self.user.id,)
             )
             db.commit()
 
     def get_time(self) -> int:
         timedata = db.execute(
-            "SELECT time FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
+            "SELECT time FROM loaAdwarnData_v2 WHERE user_id = ?", (
+                self.user.id,)
         ).fetchone()
         db.commit()
         return timedata[0]
@@ -293,7 +275,7 @@ class Warn:
         else:
             return data
 
-    def auto_give(self, channel: TextChannel, appeal_id: int):
+    def auto_give(self, channel: TextChannel):
         data = db.execute(
             "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
         ).fetchone()
@@ -307,13 +289,12 @@ class Warn:
         reason = f"Incorrectly advertising in {channel.mention}"
         if data == None:
             db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id, appeal_id) VALUES (?,?,?,?,?)",
+                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
                 (
                     self.user.id,
                     self.moderator.id,
                     reason,
                     self.warn_id,
-                    appeal_id,
                 ),
             )
 
@@ -325,9 +306,17 @@ class Warn:
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
+                "UPDATE warnDatav2 SET warn_point = warn_point + ? WHERE user_id= ?",
                 (
                     1,
+                    self.user.id,
+                ),
+            )
+            db.commit()
+
+            db.execute(
+                "UPDATE warnDatav2 SET time = ? WHERE user_id = ?",
+                (
                     round(next_warn.timestamp()),
                     self.user.id,
                 ),
@@ -366,9 +355,17 @@ class Warn:
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE warnDatav2 SET warn_point = warn_point + ? AND time = ? WHERE user_id= ?",
+                "UPDATE warnDatav2 SET warn_point = warn_point + ? WHERE user_id = ?",
                 (
                     1,
+                    self.user.id,
+                ),
+            )
+            db.commit()
+
+            db.execute(
+                "UPDATE warnDatav2 SET time = ? WHERE user_id= ?",
+                (
                     round(next_warn.timestamp()),
                     self.user.id,
                 ),
@@ -381,7 +378,8 @@ class Warn:
     def get_points(self) -> int:
         try:
             warnpointdata = db.execute(
-                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
+                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (
+                    self.user.id,)
             ).fetchone()
             db.commit()
             return warnpointdata[0]
@@ -442,7 +440,7 @@ class Strike:
 
     def counts(self):
         data = db.execute(
-            "SELECT * FROM strikeData WHERE department = ? AND user_id = ?",
+            "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
             (
                 self.department,
                 self.member.id,
@@ -546,7 +544,7 @@ class Partner:
             await self.user.send(
                 f"Your partnership request was denied because:\n{reason}"
             )
-            msg = "Partnership denied and reason sent"
+            msg = "Partnership denied AND reason sent"
         except:
             msg = "Partnership denied"
         return await ctx.followup.send(msg)
@@ -557,12 +555,14 @@ class Break:
         self.member = member
 
     def check_breaks(self):
-        data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
+        data = db.execute(
+            "SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
         db.commit()
         return data
 
     def remove(self):
-        db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
+        db.execute("DELETE FROM breakData WHERE user_id = ?",
+                   (self.member.id,))
         db.commit()
 
     def add_request(
@@ -603,7 +603,7 @@ class Break:
 
     def approve(self, server: int, start: int, ends: int):
         db.execute(
-            "UPDATE breakData SET accepted = ? WHERE user_id = ? and guild_id = ?",
+            "UPDATE breakData SET accepted = ? WHERE user_id = ? AND guild_id = ?",
             (
                 1,
                 self.member.id,
@@ -611,7 +611,7 @@ class Break:
             ),
         )
         db.execute(
-            "UPDATE breakData SET start = ? WHERE user_id = ? and guild_id = ?",
+            "UPDATE breakData SET start = ? WHERE user_id = ? AND guild_id = ?",
             (
                 start,
                 self.member.id,
@@ -619,7 +619,7 @@ class Break:
             ),
         )
         db.execute(
-            "UPDATE breakData SET ends = ? WHERE user_id = ? and guild_id = ?",
+            "UPDATE breakData SET ends = ? WHERE user_id = ? AND guild_id = ?",
             (
                 ends,
                 self.member.id,
@@ -630,7 +630,7 @@ class Break:
 
     def deny(self, server: int):
         db.execute(
-            "DELETE FROM breakData WHERE user_id = ? and guild_id = ?",
+            "DELETE FROM breakData WHERE user_id = ? AND guild_id = ?",
             (
                 self.member.id,
                 server,
@@ -640,7 +640,7 @@ class Break:
 
     def end(self, server: int):
         db.execute(
-            "DELETE FROM breakData WHERE user_id = ? and guild_id = ?",
+            "DELETE FROM breakData WHERE user_id = ? AND guild_id = ?",
             (
                 self.member.id,
                 server,
@@ -685,7 +685,8 @@ class Resign:
         db.commit()
 
     def deny(self):
-        db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
+        db.execute("DELETE FROM resignData WHERE user_id = ?",
+                   (self.member.id,))
         db.commit()
 
 
@@ -724,7 +725,7 @@ class Plans:
 
     def check(self):
         data = db.execute(
-            "SELECT * FROM planData where server_id = ?", (self.server,)
+            "SELECT * FROM planData WHERE server_id = ?", (self.server,)
         ).fetchall()
         db.commit()
         return data
