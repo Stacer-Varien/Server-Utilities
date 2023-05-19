@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 import os
-from discord import Guild, Interaction, Member, TextChannel, User
+from discord import Color, Embed, Guild, Interaction, Member, TextChannel, User
 from assets.not_allowed import no_invites, no_pings
 from config import db
 from typing import Optional
@@ -653,19 +653,24 @@ class Resign:
     def __init__(self, member: User):
         self.member = member
 
-    def apply(self):
+    def apply(self, leaving:bool):
+        if leaving == True:
+            leaving=1
+        else:
+            leaving=0
         db.execute(
-            "INSERT OR IGNORE INTO resignData (user_id, accepted) VALUES (?, ?)",
+            "INSERT OR IGNORE INTO resignData (user_id, accepted, leaving) VALUES (?, ?, ?)",
             (
                 self.member.id,
                 0,
+                leaving,
             ),
         )
         db.commit()
 
-    def check(self):
+    def check(self, leaving:int):
         data = db.execute(
-            "SELECT * FROM resignData WHERE user_id = ?", (self.member.id,)
+            "SELECT * FROM resignData WHERE user_id = ? AND leaving = ?", (self.member.id, leaving)
         ).fetchone()
         db.commit()
 
@@ -688,6 +693,38 @@ class Resign:
         db.execute("DELETE FROM resignData WHERE user_id = ?",
                    (self.member.id,))
         db.commit()
+
+    async def resigned(self, channel:TextChannel):
+        check_resignation_data = db.execute(
+                    "SELECT accepted FROM resignData WHERE user_id = ? AND leaving = ?",
+                    (self.member.id, 1)).fetchone(
+                    )  # checks for their user ID in the database if it exists
+
+        if (check_resignation_data == None
+                    ):  # if they just left without requesting for resigning
+            no_resign = Embed(
+                        title=f"{self.member} ({self.member.id}) left the server",
+                        color=Color.red(),
+                    )
+            return await channel.send(embed=no_resign)
+
+        elif check_resignation_data[0] == 0:  # if they left without an accepted resignation
+            not_accepted = Embed(
+                        title=
+                        f"{self.member} ({self.member.id}) left the server without an approved resignation",
+                        color=Color.red(),
+                    )
+            return await channel.send(embed=not_accepted)
+
+        elif check_resignation_data[0] == 1:  # if their resignation has been accepted
+            db.execute("DELETE FROM resignData WHERE user_id = ?",
+                               (self.member.id, ))
+            db.commit()
+            accepted = Embed(
+                        title=f"{self.member} ({self.member.id}) has resigned.",
+                        color=Color.green(),
+                    )
+            return await channel.send(embed=accepted)
 
 
 class Plans:
