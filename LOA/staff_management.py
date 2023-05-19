@@ -5,7 +5,7 @@ from discord import app_commands as Serverutil
 from discord.ext.commands import Bot, GroupCog
 from assets.functions import Break, Resign, Strike
 from assets.strike_modal import Strike_Appeal
-from typing import Literal
+from typing import Literal, Optional
 from config import lss
 
 ha_admin = 925790259319558157
@@ -308,13 +308,7 @@ class strikecog(GroupCog, name="strike"):
         description="Give a strike to a staff member for bad performance/unprofessionalism"
     )
     @Serverutil.checks.has_any_role(
-        841671779394781225,
-        841671956999045141,
-        955722820464283658,
-        949147158572056636,
-        841682891599773767,
-        962628294627438682,
-        1095048263985549382,
+        841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
     )
     async def give(
         self,
@@ -417,7 +411,7 @@ class strikecog(GroupCog, name="strike"):
 
     @group2.command(description="Approve a strike appeal")
     @Serverutil.checks.has_any_role(
-        core_team, om, chr, coo, team_leader, staff_supervisor, 1095048263985549382
+        841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
     )
     async def approve(
         self,
@@ -454,7 +448,7 @@ class strikecog(GroupCog, name="strike"):
 
     @group2.command(description="Deny a strike appeal")
     @Serverutil.checks.has_any_role(
-        core_team, om, chr, coo, team_leader, staff_supervisor, 1095048263985549382
+        841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
     )
     async def deny(
         self,
@@ -490,9 +484,15 @@ class resigncog(GroupCog, name="resign"):
         self.bot = bot
 
     @Serverutil.command(name="apply", description="Apply for resignation")
-    async def apply(self, ctx: Interaction, department: str, reason: str):
+    async def apply(
+        self,
+        ctx: Interaction,
+        department: Literal["Core Team", "Management", "Marketing", "Human Resource"],
+        reason: str,
+        planning_to_leave: Optional[bool] = None,
+    ):
         await ctx.response.defer(ephemeral=True)
-        Resign(ctx.user).apply()
+        Resign(ctx.user).apply(leaving=planning_to_leave)
 
         channel = await self.bot.fetch_channel(1002513633760260166)
 
@@ -502,8 +502,13 @@ class resigncog(GroupCog, name="resign"):
         )
         request.add_field(name="Department", value=department, inline=False)
         request.add_field(name="Reason of Resigning", value=reason, inline=False)
+        if planning_to_leave:
+            if planning_to_leave == True:
+                request.add_field(name="Plans to leave LSS", value="Yes", inline=False)
+            else:
+                request.add_field(name="Plans to leave LSS", value="No", inline=False)
         request.set_footer(
-            text="To accept or deny the resignation, use `/resign approve USER_ID` or `/resign approve USER_ID`"
+            text="To accept or deny the resignation, use `/resign approve MEMBER` or `/resign deny MEMBER`"
         )
 
         await ctx.followup.send("Your resignation has been requested")
@@ -511,14 +516,25 @@ class resigncog(GroupCog, name="resign"):
 
     @Serverutil.command(description="Approve a resignation")
     @Serverutil.checks.has_any_role(core_team, chr, coo)
-    async def approve(self, ctx: Interaction, member: Member, department: str):
+    async def approve(
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal["Core Team", "Management", "Marketing", "Human Resource"],
+        leaving:Optional[bool]=None
+    ):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
         resign = Resign(ctx.user)
-        data = resign.check()
+        if leaving:
+            if leaving==True:
+                leaving=1
+            else:
+                leaving=0
+        data = resign.check(leaving)
 
         if data == None:
-            await ctx.followup.send("Invalid Member/Department")
+            await ctx.followup.send("Invalid Member")
 
         elif data[0] == ctx.user.id:
             await ctx.followup.send("You can't approve your own resignation")
@@ -530,9 +546,12 @@ class resigncog(GroupCog, name="resign"):
 
         else:
             resign.approve()
+            await ctx.followup.send("Accepted resignation of {}".format(member))
+            if data[2] == 1:
+                await channel.send(f"{member.mention} has made a full resignation. Thank you for working with us")
+            elif data[2]==0:
+                await channel.send(f"{member.mention} has resigned from {department}")
 
-        await ctx.followup.send("Accepted resignation of {}".format(member))
-        await channel.send(f"{member}has resigned from {department}")
 
     @Serverutil.command(name="deny", description="Denies a resignation")
     @Serverutil.checks.has_any_role(core_team, chr, coo)
@@ -558,7 +577,7 @@ class resigncog(GroupCog, name="resign"):
                 await member.send("Your resignation has been denied.")
             except:
                 pass
-            await ctx.followup.send("Denied resignation of {}".format(member))
+            await ctx.followup.send("Denied resignation of {}".format(member.mention))
 
 
 async def setup(bot: Bot):

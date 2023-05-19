@@ -344,3 +344,4 @@ class AppealLOA(GroupCog, name="appeal"):
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
     await bot.add_cog(LOAwarncog(bot), guild=Object(loa))
+    await bot.add_cog(AppealLOA(bot), guild=Object(loa, lss))

@@ -1,5 +1,6 @@
 from discord import *
 from discord.ext.commands import Cog, Bot
+from assets.functions import Resign
 
 from config import db
 
@@ -47,42 +48,10 @@ class member(Cog):
         elif member.guild.id == 841671029066956831:
             channel = self.bot.get_channel(841672222136991757)
             try:
-                check_resignation_data = db.execute(
-                    "SELECT accepted FROM resignData WHERE user_id = ?",
-                    (member.id, )).fetchone(
-                    )  # checks for their user ID in the database if it exists
-
-                if (check_resignation_data == None
-                    ):  # if they just left without requesting for resigning
-                    no_resign = Embed(
-                        title=f"{member} ({member.id}) left the server",
-                        color=Color.red(),
-                    )
-                    await channel.send(embed=no_resign)
-
-                elif (check_resignation_data[0] == 0
-                      ):  # if they left without an accepted resignation
-                    not_accepted = Embed(
-                        title=
-                        f"{member} ({member.id}) left the server without an approved resignation",
-                        color=Color.red(),
-                    )
-                    await channel.send(embed=not_accepted)
-
-                elif (check_resignation_data[0] == 1
-                      ):  # if their resignation has been accepted
-                    db.execute("DELETE FROM resignData WHERE user_id = ?",
-                               (member.id, ))
-                    db.commit()
-                    accepted = Embed(
-                        title=f"{member} ({member.id}) has resigned.",
-                        color=Color.green(),
-                    )
-                    await channel.send(embed=accepted)
+                await Resign(member).resigned(channel)
             except:
                 pass
-        else:
-            pass
+
 
 
 async def setup(bot: Bot):
