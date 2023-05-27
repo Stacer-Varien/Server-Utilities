@@ -6,14 +6,16 @@ from discord import (
     Message,
     Object,
     TextChannel,
+    Forbidden,
     app_commands as Serverutil,
 )
 from discord.ext.commands import Cog, Bot, GroupCog
-from config import lss, loa
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
-from assets.functions import LOAAppeal, LOAWarn, LOAMod
+from assets.functions import LOAWarn, LOAMod
+from config import lss, loa
+import asyncio
 
 
 class LOAmodCog(GroupCog, name="moderation"):
@@ -178,7 +180,7 @@ class LOAwarncog(Cog):
                     embed.add_field(name="Result", value=result, inline=False)
                     LOA_ASPECT = self.bot.get_user(710733052699213844)
                     embed.set_footer(
-                        text="If you feel this warn was a mistake, please DM {} to appeal".format(
+                        text="If you feel this warn was a mistake, please DM {} to appeal or use `/appeal apply WARN_ID".format(
                             LOA_ASPECT
                         )
                     )
@@ -212,7 +214,7 @@ class LOAwarncog(Cog):
     )
     async def revoke(self, ctx: Interaction, member: Member, warn_id: str):
         await ctx.response.defer()
-        data = LOAWarn(member, warn_id=warn_id)
+        data = LOAWarn(member, warn_id=int(warn_id))
         if data.check() == None:
             await ctx.followup.send("Incorrect Warn ID/Member given")
         else:
@@ -237,52 +239,49 @@ class AppealLOA(GroupCog, name="appeal"):
     async def adwarn_appeal(self, ctx: Interaction, warn_id: str):
         warn_data = LOAWarn(user=ctx.user, warn_id=int(warn_id)).check()
 
-        if warn_data == None:
+        if warn_data is None:
             await ctx.followup.send(
-                "You do not have warning corresponding with this warn ID",
+                "You do not have a warning corresponding to this warn ID",
                 ephemeral=True,
             )
         else:
             try:
-                msg = await ctx.user.send(
-                    "Please explain why your adwarn should be revoked? If applicable, please send media content to support your appeal. Please know that sending your ad ONLY would be considered as an instant DM advertising and your appeal will be denied.\n\nYou have 5 minutes to appeal"
+                dm_msg = await ctx.user.send(
+                    "Please explain why your adwarn should be revoked? If applicable, please send media content to support your appeal. Please know that sending your ad ONLY would be considered as instant DM advertising and your appeal will be denied.\n\nYou have 5 minutes to appeal"
                 )
-
                 await ctx.followup.send(
-                    f"[Click here]({msg.jump_url}) to process your appeal"
+                    f"[Click here]({dm_msg.jump_url}) to process your appeal"
                 )
 
                 def check(m: Message):
                     attachments = bool(m.attachments)
                     content = bool(m.content)
-                    if attachments == True and content == True:
+                    if attachments and content:
                         return m.author == ctx.user and m.content and m.attachments
-                    elif content == True:
+                    elif content:
                         return m.author == ctx.user and m.content
-                    elif attachments == True:
+                    elif attachments:
                         return m.author == ctx.user and m.attachments
-                    elif attachments == True and content == False:
+                    elif attachments and not content:
                         return m.author == ctx.user and m.attachments
 
                 try:
-                    appeal_log = await self.bot.fetch_channel(1107611200843427931)
-                    msg: Message = await self.bot.wait_for(
-                        "message", check=check, timeout=600
-                    )
+                    appeal_log = await self.bot.fetch_channel(1112136237034246205)
+                    msg = await self.bot.wait_for("message", check=check, timeout=600)
 
                     await ctx.user.send(
-                        "Thank you for appealing for your warn. The appropriate staff member will review it and will send updates if any action is needed\nPlease do not rush us or your appeal will be denied."
+                        "Thank you for appealing for your warn. The appropriate staff member will review it and will send updates if any action is needed. Please do not rush us, or your appeal will be denied."
                     )
 
                     embed = Embed(description="New Warn Appeal", color=Color.random())
                     embed.add_field(
-                        name="Person who is appealling it",
+                        name="Person who is appealing it",
                         value=f"{ctx.user} | `{ctx.user.id}`",
                         inline=False,
                     )
                     embed.add_field(name="Warn ID", value=warn_id, inline=False)
                     embed.add_field(
-                        name="Reason of warn", value=warn_data[1], inline=False
+                        name="Reason of warn", value=str(warn_data[1]), inline=False
                     )
                     embed.set_footer(
                         text="To approve or deny this appeal, use `/appeal deny WARN_ID` or `/appeal approve WARN_ID`"
@@ -291,19 +290,19 @@ class AppealLOA(GroupCog, name="appeal"):
                     try:
                         image_urls = [x.url for x in msg.attachments]
                         images = "\n".join(image_urls)
-                        await appeal_log.send(
-                            "{}\n{}".format(msg.content, images), embed=embed
-                        )
+                        await appeal_log.send(f"{msg.content}\n{images}", embed=embed)
                     except:
                         await appeal_log.send(msg.content, embed=embed)
 
                     await ctx.user.send(
-                        "Your appeal has been submitted. Please wait patiently for the appropriate staff to decide.\nRushing us could increas your chance of your appeal being denied"
+                        "Your appeal has been submitted. Please wait patiently for the appropriate staff to decide. Rushing us could increase your chance of your appeal being denied."
                     )
-                except TimeoutError:
-                    await ctx.user.send("Times up! Please try again later")
-            except:
-                await ctx.followup.send("Please open your DMs to do the appeal process")
+                except asyncio.TimeoutError:
+                    await ctx.user.send("Time's up! Please try again later")
+            except Forbidden:
+                await ctx.followup.send(
+                    "Please open your DMs to start the appeal process"
+                )
 
     @Serverutil.command(description="Appeal for your warn if you feel it was a mistake")
     @Serverutil.describe(warn_id="Insert the warn ID you wish to appeal")
@@ -312,33 +311,33 @@ class AppealLOA(GroupCog, name="appeal"):
         await self.adwarn_appeal(ctx, warn_id)
 
     @Serverutil.command(description="Approve an appeal for an adwarn")
-    @Serverutil.checks.has_any_role(889019375988916264, 947109389855248504, 961433835277516822, 919410986249756673)
+    @Serverutil.checks.has_any_role(
+        889019375988916264, 947109389855248504, 961433835277516822, 919410986249756673
+    )
     async def approve(self, ctx: Interaction, user: Member, warn_id: str):
         await ctx.response.defer()
         warn_data = LOAWarn(user=user, warn_id=int(warn_id))
 
-        if warn_data.check() == None:
+        if warn_data.check() is None:
             await ctx.followup.send(
-                "This user has not been warned or incorrect warn ID",
+                "This user has not been warned or the warn ID is incorrect",
                 ephemeral=True,
             )
         else:
             warn_data.remove()
-            modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
-            if ctx.channel.id == 954594959074418738:
+            appeal_channel = await ctx.guild.fetch_channel(1112136237034246205)
+            if ctx.channel.id == 1112136237034246205:
                 modchannel = await ctx.guild.fetch_channel(745107170827305080)
-                appealed = Embed(
+                appeal_embed = Embed(
                     description=f"Your appeal has been approved. You now have {warn_data.get_points()} adwarns",
                     color=Color.random(),
                 )
                 await ctx.followup.send("Appeal approved")
-                await modchannel.send(user.mention, embed=appealed)
+                await modchannel.send(user.mention, embed=appeal_embed)
             else:
                 await ctx.followup.send(
-                    "Please do this command in {}".format(modchannel1.mention)
+                    f"Please do this command in {appeal_channel.mention}"
                 )
-
-
 
 
 async def setup(bot: Bot):
