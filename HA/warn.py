@@ -12,8 +12,6 @@ from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
 from assets.functions import Warn
-from typing import Optional, Literal
-
 
 class warncog(Cog):
     def __init__(self, bot: Bot):
@@ -99,28 +97,16 @@ class warncog(Cog):
                     )
 
     @Serverutil.command(description="Adwarn someone for violating the ad rules")
+    @Serverutil.checks.has_any_role(925790259294396455, 925790259319558154, 1011971782426767390, 925790259319558157, 925790259319558158, 925790259319558159)
     @Serverutil.describe(
         channel="Where was the ad deleted?",
-        reason="What is the reason for the warn?",
-        custom="Write your own reason (only if you picked custom reason)",
-        belongsto="Which channel should the ad go to? (only if you selected wrong channel option)",
-    )
+        reason="What is the reason for the warn?")
     async def adwarn(
         self, ctx: Interaction, member: Member, channel: TextChannel, reason: str
     ):
         await ctx.response.defer()
-        mod_roles = [925790259294396455, 925790259319558154, 1011971782426767390]
 
-        if mod_roles not in ctx.user.roles:
-            await ctx.followup.send(
-                "You do not have the required roles to use this command", ephemeral=True
-            )
-        elif ctx.user.guild_permissions(kick_members=False):
-            await ctx.followup.send(
-                "You do not have the permissions to do this", ephemeral=True
-            )
-        else:
-            await self.warn_message(ctx, member, channel, reason)
+        await self.warn_message(ctx, member, channel, reason)
 
 
 async def setup(bot: Bot):
