@@ -182,15 +182,13 @@ class LOAWarn:
 
         if self.get_points() == 0:
             db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (
-                    self.user.id,)
+                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
             )
             db.commit()
 
     def get_time(self) -> int:
         timedata = db.execute(
-            "SELECT time FROM loaAdwarnData_v2 WHERE user_id = ?", (
-                self.user.id,)
+            "SELECT time FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
         ).fetchone()
         db.commit()
         return timedata[0]
@@ -251,6 +249,28 @@ class LOAMod:
 
         col_names = ["Moderator", "Points"]
         return tabulate(mods, headers=col_names, tablefmt="pretty")
+
+    def add_wick_action_point(self):
+        data = db.execute(
+            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
+            (
+                self.mod.id,
+                1,
+                int(self.today.strftime("%d%m%Y")),
+                int(self.sunday.strftime("%d%m%Y")),
+            ),
+        )
+        db.commit()
+
+        if data.rowcount == 0:
+            db.execute(
+                "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
+                (
+                    1,
+                    self.mod.id,
+                ),
+            )
+            db.commit()
 
 
 class Warn:
@@ -378,8 +398,7 @@ class Warn:
     def get_points(self) -> int:
         try:
             warnpointdata = db.execute(
-                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (
-                    self.user.id,)
+                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
             ).fetchone()
             db.commit()
             return warnpointdata[0]
@@ -555,14 +574,12 @@ class Break:
         self.member = member
 
     def check_breaks(self):
-        data = db.execute(
-            "SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
+        data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
         db.commit()
         return data
 
     def remove(self):
-        db.execute("DELETE FROM breakData WHERE user_id = ?",
-                   (self.member.id,))
+        db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
     def add_request(
@@ -653,11 +670,11 @@ class Resign:
     def __init__(self, member: User):
         self.member = member
 
-    def apply(self, leaving:bool):
+    def apply(self, leaving: bool):
         if leaving == True:
-            leaving=1
+            leaving = 1
         else:
-            leaving=0
+            leaving = 0
         db.execute(
             "INSERT OR IGNORE INTO resignData (user_id, accepted, leaving) VALUES (?, ?, ?)",
             (
@@ -668,9 +685,10 @@ class Resign:
         )
         db.commit()
 
-    def check(self, leaving:int):
+    def check(self, leaving: int):
         data = db.execute(
-            "SELECT * FROM resignData WHERE user_id = ? AND leaving = ?", (self.member.id, leaving)
+            "SELECT * FROM resignData WHERE user_id = ? AND leaving = ?",
+            (self.member.id, leaving),
         ).fetchone()
         db.commit()
 
@@ -690,40 +708,40 @@ class Resign:
         db.commit()
 
     def deny(self):
-        db.execute("DELETE FROM resignData WHERE user_id = ?",
-                   (self.member.id,))
+        db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
-    async def resigned(self, channel:TextChannel):
+    async def resigned(self, channel: TextChannel):
         check_resignation_data = db.execute(
-                    "SELECT accepted FROM resignData WHERE user_id = ? AND leaving = ?",
-                    (self.member.id, 1)).fetchone(
-                    )  # checks for their user ID in the database if it exists
+            "SELECT accepted FROM resignData WHERE user_id = ? AND leaving = ?",
+            (self.member.id, 1),
+        ).fetchone()  # checks for their user ID in the database if it exists
 
-        if (check_resignation_data == None
-                    ):  # if they just left without requesting for resigning
+        if (
+            check_resignation_data == None
+        ):  # if they just left without requesting for resigning
             no_resign = Embed(
-                        title=f"{self.member} ({self.member.id}) left the server",
-                        color=Color.red(),
-                    )
+                title=f"{self.member} ({self.member.id}) left the server",
+                color=Color.red(),
+            )
             return await channel.send(embed=no_resign)
 
-        elif check_resignation_data[0] == 0:  # if they left without an accepted resignation
+        elif (
+            check_resignation_data[0] == 0
+        ):  # if they left without an accepted resignation
             not_accepted = Embed(
-                        title=
-                        f"{self.member} ({self.member.id}) left the server without an approved resignation",
-                        color=Color.red(),
-                    )
+                title=f"{self.member} ({self.member.id}) left the server without an approved resignation",
+                color=Color.red(),
+            )
             return await channel.send(embed=not_accepted)
 
         elif check_resignation_data[0] == 1:  # if their resignation has been accepted
-            db.execute("DELETE FROM resignData WHERE user_id = ?",
-                               (self.member.id, ))
+            db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
             db.commit()
             accepted = Embed(
-                        title=f"{self.member} ({self.member.id}) has resigned.",
-                        color=Color.green(),
-                    )
+                title=f"{self.member} ({self.member.id}) has resigned.",
+                color=Color.green(),
+            )
             return await channel.send(embed=accepted)
 
 
