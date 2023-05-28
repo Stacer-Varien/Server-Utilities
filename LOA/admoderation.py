@@ -48,7 +48,7 @@ class LOAmodCog(GroupCog, name="moderation"):
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
-        if LOAMod().today <= LOAMod().sunday:
+        if int(LOAMod().today.strftime("%d%m%Y")) < int(LOAMod().sunday.strftime("%d%m%Y")):
             await ctx.followup.send(
                 "DON'T RESET YET!\n\nYou can do a reset on {} to clear the database".format(
                     LOAMod().sunday.strftime("%d-%m-%Y")
@@ -189,6 +189,7 @@ class LOAwarncog(Cog):
                     await ctx.followup.send(
                         f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
                     )
+         
 
     @Serverutil.command(description="Adwarn someone for violating the ad rules")
     @Serverutil.checks.has_any_role(980142809094971423)
