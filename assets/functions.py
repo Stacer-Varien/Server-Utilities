@@ -260,7 +260,6 @@ class LOAMod:
                 int(self.sunday.strftime("%d%m%Y")),
             ),
         )
-        db.commit()
 
         if data.rowcount == 0:
             db.execute(
@@ -270,7 +269,7 @@ class LOAMod:
                     self.mod.id,
                 ),
             )
-            db.commit()
+        db.commit()
 
 
 class Warn:
@@ -494,7 +493,7 @@ class Strike:
                 self.department,
             ),
         )
-        db.commit()
+
         if self.counts() == 0:
             db.execute(
                 "DELETE FROM strikeData WHERE user_id = ? AND department = ?",
@@ -503,7 +502,7 @@ class Strike:
                     self.department,
                 ),
             )
-            db.commit()
+        db.commit()
 
 
 class Partner:
@@ -712,37 +711,35 @@ class Resign:
         db.commit()
 
     async def resigned(self, channel: TextChannel):
-        check_resignation_data = db.execute(
+        check_accepted = db.execute(
             "SELECT accepted FROM resignData WHERE user_id = ? AND leaving = ?",
             (self.member.id, 1),
-        ).fetchone()  # checks for their user ID in the database if it exists
+        ).fetchone()
 
-        if (
-            check_resignation_data == None
-        ):  # if they just left without requesting for resigning
+        if check_accepted == None:  # if they just left without requesting for resigning
             no_resign = Embed(
                 title=f"{self.member} ({self.member.id}) left the server",
                 color=Color.red(),
             )
-            return await channel.send(embed=no_resign)
+            await channel.send(embed=no_resign)
 
         elif (
-            check_resignation_data[0] == 0
+            int(check_accepted[0]) == 0
         ):  # if they left without an accepted resignation
             not_accepted = Embed(
                 title=f"{self.member} ({self.member.id}) left the server without an approved resignation",
                 color=Color.red(),
             )
-            return await channel.send(embed=not_accepted)
+            await channel.send(embed=not_accepted)
 
-        elif check_resignation_data[0] == 1:  # if their resignation has been accepted
+        elif int(check_accepted[0]) == 1:  # if their resignation has been accepted
             db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
             db.commit()
             accepted = Embed(
                 title=f"{self.member} ({self.member.id}) has resigned.",
                 color=Color.green(),
             )
-            return await channel.send(embed=accepted)
+            await channel.send(embed=accepted)
 
 
 class Plans:
