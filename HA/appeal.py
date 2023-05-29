@@ -7,7 +7,7 @@ from config import hazead
 from discord import Message
 
 
-class appealcog(GroupCog, name="appeal"):
+class appealcog(GroupCog, name="plead"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
