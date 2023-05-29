@@ -12,9 +12,9 @@ class BreakUpdater(Cog):
     @tasks.loop(minutes=5)
     async def check_break(self):
         check_breaks = Break().check_breaks()
-        loa = self.bot.get_guild(841671029066956831)  # Use get_guild instead of fetch_guild if possible
+        loa = await self.bot.fetch_guild(841671029066956831)  # Use get_guild instead of fetch_guild if possible
         break_role = loa.get_role(841682795277713498)
-        break_channel = self.bot.get_channel(841676953613631499)  # Use get_channel instead of fetch_channel if possible
+        break_channel = await self.bot.fetch_channel(841676953613631499)  # Use get_channel instead of fetch_channel if possible
 
         for a in check_breaks:
             try:
