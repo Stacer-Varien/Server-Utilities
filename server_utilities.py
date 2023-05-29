@@ -21,7 +21,7 @@ class ServerUtilities(Bot):
         for filename in os.listdir(path):
             if filename.endswith(".py"):
                 try:
-                    self.load_extension(f"{package}.{filename[:-3]}")
+                    await self.load_extension(f"{package}.{filename[:-3]}")
                     print(f"{filename} loaded")
                 except commands.ExtensionError as e:
                     print(f"Failed to load {filename[:-3]}: {e}")
@@ -37,8 +37,8 @@ class ServerUtilities(Bot):
                 await self.tree.sync(guild=guild)
 
     async def setup_hook(self):
+        await self.load_extension('jishaku')
         await self.setup_extensions("./HA", "HA")
-        await self.setup_extensions("./admod", "admod")
         await self.setup_extensions("./LOA", "LOA")
         await self.setup_extensions("./shared", "shared")
 
