@@ -1,9 +1,10 @@
+from typing import Optional
 from discord import User, ui, ButtonStyle, Interaction
 from discord.interactions import Interaction
 
 
 class Confirmation(ui.View):
-    def __init__(self, author:User):
+    def __init__(self, author:Optional[User]=None):
         super().__init__(timeout=600)
         self.value = None
         self.author=author
