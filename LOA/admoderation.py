@@ -208,7 +208,7 @@ class LOAwarncog(Cog):
         await self.warn_message(ctx, member, channel, reason)
 
     @Serverutil.command(
-        description="Remove someone's warning if it was appealed or given by mistake"
+        description="Remove someone's warning if it was given by mistake"
     )
     @Serverutil.checks.has_any_role(
         749608853376598116, 889019375988916264, 1076677389167378432, 947109389855248504
@@ -309,11 +309,14 @@ class AppealLOA(GroupCog, name="appeal"):
     @Serverutil.describe(warn_id="Insert the warn ID you wish to appeal")
     async def apply(self, ctx: Interaction, warn_id: str):
         await ctx.response.defer()
-        await self.adwarn_appeal(ctx, warn_id)
+        if ctx.channel.id==707209752396038215:
+            await self.adwarn_appeal(ctx, warn_id)
+        else:
+            await ctx.followup.send("Please do this command in <#707209752396038215>", ephemeral=True)
 
     @Serverutil.command(description="Approve an appeal for an adwarn")
     @Serverutil.checks.has_any_role(
-        889019375988916264, 947109389855248504, 961433835277516822, 919410986249756673
+        749608853376598116, 889019375988916264, 1076677389167378432, 947109389855248504, 919410986249756673, 849778145087062046
     )
     async def approve(self, ctx: Interaction, user: Member, warn_id: str):
         await ctx.response.defer()
@@ -344,4 +347,4 @@ class AppealLOA(GroupCog, name="appeal"):
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
     await bot.add_cog(LOAwarncog(bot), guild=Object(loa))
-    await bot.add_cog(AppealLOA(bot), guild=Object(loa, lss))
+    await bot.add_cog(AppealLOA(bot), guild=Object(lss))
