@@ -173,7 +173,7 @@ class breakcog(GroupCog, name="break"):
             await ctx.followup.send(embed=Embed(description=error, color=Color.red()))
 
     @Serverutil.command(description="Approve the break")
-    @Serverutil.checks.has_any_role(core_team, om)
+    @Serverutil.checks.has_any_role(core_team, om, 995151171004137492)
     async def approve(self, ctx: Interaction, member: Member):
         await ctx.response.defer()
         data = Break(member).check(ctx.guild.id)
@@ -233,7 +233,7 @@ class breakcog(GroupCog, name="break"):
                 )
 
     @Serverutil.command(name="deny", description="Deny the break")
-    @Serverutil.checks.has_any_role(core_team, om)
+    @Serverutil.checks.has_any_role(core_team, om, 995151171004137492)
     async def _deny(self, ctx: Interaction, member: Member):
         await ctx.response.defer(thinking=True)
         if ctx.guild.id == 841671029066956831:
