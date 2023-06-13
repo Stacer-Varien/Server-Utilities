@@ -13,7 +13,7 @@ from config import lss, loa
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
-from assets.functions import LOAAppeal, LOAWarn, LOAMod
+from assets.functions import LOAWarn, LOAMod
 
 
 class LOAmodCog(GroupCog, name="moderation"):
@@ -229,11 +229,6 @@ class LOAwarncog(Cog):
 
     appealgroup = Serverutil.Group(name="appeal", description="...")
 
-
-class AppealLOA(GroupCog, name="appeal"):
-    def __init__(self, bot: Bot):
-        self.bot = bot
-
     async def adwarn_appeal(self, ctx: Interaction, warn_id: str):
         warn_data = LOAWarn(user=ctx.user, warn_id=int(warn_id)).check()
 
@@ -271,7 +266,7 @@ class AppealLOA(GroupCog, name="appeal"):
                     )
 
                     await ctx.user.send(
-                        "Thank you for appealing for your warn. The appropriate staff member will review it and will send updates if any action is needed\nPlease do not rush us or your appeal will be denied."
+                        "Thank you for appealing for your warn. The appropriate staff member will review it and will notify you if your appeal was approved.\nIf your appeal was not approved after a week, it means that it was denied.\n\nPlease do not rush us or your appeal will be denied almost immediately."
                     )
 
                     embed = Embed(description="New Warn Appeal", color=Color.random())
@@ -305,13 +300,13 @@ class AppealLOA(GroupCog, name="appeal"):
             except:
                 await ctx.followup.send("Please open your DMs to do the appeal process")
 
-    @Serverutil.command(description="Appeal for your warn if you feel it was a mistake")
+    @appealgroup.command(description="Appeal for your warn if you feel it was a mistake")
     @Serverutil.describe(warn_id="Insert the warn ID you wish to appeal")
     async def apply(self, ctx: Interaction, warn_id: str):
         await ctx.response.defer()
         await self.adwarn_appeal(ctx, warn_id)
 
-    @Serverutil.command(description="Approve an appeal for an adwarn")
+    @appealgroup.command(description="Approve an appeal for an adwarn")
     @Serverutil.checks.has_any_role(889019375988916264, 947109389855248504, 961433835277516822, 919410986249756673)
     async def approve(self, ctx: Interaction, user: Member, warn_id: str):
         await ctx.response.defer()
@@ -338,10 +333,6 @@ class AppealLOA(GroupCog, name="appeal"):
                     "Please do this command in {}".format(modchannel1.mention)
                 )
 
-
-
-
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
     await bot.add_cog(LOAwarncog(bot), guild=Object(loa))
-    await bot.add_cog(AppealLOA(bot), guild=Object(loa, lss))
