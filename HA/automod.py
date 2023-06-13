@@ -1,6 +1,7 @@
-from discord import Embed, Message
+from discord import Color, Embed, Message
 from discord.ext.commands import Cog, Bot
-from assets.functions import Warn
+from assets.functions import Warn, LOAMod
+from assets.confirm_buttoms import Confirmation
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
@@ -110,10 +111,287 @@ class automodcog(Cog):
                         ),
                         delete_after=5,
                     )
+        elif message.channel.id == 954594959074418738:
+            data = LOAMod(message.author)
+            view = Confirmation(message.author)
+            m_content = message.content
+            m_url = message.jump_url
+            if message.content.lower().startswith("w!t"):
+                embed = Embed(
+                    description="You have used a timeout command.\nDid the command successfully timeout the user?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(title="Wick Timeout command used", color=Color.blue())
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
                 else:
-                    pass
-            else:
-                pass
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+            elif message.content.lower().startswith("w!san"):
+                embed = Embed(
+                    description="You have used a sanitise command.\nDid the command successfully sanitised the user's name?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(
+                        title="Wick Sanatise command used", color=Color.blue()
+                    )
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                elif view.value == None:
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+            elif message.content.lower().startswith("w!k"):
+                embed = Embed(
+                    description="You have used a kick command.\nDid the command successfully kicked the user out?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(title="Wick Kick command used", color=Color.blue())
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                elif view.value == None:
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+            elif message.content.lower().startswith("w!b"):
+                embed = Embed(
+                    description="You have used a ban command.\nDid the command successfully banned the user out?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(title="Wick Ban command used", color=Color.blue())
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                elif view.value == None:
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+            elif message.content.lower().startswith("w!hb"):
+                embed = Embed(
+                    description="You have used a hackban command.\nDid the command successfully hackbanned the user?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(title="Wick Hackban command used", color=Color.blue())
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                elif view.value == None:
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+            elif message.content.lower().startswith("w!hackban"):
+                embed = Embed(
+                    description="You have used a hackban command.\nDid the command successfully hackbanned the user?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(title="Wick Hackban command used", color=Color.blue())
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                elif view.value == None:
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+            elif message.content.lower().startswith("w!wa"):
+                embed = Embed(
+                    description="You have used a warn command.\nDid the command successfully warned the user?"
+                )
+                m = await message.channel.send(embed=embed, view=view)
+
+                await view.wait()
+
+                if view.value == True:
+                    data.add_wick_action_point()
+                    embed = Embed(title="Wick Warn command used", color=Color.blue())
+                    embed.add_field(
+                        name="Used by",
+                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="Executed command",
+                        value=f"{m_content}\n[Click here if the message still exists]({m_url})",
+                        inline=False,
+                    )
+                    embed.set_thumbnail(url=message.author.avatar)
+                    channel = await self.bot.fetch_channel(1097695442252349500)
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                    await channel.send(embed=embed)
+
+                elif view.value == False:
+                    added = Embed(
+                        description="Confirmation completed. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)
+                elif view.value == None:
+                    added = Embed(
+                        description="No confirmation. This message will delete now"
+                    )
+                    await m.edit(embed=added, view=None, delete_after=5)            
+            await self.bot.process_commands(message)
 
 
 async def setup(bot: Bot):

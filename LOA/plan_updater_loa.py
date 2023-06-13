@@ -5,7 +5,7 @@ from datetime import datetime
 from assets.functions import Plans
 
 
-class plan_updater_cog_loa(Cog):
+class PlanUpdaterCogLoa(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.update_plans_loa.start()
@@ -16,15 +16,14 @@ class plan_updater_cog_loa(Cog):
 
         plans = Plans(704888699590279221)
 
-        if plans.check() == None:
+        if plans.check() is None:
             pass
-
         else:
             for i in plans.check():
-                buyer = await self.bot.fetch_user(i[0])
+                buyer = await self.bot.fetch_user(int(i[0]))
                 ending = i[2]
                 plan = i[3]
-                setter = await self.bot.fetch_user(i[4])
+                setter = await self.bot.fetch_user(int(i[4]))
                 plan_id = i[5]
 
                 if int(round(datetime.now().timestamp())) > int(ending):
@@ -34,10 +33,10 @@ class plan_updater_cog_loa(Cog):
                     await loa_plan_log.send(
                         "{}, {} has ended".format(setter.mention, plan_id), embed=embed
                     )
-                    plans.remove(buyer, plan_id)
+                    plans.remove(buyer, int(plan_id))
                 else:
                     pass
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(plan_updater_cog_loa(bot))
+    await bot.add_cog(PlanUpdaterCogLoa(bot))
