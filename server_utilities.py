@@ -20,13 +20,6 @@ class ServerUtilities(Bot):
             else:
                 print(f"Unable to load {filename[:-3]}")
 
-        for filename in listdir("./admod"):
-            if filename.endswith(".py"):
-                await bot.load_extension(f"admod.{filename[:-3]}")
-                print(f"{filename} loaded")
-            else:
-                print(f"Unable to load {filename[:-3]}")
-
         for filename in listdir("./LOA"):
             if filename.endswith(".py"):
                 await bot.load_extension(f"LOA.{filename[:-3]}")
