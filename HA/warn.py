@@ -102,8 +102,6 @@ class warncog(Cog):
     @Serverutil.describe(
         channel="Where was the ad deleted?",
         reason="What is the reason for the warn?",
-        custom="Write your own reason (only if you picked custom reason)",
-        belongsto="Which channel should the ad go to? (only if you selected wrong channel option)",
     )
     async def adwarn(
         self, ctx: Interaction, member: Member, channel: TextChannel, reason: str
