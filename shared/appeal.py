@@ -11,8 +11,8 @@ class appealcog(GroupCog, name="appeal"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    async def HA_appeal(self, ctx: Interaction, warn_id: str):
-        check_warn = Warn(ctx.user, int(warn_id)).check()
+    async def HA_appeal(self, ctx: Interaction, warn_id: int):
+        check_warn = Warn(ctx.user, warn_id).check()
         if check_warn == None:
             await ctx.followup.send("Invalid warn ID", ephemeral=True)
 
@@ -61,7 +61,7 @@ class appealcog(GroupCog, name="appeal"):
                         inline=False,
                     )
                     appeal.set_footer(
-                        text="To approve the appeal, use `/appeal accept appeal_id`. To deny the appeal, use `/appeal deny appeal_id`"
+                        text="To approve the appeal, use `/appeal accept warn_id``"
                     )
 
                     try:
@@ -72,15 +72,15 @@ class appealcog(GroupCog, name="appeal"):
                         )
                     except:
                         await appeal_log.send(msg.content, embed=appeal)
-                except TimeoutError:
+                except:
                     await ctx.user.send("You have ran out of time. Please try again.")
             except:
                 await ctx.followup.send(
                     "Please open your DMs to start the appeal process", ephemeral=True
                 )
 
-    async def LOA_appeal(self, ctx: Interaction, warn_id: str):
-        warn_data = LOAWarn(user=ctx.user, warn_id=int(warn_id)).check()
+    async def LOA_appeal(self, ctx: Interaction, warn_id: int):
+        warn_data = LOAWarn(user=ctx.user, warn_id=warn_id).check()
 
         if warn_data == None:
             await ctx.followup.send(
@@ -130,7 +130,7 @@ class appealcog(GroupCog, name="appeal"):
                         name="Reason of warn", value=warn_data[1], inline=False
                     )
                     embed.set_footer(
-                        text="To approve or deny this appeal, use `/appeal deny WARN_ID` or `/appeal approve WARN_ID`"
+                        text="To approve this appeal, use `/appeal approve WARN_ID`"
                     )
 
                     try:
@@ -150,22 +150,22 @@ class appealcog(GroupCog, name="appeal"):
             except:
                 await ctx.followup.send("Please open your DMs to do the appeal process")
 
-    async def appeal_start(self, ctx: Interaction, warn_id: str):
+    async def appeal_start(self, ctx: Interaction, warn_id: int):
         if ctx.guild.id == 925790259160166460:
             await self.HA_appeal(ctx, warn_id)
         elif ctx.guild.id == 925790259160166460:
             await self.LOA_appeal(ctx, warn_id)
 
-    async def approve_HA_appeal(self, ctx: Interaction, member: Member, warn_id: str):
+    async def approve_HA_appeal(self, ctx: Interaction, member: Member, warn_id: int):
         if ctx.channel.id == 951783773006073906:
-            appeal_data = Appeal(member, int(warn_id))
+            appeal_data = Appeal(member, warn_id)
             check = appeal_data.check()
 
             if check == None:
                 await ctx.followup.send(f"Invalid warn ID")
             else:
-                member_id = check[0]
-                warn_id = check[3]
+                member_id:int = check[0]
+                warn_id:int = check[3]
                 member = await self.bot.fetch_user(member_id)
 
                 appeal_data.remove()
@@ -184,8 +184,8 @@ class appealcog(GroupCog, name="appeal"):
                 "Please do the command in {}".format(channel.mention), ephemeral=True
             )
 
-    async def approve_LOA_appeal(self, ctx: Interaction, member: Member, warn_id: str):
-        warn_data = LOAWarn(user=member, warn_id=int(warn_id))
+    async def approve_LOA_appeal(self, ctx: Interaction, member: Member, warn_id: int):
+        warn_data = LOAWarn(user=member, warn_id=warn_id)
 
         if warn_data.check() == None:
             await ctx.followup.send(
@@ -208,7 +208,7 @@ class appealcog(GroupCog, name="appeal"):
                     "Please do this command in {}".format(modchannel1.mention)
                 )
 
-    async def approve_appeal(self, ctx: Interaction, member: Member, warn_id: str):
+    async def approve_appeal(self, ctx: Interaction, member: Member, warn_id: int):
         if ctx.guild.id == 925790259160166460:
             await self.approve_HA_appeal(ctx, member, warn_id)
         elif ctx.guild.id == 704888699590279221:
@@ -232,46 +232,6 @@ class appealcog(GroupCog, name="appeal"):
     async def approve(self, ctx: Interaction, member: Member, warn_id: str):
         await ctx.response.defer()
         await self.approve_appeal(ctx, member, warn_id)
-
-    @serverutil.command(description="Deny an appeal")
-    @serverutil.checks.has_role(
-        925790259319558157,
-        749608853376598116,
-        889019375988916264,
-        1076677389167378432,
-        947109389855248504,
-    )
-    @serverutil.describe(
-        appeal_id="Insert the appeal ID shown from the member's appeal"
-    )
-    async def deny(self, ctx: Interaction, member: Member, appeal_id: int, reason: str):
-        await ctx.response.defer()
-
-        if ctx.channel.id == 951783773006073906:
-            appeal_data = Appeal(member, appeal_id)
-            check = appeal_data.check()
-
-            if check == None:
-                await ctx.followup.send(f"Invalid appeal ID")
-            else:
-                member = await ctx.guild.fetch_member(check[0])
-                try:
-                    await member.send(
-                        f"Hello {member.mention},\nUpon looking into your appeal, we have regrettably decided not to revoke your warn (**Warn ID** {check[3]}.\nThe warning will stay\nThank you\n\nReason: {reason}"
-                    )
-
-                except:
-                    pass
-
-                await ctx.followup.send(
-                    "Warning not revoked and message sent to member"
-                )
-        else:
-            channel = await self.bot.fetch_channel(951783773006073906)
-            await ctx.followup.send(
-                "Please do the command in {}".format(channel.mention), ephemeral=True
-            )
-
 
 async def setup(bot: Bot):
     await bot.add_cog(appealcog(bot), guild=Object(hazead))
