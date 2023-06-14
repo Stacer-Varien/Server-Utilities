@@ -3,7 +3,7 @@ from discord import Color, Member, app_commands as serverutil
 from discord import Interaction, Embed, Object
 from discord.ext.commands import GroupCog, Bot
 from assets.functions import LOAWarn, Warn, Appeal
-from config import hazead
+from config import hazead, loa
 from discord import Message
 
 
@@ -234,4 +234,4 @@ class appealcog(GroupCog, name="appeal"):
         await self.approve_appeal(ctx, member, warn_id)
 
 async def setup(bot: Bot):
-    await bot.add_cog(appealcog(bot), guild=Object(hazead))
+    await bot.add_cog(appealcog(bot), guilds=[Object(hazead), Object(loa)])
