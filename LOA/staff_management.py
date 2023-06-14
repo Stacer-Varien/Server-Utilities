@@ -63,7 +63,6 @@ class breakcog(GroupCog, name="break"):
 
                 auto_break = Embed(title="Break Automatically Given")
                 auto_break.add_field(name="Staff Member", value=ctx.user, inline=False)
-                auto_break.add_field(name="Role", value=ctx.user.top_role, inline=False)
                 auto_break.add_field(name="Duration", value=duration, inline=False)
                 auto_break.add_field(name="Reason", value=reason, inline=False)
 
@@ -73,9 +72,6 @@ class breakcog(GroupCog, name="break"):
                 requested_break = Embed(title="New Break Request")
                 requested_break.add_field(
                     name="Staff Member", value=ctx.user, inline=False
-                )
-                requested_break.add_field(
-                    name="Role", value=ctx.user.top_role, inline=False
                 )
 
                 duration = "Until further notice"
@@ -136,7 +132,6 @@ class breakcog(GroupCog, name="break"):
 
                 auto_break = Embed(title="Break Automatically Given")
                 auto_break.add_field(name="Staff Member", value=ctx.user, inline=False)
-                auto_break.add_field(name="Role", value=ctx.user.top_role, inline=False)
                 auto_break.add_field(name="Duration", value=duration, inline=False)
                 auto_break.add_field(name="Reason", value=reason, inline=False)
 
@@ -194,7 +189,6 @@ class breakcog(GroupCog, name="break"):
 
             accepted_break = Embed(title="Break Approved")
             accepted_break.add_field(name="Staff Member", value=member, inline=False)
-            accepted_break.add_field(name="Role", value=member.top_role, inline=False)
 
             if str(data[2]) == "Until further notice":
                 timing = "Until further notice"
@@ -211,7 +205,7 @@ class breakcog(GroupCog, name="break"):
                 )
                 
             accepted_break.add_field(name="Duration", value=timing, inline=False)
-            accepted_break.add_field(name="Reason", value=str(data[4]), inline=False)
+            accepted_break.add_field(name="Reason", value=str(data[3]), inline=False)
             accepted_break.add_field(
                 name="User who approved it", value=ctx.user, inline=False
             )
