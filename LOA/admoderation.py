@@ -208,7 +208,7 @@ class LOAwarncog(Cog):
         description="Remove someone's warning if it was appealed or given by mistake"
     )
     @Serverutil.checks.has_any_role(
-        749608853376598116, 889019375988916264, 1076677389167378432, 947109389855248504
+        749608853376598116, 889019375988916264, 1076677389167378432, 947109389855248504, 919410986249756673, 849778145087062046
     )
     async def revoke(self, ctx: Interaction, member: Member, warn_id: int):
         await ctx.response.defer()
