@@ -146,15 +146,15 @@ class LOAWarn:
             return False
 
     def get_points(self) -> int:
-        try:
-            warnpointdata = db.execute(
-                "SELECT warn_point FROM loaAdwarnData_v2 WHERE user_id = ?",
-                (self.user.id,),
-            ).fetchone()
-            db.commit()
-            return warnpointdata[0]
-        except:
+        warnpointdata = db.execute(
+            "SELECT warn_point FROM loaAdwarnData_v2 WHERE user_id = ?",
+            (self.user.id,),
+        ).fetchone()
+        db.commit()
+        if warnpointdata == 0 or None:
             return 0
+        else:
+            return warnpointdata[0]
 
     def remove(self):
         data = self.check()
@@ -166,6 +166,7 @@ class LOAWarn:
             ),
         )
         db.commit()
+
         db.execute(
             "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
             (
@@ -174,15 +175,20 @@ class LOAWarn:
             ),
         )
         db.commit()
+
         db.execute(
             "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
-            (1, int(data[3])),
+            (
+                1,
+                int(data[3]),
+            ),
         )
         db.commit()
 
         if self.get_points() == 0:
             db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
+                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
+                (self.user.id,),
             )
             db.commit()
 
@@ -437,69 +443,59 @@ class Strike:
         self.member = member
 
     def give(self):
-        data = db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?,?,?)",
+        db.execute(
+            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 0)",
             (
                 self.department,
                 self.member.id,
-                1,
             ),
         )
-        if data.rowcount == 0:
-            db.execute(
-                "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
-                (
-                    1,
-                    self.department,
-                    self.member.id,
-                ),
-            )
+        db.execute(
+            "UPDATE strikeData SET count = count + 1 WHERE department = ? AND user_id = ?",
+            (
+                self.department,
+                self.member.id,
+            ),
+        )
         db.commit()
 
     def counts(self):
         data = db.execute(
-            "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
+            "SELECT count(*) FROM strikeData WHERE department = ? AND user_id = ?",
             (
                 self.department,
                 self.member.id,
-            ),
-        ).fetchall()
-
-        if data == None:
-            return 0
-        else:
-            return len(data)
-
-    def check(self):
-        data = db.execute(
-            "SELECT * FROM strikeData WHERE user_id = ? AND department = ?",
-            (
-                self.member.id,
-                self.department,
             ),
         ).fetchone()
 
-        if data == None:
-            return None
-        else:
-            return data
+        return data[0] if data else 0
+
+    def check(self):
+        data = db.execute(
+            "SELECT * FROM strikeData WHERE department = ? AND user_id = ?",
+            (
+                self.department,
+                self.member.id,
+            ),
+        ).fetchone()
+
+        return data
 
     def revoke(self):
         db.execute(
-            "UPDATE strikeData SET count = count - ? WHERE user_id = ? AND department = ?",
+            "UPDATE strikeData SET count = count - 1 WHERE department = ? AND user_id = ?",
             (
-                1,
-                self.member.id,
                 self.department,
+                self.member.id,
             ),
         )
 
         if self.counts() == 0:
             db.execute(
-                "DELETE FROM strikeData WHERE user_id = ? AND department = ?",
+                "DELETE FROM strikeData WHERE department = ? AND user_id = ?",
                 (
-                    self.member.id,
                     self.department,
+                    self.member.id,
                 ),
             )
         db.commit()
