@@ -142,11 +142,6 @@ class breakcog(GroupCog, name="break"):
                 requested_break.add_field(
                     name="Staff Member", value=ctx.user, inline=False
                 )
-                requested_break.add_field(
-                    name="Role", value=ctx.user.top_role, inline=False
-                )
-
-                parse_timespan(duration)
 
                 requested_break.add_field(name="Duration", value=duration, inline=False)
                 requested_break.add_field(name="Reason", value=reason, inline=False)
@@ -167,7 +162,9 @@ class breakcog(GroupCog, name="break"):
     @timed.error
     async def apply_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
         if isinstance(error, Serverutil.CommandInvokeError):
-            await ctx.followup.send(embed=Embed(description=str(error), color=Color.red()))
+            await ctx.followup.send(
+                embed=Embed(description=str(error), color=Color.red())
+            )
 
     @Serverutil.command(description="Approve the break")
     @Serverutil.checks.has_any_role(core_team, om, 995151171004137492)
@@ -203,7 +200,7 @@ class breakcog(GroupCog, name="break"):
                 Break(member).approve(
                     ctx.guild.id, round(datetime.now().timestamp()), duration
                 )
-                
+
             accepted_break.add_field(name="Duration", value=timing, inline=False)
             accepted_break.add_field(name="Reason", value=str(data[3]), inline=False)
             accepted_break.add_field(
@@ -260,15 +257,15 @@ class breakcog(GroupCog, name="break"):
                 Break(member).deny(ctx.guild.id)
 
     @approve.error
-    async def approve_error(self, ctx:Interaction, error:Serverutil.AppCommandError):
+    async def approve_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
         if isinstance(error, Serverutil.MissingAnyRole):
-            embed=Embed(description=str(error), color=Color.red())
+            embed = Embed(description=str(error), color=Color.red())
             await ctx.followup.send(embed=embed)
 
     @_deny.error
-    async def _deny_error(self, ctx:Interaction, error:Serverutil.AppCommandError):
+    async def _deny_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
         if isinstance(error, Serverutil.MissingAnyRole):
-            embed=Embed(description=str(error), color=Color.red())
+            embed = Embed(description=str(error), color=Color.red())
             await ctx.followup.send(embed=embed)
 
     @Serverutil.command(name="end", description="End your break early")
@@ -347,7 +344,15 @@ class strikecog(GroupCog, name="strike"):
     @Serverutil.describe(
         member="Which moderator?", reason="What is the reason for the strike?"
     )
-    @Serverutil.checks.has_any_role(1074770189582872606)
+    @Serverutil.checks.has_any_role(
+        1074770189582872606,
+        1074770253294342144,
+        1074770323293085716,
+        841671956999045141,
+        1095048263985549382,
+        841671779394781225,
+        949147509660483614,
+    )
     async def mod(self, ctx: Interaction, member: Member, reason: str):
         await ctx.response.defer(ephemeral=True)
 
@@ -436,12 +441,12 @@ class strikecog(GroupCog, name="strike"):
         if user == None:
             await ctx.followup.send("This user has never been striked")
 
-        elif user[0] != department:
+        elif str(user[0]) != department:
             await ctx.followup.send("Invalid department entered")
 
         else:
             strike.revoke()
-            staff_member = ctx.guild.get_member(user[1])
+            staff_member = ctx.guild.get_member(int(user[1]))
             strikes = strike.counts()
 
             msg = "{}, your strike appeal has been approved. You now have {} strikes".format(
@@ -473,11 +478,11 @@ class strikecog(GroupCog, name="strike"):
         if user == None:
             await ctx.followup.send("This user was never striked")
 
-        elif user[0] != department:
+        elif str(user[0]) != department:
             await ctx.followup.send("Invalid department entered")
 
         else:
-            staff_member = ctx.guild.get_member(user[1])
+            staff_member = ctx.guild.get_member(int(user[1]))
             msg = "{}, your strike appeal has been denied.".format(staff_member.mention)
 
             if ctx.channel.id == 841672405444591657:
@@ -501,7 +506,7 @@ class resigncog(GroupCog, name="resign"):
         planning_to_leave: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
-        Resign(ctx.user).apply(leaving=planning_to_leave)
+        Resign(ctx.user).apply(planning_to_leave)
 
         channel = await self.bot.fetch_channel(1002513633760260166)
 
@@ -530,16 +535,16 @@ class resigncog(GroupCog, name="resign"):
         ctx: Interaction,
         member: Member,
         department: Literal["Core Team", "Management", "Marketing", "Human Resource"],
-        leaving:Optional[bool]=None
+        leaving: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
         resign = Resign(ctx.user)
         if leaving:
-            if leaving==True:
-                leaving=1
+            if leaving == True:
+                leaving = 1
             else:
-                leaving=0
+                leaving = 0
         data = resign.check(leaving)
 
         if data == None:
@@ -556,11 +561,12 @@ class resigncog(GroupCog, name="resign"):
         else:
             resign.approve()
             await ctx.followup.send("Accepted resignation of {}".format(member))
-            if data[2] == 1:
-                await channel.send(f"{member.mention} has made a full resignation. Thank you for working with us")
-            elif data[2]==0:
+            if int(data[2]) == 1:
+                await channel.send(
+                    f"{member.mention} has made a full resignation. Thank you for working with us"
+                )
+            elif int(data[2]) == 0:
                 await channel.send(f"{member.mention} has resigned from {department}")
-
 
     @Serverutil.command(name="deny", description="Denies a resignation")
     @Serverutil.checks.has_any_role(core_team, chr, coo)
