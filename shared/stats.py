@@ -121,7 +121,7 @@ Even though Server Utilities's repository is public and free to use for educatio
         content = """
 Conditioned MIT License
 
-Copyright (c) 2022 Varien-1936
+Copyright (c) 2022 Stacer-Varien
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of Server Utilities and associated documentation files, to deal
@@ -168,7 +168,7 @@ Software: Server Utilities
 
 License: Conditioned MIT License
 
-Licensor: Varien-1936
+Licensor: Stacer-Varien
 """
 
         embed = Embed()
