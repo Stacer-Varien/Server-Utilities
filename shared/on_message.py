@@ -118,7 +118,7 @@ class automodcog(Cog):
             m_url = message.jump_url
             if message.content.lower().startswith("w!t"):
                 embed = Embed(
-                    description="You have used a timeout command.\nDid the command successfully timeout the user?"
+                    description="You have used a timeout command.\nDid the user get the timeout?"
                 )
                 m = await message.channel.send(embed=embed, view=view)
 
@@ -129,7 +129,7 @@ class automodcog(Cog):
                     embed = Embed(title="Wick Timeout command used", color=Color.blue())
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -157,7 +157,7 @@ class automodcog(Cog):
                     await m.edit(embed=added, view=None, delete_after=5)
             elif message.content.lower().startswith("w!san"):
                 embed = Embed(
-                    description="You have used a sanitise command.\nDid the command successfully sanitised the user's name?"
+                    description="You have used a sanitise command.\nDDid the user's name/nickname changed to readable/pingable text?"
                 )
                 m = await message.channel.send(embed=embed, view=view)
 
@@ -170,7 +170,7 @@ class automodcog(Cog):
                     )
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -198,7 +198,7 @@ class automodcog(Cog):
                     await m.edit(embed=added, view=None, delete_after=5)
             elif message.content.lower().startswith("w!k"):
                 embed = Embed(
-                    description="You have used a kick command.\nDid the command successfully kicked the user out?"
+                    description="You have used a kick command.\nDid the user get kicked out?"
                 )
                 m = await message.channel.send(embed=embed, view=view)
 
@@ -209,7 +209,7 @@ class automodcog(Cog):
                     embed = Embed(title="Wick Kick command used", color=Color.blue())
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -237,7 +237,7 @@ class automodcog(Cog):
                     await m.edit(embed=added, view=None, delete_after=5)
             elif message.content.lower().startswith("w!b"):
                 embed = Embed(
-                    description="You have used a ban command.\nDid the command successfully banned the user out?"
+                    description="You have used a ban command.\Did the user get banned?"
                 )
                 m = await message.channel.send(embed=embed, view=view)
 
@@ -248,7 +248,7 @@ class automodcog(Cog):
                     embed = Embed(title="Wick Ban command used", color=Color.blue())
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -287,7 +287,7 @@ class automodcog(Cog):
                     embed = Embed(title="Wick Hackban command used", color=Color.blue())
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -326,7 +326,7 @@ class automodcog(Cog):
                     embed = Embed(title="Wick Hackban command used", color=Color.blue())
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -365,7 +365,7 @@ class automodcog(Cog):
                     embed = Embed(title="Wick Warn command used", color=Color.blue())
                     embed.add_field(
                         name="Used by",
-                        value=f"{message.author.mention} | {message.author.mention} | {message.author.id}",
+                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
                         inline=False,
                     )
                     embed.add_field(
@@ -390,7 +390,7 @@ class automodcog(Cog):
                     added = Embed(
                         description="No confirmation. This message will delete now"
                     )
-                    await m.edit(embed=added, view=None, delete_after=5)            
+                    await m.edit(embed=added, view=None, delete_after=5)
             await self.bot.process_commands(message)
 
 
