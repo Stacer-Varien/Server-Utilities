@@ -23,11 +23,6 @@ class errors(Cog):
         try:
             thread = await self.bot.fetch_channel(1078749692457930842)
             await thread.send(f"```{traceback_error}```")
-            await ctx.followup.send(
-                "Well crap...\nAn error has happened but don't worry, its logged in {} so get ready for {} to scream his lungs out on this one :/".format(
-                    thread.mention, str(self.bot.application.owner)
-                )
-            )
         except:
             return
 
