@@ -12,6 +12,7 @@ from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
 from assets.functions import LOAWarn, Warn
+from typing import Optional, Literal
 
 
 class warncog(Cog):
@@ -19,7 +20,12 @@ class warncog(Cog):
         self.bot = bot
 
     async def HA_warn(
-        self, ctx: Interaction, member: Member, channel: TextChannel, reason: str
+        self,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
     ):
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
@@ -29,9 +35,11 @@ class warncog(Cog):
         else:
             embed = Embed()
             warn_id = randint(0, 100000)
-            embed = Embed(title="You have been warned", color=0xFF0000)
+            embed = Embed(title="You were adwarned", color=0xFF0000)
             embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
-            embed.add_field(name="Reason for warn", value=reason, inline=False)
+            embed.add_field(name="Reason", value=reason, inline=False)
+            if notes is not None:
+                embed.add_field(name="Notes", value=notes, inline=False)
 
             warn_data = Warn(member, ctx.user, warn_id)
             if warn_data.give(channel, reason) == False:
@@ -103,6 +111,7 @@ class warncog(Cog):
         member: Member,
         channel: TextChannel,
         reason: str,
+        notes: Optional[str] = None,
     ):
         adwarn_channel = ctx.guild.get_channel(745107170827305080)
         if member == ctx.user:
@@ -112,9 +121,13 @@ class warncog(Cog):
 
         warn_id = randint(0, 100000)
         embed = Embed(title="Moderation Record", color=0xFF0000)
-        embed.add_field(name="Channel of incident occurred", value=channel.mention, inline=False)
+        embed.add_field(
+            name="Channel of incident occurred", value=channel.mention, inline=False
+        )
         embed.add_field(name="Moderator", value=ctx.user.mention, inline=False)
         embed.add_field(name="Reason", value=reason, inline=False)
+        if notes is not None:
+            embed.add_field(name="Notes", value=notes, inline=False)
 
         warn_data = LOAWarn(member, ctx.user, warn_id)
         if not warn_data.give(channel, reason):
@@ -139,7 +152,10 @@ class warncog(Cog):
             timeout_hours, result = timeout_dict[warnpoints]
 
             if timeout_hours is not None:
-                await member.edit(timed_out_until=(utcnow() + timedelta(hours=timeout_hours)), reason=result)
+                await member.edit(
+                    timed_out_until=(utcnow() + timedelta(hours=timeout_hours)),
+                    reason=result,
+                )
 
                 try:
                     timeoutmsg = Embed(
@@ -172,22 +188,28 @@ class warncog(Cog):
             embed.add_field(name="Punishment", value=result, inline=False)
             LOA_ASPECT = self.bot.get_user(710733052699213844)
             embed.set_footer(
-                text="If you feel this warn was a mistake, please DM {} to appeal".format(LOA_ASPECT)
+                text="If you feel this warn was a mistake, please DM {} to appeal".format(
+                    LOA_ASPECT
+                )
             )
             embed.set_thumbnail(url=member.display_avatar)
             await adwarn_channel.send(member.mention, embed=embed)
             await ctx.followup.send(
-                f"Warning sent. Check {adwarn_channel.mention}",
-                ephemeral=True
+                f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
             )
 
     async def adwarn_give(
-        self, ctx: Interaction, member: Member, channel: TextChannel, reason: str
+        self,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
     ):
         if ctx.guild.id == 925790259160166460:
-            await self.HA_warn(ctx, member, channel, reason)
+            await self.HA_warn(ctx, member, channel, reason, notes)
         elif ctx.guild.id == 704888699590279221:
-            await self.LOA_warn(ctx, member, channel, reason)
+            await self.LOA_warn(ctx, member, channel, reason, notes)
 
     @Serverutil.command(description="Adwarn someone for violating the ad rules")
     @Serverutil.checks.has_any_role(
@@ -196,12 +218,26 @@ class warncog(Cog):
     @Serverutil.describe(
         channel="Where was the ad deleted?",
         reason="What is the reason for the warn?",
+        notes="Add notes if necessary",
     )
     async def adwarn(
-        self, ctx: Interaction, member: Member, channel: TextChannel, reason: str
+        self,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: Literal[
+            "Ad has an invalid invite",
+            "Back-to-Back advertising",
+            "Ad has a long description",
+            "Ad description is too short",
+            "Ad is an invite reward server",
+            "NSFW ad, imagery or description",
+            "Advertising in wrong channel",
+        ],
+        notes: Optional[str] = None,
     ):
         await ctx.response.defer()
-        await self.adwarn_give(ctx, member, channel, reason)
+        await self.adwarn_give(ctx, member, channel, reason, notes)
 
 
 async def setup(bot: Bot):
