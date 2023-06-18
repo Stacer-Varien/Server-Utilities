@@ -23,81 +23,13 @@ class breakcog(GroupCog, name="break"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    applygroup = Serverutil.Group(name="apply", description="...")
 
-    @applygroup.command(description="Apply to go on break until further notice")
-    @Serverutil.describe(
-        reason="Why do you want to go on break?",
-    )
-    async def until_notice(
-        self,
-        ctx: Interaction,
-        reason: str,
-    ) -> None:
-        await ctx.response.defer()
-        break_role = ctx.guild.get_role(841682795277713498)
-        channel = await self.bot.fetch_channel(841676953613631499)
-
-        if break_role in ctx.user.roles:
-            await ctx.followup.send("You are already on break")
-        else:
-            if ctx.user.id == 1033533294840664074:
-                break_log = await self.bot.fetch_channel(1001053890277556235)
-                duration = "Until further notice"
-                Break(ctx.user).add_request(
-                    ctx.guild.id,
-                    duration,
-                    reason,
-                    1,
-                    round(datetime.now().timestamp()),
-                    99999999999,
-                )
-
-                own_break = Embed(
-                    description="You are now on break", color=Color.blue()
-                )
-                own_break.add_field(name="Duration", value=duration, inline=False)
-
-                await ctx.user.add_roles(break_role, reason="Owner on break")
-                await channel.send(ctx.user.mention, embed=own_break)
-
-                auto_break = Embed(title="Break Automatically Given")
-                auto_break.add_field(name="Staff Member", value=ctx.user, inline=False)
-                auto_break.add_field(name="Duration", value=duration, inline=False)
-                auto_break.add_field(name="Reason", value=reason, inline=False)
-
-                await break_log.send(embed=auto_break)
-
-            else:
-                requested_break = Embed(title="New Break Request")
-                requested_break.add_field(
-                    name="Staff Member", value=ctx.user, inline=False
-                )
-
-                duration = "Until further notice"
-
-                requested_break.add_field(name="Duration", value=duration, inline=False)
-                requested_break.add_field(name="Reason", value=reason, inline=False)
-                requested_break.set_footer(
-                    text="To approve or deny this request, use `/break approve MEMBER` or `/break deny MEMBER`"
-                )
-                Break(ctx.user).add_request(
-                    ctx.guild.id,
-                    duration,
-                    reason,
-                    0,
-                    0,
-                    0,
-                )
-                await ctx.followup.send("Break successfully requested")
-                await channel.send(embed=requested_break)
-
-    @applygroup.command(description="Apply to go on break until you come back")
+    @Serverutil.command(description="Apply to go on break until you come back")
     @Serverutil.describe(
         reason="Why do you want to go on break?",
         duration="How long are you planning to take break? (1d, 3 days, etc)",
     )
-    async def timed(self, ctx: Interaction, reason: str, duration: str) -> None:
+    async def apply(self, ctx: Interaction, reason: str, duration: str) -> None:
         await ctx.response.defer()
         break_role = ctx.guild.get_role(841682795277713498)
         channel = await self.bot.fetch_channel(841676953613631499)
@@ -159,7 +91,7 @@ class breakcog(GroupCog, name="break"):
                 await ctx.followup.send("Break successfully requested")
                 await channel.send(embed=requested_break)
 
-    @timed.error
+    @apply.error
     async def apply_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
         if isinstance(error, Serverutil.CommandInvokeError):
             await ctx.followup.send(
