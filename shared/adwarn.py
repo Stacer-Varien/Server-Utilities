@@ -1,4 +1,5 @@
 from discord import (
+    Color,
     Embed,
     Interaction,
     Member,
@@ -33,6 +34,7 @@ class warncog(Cog):
             await ctx.followup.send(embed=failed)
 
         else:
+            
             embed = Embed()
             warn_id = randint(0, 100000)
             embed = Embed(title="You were adwarned", color=0xFF0000)
@@ -118,16 +120,17 @@ class warncog(Cog):
             failed = Embed(description="You can't warn yourself")
             await ctx.followup.send(embed=failed)
             return
-
+        
         warn_id = randint(0, 100000)
-        embed = Embed(title="Moderation Record", color=0xFF0000)
-        embed.add_field(
-            name="Channel of incident occurred", value=channel.mention, inline=False
-        )
+        embed = Embed(title="Lead of Advertising - Advertising Warning", color=Color.red())
+        embed.description="<a:Caution:1114028164323213383> **You were warned in __Lead of Advertising__, see below for details** <a:Caution:1114028164323213383>"
         embed.add_field(name="Moderator", value=ctx.user.mention, inline=False)
-        embed.add_field(name="Reason", value=reason, inline=False)
+        embed.add_field(
+            name="<a:RightArrow:1113978087680528459> Location of Infraction:", value=channel.mention, inline=False
+        )
+        embed.add_field(name="<a:Bell:1116210304901185698> Reason:", value=reason, inline=False)
         if notes is not None:
-            embed.add_field(name="Notes", value=notes, inline=False)
+            embed.add_field(name="<a:Moderation:1113978137471098992> Moderator's Notes:", value=notes, inline=False)
 
         warn_data = LOAWarn(member, ctx.user, warn_id)
         if not warn_data.give(channel, reason):
@@ -137,9 +140,10 @@ class warncog(Cog):
 
         warn_data.give(channel, reason)
         warnpoints = warn_data.get_points()
-        embed.add_field(name="Warn ID", value=warn_id, inline=True)
-        embed.add_field(name="Warn Points", value=warnpoints, inline=True)
+        embed.add_field(name="<a:Loading2:1116210852920557578> Total Infractions:", value=warnpoints, inline=False)
+        embed.add_field(name="Warn ID", value=warn_id, inline=False)
 
+        
         timeout_dict = {
             6: (8, "8 hour timeout"),
             7: (12, "12 hour timeout"),
@@ -153,7 +157,7 @@ class warncog(Cog):
 
             if timeout_hours is not None:
                 await member.edit(
-                    timed_out_until=(utcnow() + timedelta(hours=timeout_hours)),
+                    timed_out_until=(utcnow() + timedelta(hours=int(timeout_hours))),
                     reason=result,
                 )
 
@@ -180,12 +184,12 @@ class warncog(Cog):
                     pass
 
                 if warnpoints == 9:
-                    await member.kick(reason="Kick")
+                    await member.kick(reason="Kicked for reaching 9 adwarns")
                 elif warnpoints == 10:
-                    await member.ban(reason="Ban")
+                    await member.ban(reason="Banned for reaching 10 adwarns")
 
-            result = result if warnpoints >= 9 else "N/A"
-            embed.add_field(name="Punishment", value=result, inline=False)
+            result = result if warnpoints >= 9 else "No Punishment"
+            embed.add_field(name="<a:Timer:1116210678030663740> Punishment:", value=result, inline=False)
             LOA_ASPECT = self.bot.get_user(710733052699213844)
             embed.set_footer(
                 text="If you feel this warn was a mistake, please DM {} to appeal".format(
