@@ -179,9 +179,9 @@ class appealcog(GroupCog, name="appeal"):
 
                 await ctx.followup.send("Warning revoked and message sent to member")
         else:
-            channel = await self.bot.fetch_channel(951783773006073906)
+            ch = await self.bot.fetch_channel(951783773006073906)
             await ctx.followup.send(
-                "Please do the command in {}".format(channel.mention), ephemeral=True
+                "Please do the command in {}".format(ch.mention), ephemeral=True
             )
 
     async def approve_LOA_appeal(self, ctx: Interaction, member: Member, warn_id: int):
@@ -216,12 +216,12 @@ class appealcog(GroupCog, name="appeal"):
 
     @serverutil.command(description="Apply for an adwarn appeal")
     @serverutil.describe(warn_id="Insert the warn ID that you wish to appeal your warn")
-    async def appeal(self, ctx: Interaction, warn_id: str):
+    async def appeal(self, ctx: Interaction, warn_id: int):
         await ctx.response.defer()
         await self.appeal_start(ctx, warn_id)
 
     @serverutil.command(description="Approve an appeal")
-    @serverutil.checks.has_role(
+    @serverutil.checks.has_any_role(
         925790259319558157,
         889019375988916264,
         947109389855248504,
@@ -229,7 +229,7 @@ class appealcog(GroupCog, name="appeal"):
         919410986249756673,
     )
     @serverutil.describe(warn_id="Insert the warn_id ID shown from the member's appeal")
-    async def approve(self, ctx: Interaction, member: Member, warn_id: str):
+    async def approve(self, ctx: Interaction, member: Member, warn_id: int):
         await ctx.response.defer()
         await self.approve_appeal(ctx, member, warn_id)
 
