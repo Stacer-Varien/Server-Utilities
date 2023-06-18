@@ -23,7 +23,6 @@ class breakcog(GroupCog, name="break"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-
     @Serverutil.command(description="Apply to go on break until you come back")
     @Serverutil.describe(
         reason="Why do you want to go on break?",
@@ -70,6 +69,7 @@ class breakcog(GroupCog, name="break"):
                 await break_log.send(embed=auto_break)
 
             else:
+                parse_timespan(duration)
                 requested_break = Embed(title="New Break Request")
                 requested_break.add_field(
                     name="Staff Member", value=ctx.user, inline=False
@@ -119,19 +119,12 @@ class breakcog(GroupCog, name="break"):
             accepted_break = Embed(title="Break Approved")
             accepted_break.add_field(name="Staff Member", value=member, inline=False)
 
-            if str(data[2]) == "Until further notice":
-                timing = "Until further notice"
-                Break(member).approve(
-                    ctx.guild.id, round(datetime.now().timestamp()), 9999999999
-                )
-
-            else:
-                time = parse_timespan(str(data[2]))
-                duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
-                timing = "<t:{}:D>".format(duration)
-                Break(member).approve(
-                    ctx.guild.id, round(datetime.now().timestamp()), duration
-                )
+            time = parse_timespan(str(data[2]))
+            duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
+            timing = "<t:{}:D>".format(duration)
+            Break(member).approve(
+                ctx.guild.id, round(datetime.now().timestamp()), duration
+            )
 
             accepted_break.add_field(name="Duration", value=timing, inline=False)
             accepted_break.add_field(name="Reason", value=str(data[3]), inline=False)
