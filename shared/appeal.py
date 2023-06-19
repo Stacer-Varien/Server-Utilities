@@ -216,7 +216,7 @@ class appealcog(GroupCog, name="appeal"):
 
     @serverutil.command(description="Apply for an adwarn appeal")
     @serverutil.describe(warn_id="Insert the warn ID that you wish to appeal your warn")
-    async def appeal(self, ctx: Interaction, warn_id: int):
+    async def apply(self, ctx: Interaction, warn_id: int):
         await ctx.response.defer()
         await self.appeal_start(ctx, warn_id)
 
