@@ -56,18 +56,11 @@ class LOAWarn:
     def check(self):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?",
-            (
-                self.user.id,
-                self.warn_id,
-            ),
+            (self.user.id, self.warn_id),
         ).fetchone()
         db.commit()
 
-        if data == None:
-            return None
-
-        else:
-            return data
+        return data
 
     def give(self, channel: TextChannel, reason: str):
         data = db.execute(
@@ -81,64 +74,42 @@ class LOAWarn:
         end = int(self.sunday.strftime("%d%m%Y"))
         current_time = datetime.now()
         next_warn = current_time + timedelta(minutes=45)
-        if data == None:
+
+        if data is None:
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
-                (
-                    self.user.id,
-                    "{} - {}".format(channel.mention, reason),
-                    self.warn_id,
-                    self.moderator.id,
-                ),
+                (self.user.id, "{} - {}".format(channel.mention, reason), self.warn_id, self.moderator.id),
             )
             db.commit()
 
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (
-                    self.user.id,
-                    1,
-                    round(next_warn.timestamp()),
-                ),
+                (self.user.id, 1, round(next_warn.timestamp())),
             )
             db.commit()
 
             db.execute(
                 "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
-                (
-                    self.moderator.id,
-                    1,
-                    start,
-                    end,
-                ),
+                (self.moderator.id, 1, start, end),
             )
             db.commit()
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
                 "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ? WHERE user_id = ?",
-                (
-                    1,
-                    self.user.id,
-                ),
+                (1, self.user.id),
             )
             db.commit()
 
             db.execute(
                 "UPDATE loaAdwarnData_v2 SET time = ? WHERE user_id = ?",
-                (
-                    round(next_warn.timestamp()),
-                    self.user.id,
-                ),
+                (round(next_warn.timestamp()), self.user.id),
             )
             db.commit()
 
             db.execute(
                 "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
-                (
-                    1,
-                    self.moderator.id,
-                ),
+                (1, self.moderator.id),
             )
             db.commit()
 
@@ -151,7 +122,7 @@ class LOAWarn:
             (self.user.id,),
         ).fetchone()
         db.commit()
-        if warnpointdata == 0 or None:
+        if warnpointdata is None or warnpointdata[0] == 0:
             return 0
         else:
             return warnpointdata[0]
@@ -160,28 +131,19 @@ class LOAWarn:
         data = self.check()
         db.execute(
             "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
-            (
-                self.warn_id,
-                self.user.id,
-            ),
+            (self.warn_id, self.user.id),
         )
         db.commit()
 
         db.execute(
             "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
-            (
-                1,
-                self.user.id,
-            ),
+            (1, self.user.id),
         )
         db.commit()
 
         db.execute(
             "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
-            (
-                1,
-                int(data[3]),
-            ),
+            (1, int(data[3])),
         )
         db.commit()
 
@@ -198,6 +160,7 @@ class LOAWarn:
         ).fetchone()
         db.commit()
         return timedata[0]
+
 
 
 class LOAMod:
@@ -266,6 +229,7 @@ class LOAMod:
                 int(self.sunday.strftime("%d%m%Y")),
             ),
         )
+        db.commit()
 
         if data.rowcount == 0:
             db.execute(
@@ -275,7 +239,7 @@ class LOAMod:
                     self.mod.id,
                 ),
             )
-        db.commit()
+            db.commit()
 
 
 class Warn:
@@ -331,7 +295,7 @@ class Warn:
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE warnDatav2 SET warn_point = warn_point + ? WHERE user_id= ?",
+                "UPDATE warnData_v2 SET warn_point = warn_point + ? WHERE user_id= ?",
                 (
                     1,
                     self.user.id,
@@ -340,7 +304,7 @@ class Warn:
             db.commit()
 
             db.execute(
-                "UPDATE warnDatav2 SET time = ? WHERE user_id = ?",
+                "UPDATE warnData_v2 SET time = ? WHERE user_id = ?",
                 (
                     round(next_warn.timestamp()),
                     self.user.id,
@@ -380,7 +344,7 @@ class Warn:
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE warnDatav2 SET warn_point = warn_point + ? WHERE user_id = ?",
+                "UPDATE warnData_v2 SET warn_point = warn_point + ? WHERE user_id = ?",
                 (
                     1,
                     self.user.id,
@@ -389,7 +353,7 @@ class Warn:
             db.commit()
 
             db.execute(
-                "UPDATE warnDatav2 SET time = ? WHERE user_id= ?",
+                "UPDATE warnData_v2 SET time = ? WHERE user_id= ?",
                 (
                     round(next_warn.timestamp()),
                     self.user.id,
