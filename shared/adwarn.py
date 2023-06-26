@@ -30,9 +30,8 @@ class warncog(Cog):
     ):
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
-            failed = Embed(description="You can't warn yourself")
-            await ctx.followup.send(embed=failed)
-
+            failed_embed = Embed(description="You can't warn yourself")
+            await ctx.followup.send(embed=failed_embed)
         else:
             embed = Embed()
             warn_id = randint(0, 100000)
@@ -43,7 +42,7 @@ class warncog(Cog):
                 embed.add_field(name="Notes", value=notes, inline=False)
 
             warn_data = Warn(member, ctx.user, warn_id)
-            if warn_data.give(channel, reason) == False:
+            if not warn_data.give(channel, reason):
                 await ctx.followup.send(
                     f"Please wait <t:{warn_data.get_time()}:R> to adwarn the member"
                 )
@@ -53,58 +52,62 @@ class warncog(Cog):
                 embed.add_field(name="Warn ID", value=warn_id, inline=True)
                 embed.add_field(name="Warn Points", value=warnpoints, inline=True)
 
-                if warnpoints == 3:
-                    await member.edit(
-                        timed_out_until=(utcnow() + timedelta(hours=2)),
-                        reason="2 hour mute punishment applied",
-                    )
-                    result = "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"
+                punishment_actions = {
+                    3: ("2hr", "2 hour mute punishment applied", "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"),
+                    6: (None, "Member has reached the 6 warn point punishment. A kick punishment was applied"),
+                    10: (None, "Member has reached the 10 warn point punishment. A ban punishment was applied"),
+                }
 
-                    try:
-                        timeoutmsg = Embed(
-                            description=f"You have recieved a timeout of 3 hours from **{ctx.guild.name}**\nYou have reached the 3 warn point punishment"
+                if warnpoints in punishment_actions:
+                    action = punishment_actions[warnpoints]
+                    if action[0] == "2hr":
+                        await member.edit(
+                            timed_out_until=(utcnow() + timedelta(hours=2)),
+                            reason="2 hour mute punishment applied",
                         )
-                        await member.send(embed=timeoutmsg)
-                    except:
-                        pass
-
-                elif warnpoints == 6:
-                    try:
-                        kickmsg = Embed(
-                            description=f"You are kicked from **{ctx.guild.name}**\nYou have reached the 6 warn point punishment"
-                        )
-                        await member.send(embed=kickmsg)
-                    except:
-                        pass
-                    await member.kick(reason="Kick punishment applied")
-                    result = "Member has reached the 6 warn point punishment. A kick punishment was applied"
-
-                elif warnpoints == 10:
-                    try:
-                        banmsg = Embed(
-                            description=f"You are banned from **{ctx.guild.name}**\nYou have reached the 10 warn point punishment"
-                        )
-                        banmsg.set_footer(
-                            text="To appeal for your ban, join with this invite code: qZFhxyhTQh"
-                        )
-                        await member.send(embed=banmsg)
-                    except:
-                        pass
-                    await member.kick(reason="Kick punishment applied")
-                    result = "Member has reached the 10 warn point punishment. A ban punishment was applied"
-
+                        result = action[2]
+                        try:
+                            timeout_msg = Embed(
+                                description=f"You have received a timeout of 3 hours from **{ctx.guild.name}**\nYou have reached the 3 warn point punishment"
+                            )
+                            await member.send(embed=timeout_msg)
+                        except:
+                            pass
+                    elif action[0] is None:
+                        if warnpoints == 6:
+                            try:
+                                kick_msg = Embed(
+                                    description=f"You are kicked from **{ctx.guild.name}**\nYou have reached the 6 warn point punishment"
+                                )
+                                await member.send(embed=kick_msg)
+                            except:
+                                pass
+                            await member.kick(reason="Kick punishment applied")
+                        elif warnpoints == 10:
+                            try:
+                                ban_msg = Embed(
+                                    description=f"You are banned from **{ctx.guild.name}**\nYou have reached the 10 warn point punishment"
+                                )
+                                ban_msg.set_footer(
+                                    text="To appeal for your ban, join with this invite code: qZFhxyhTQh"
+                                )
+                                await member.send(embed=ban_msg)
+                            except:
+                                pass
+                            await member.kick(reason="Kick punishment applied")
+                        result = action[1]
                 else:
                     result = "No warn point punishment applied"
 
-                    embed.add_field(name="Result", value=result, inline=False)
-                    embed.set_footer(
-                        text="If you feel this warn was a mistake, please use `/appeal WARN_ID`"
-                    )
-                    embed.set_thumbnail(url=member.display_avatar)
-                    await adwarn_channel.send(member.mention, embed=embed)
-                    await ctx.followup.send(
-                        f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
-                    )
+                embed.add_field(name="Result", value=result, inline=False)
+                embed.set_footer(
+                    text="If you feel this warn was a mistake, please use `/appeal WARN_ID`"
+                )
+                embed.set_thumbnail(url=member.display_avatar)
+                await adwarn_channel.send(member.mention, embed=embed)
+                await ctx.followup.send(
+                    f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
+                )
 
     async def LOA_warn(
         self,
@@ -116,109 +119,88 @@ class warncog(Cog):
     ):
         adwarn_channel = await ctx.guild.fetch_channel(745107170827305080)
         if member == ctx.user:
-            failed = Embed(description="You can't warn yourself")
-            await ctx.followup.send(embed=failed)
-
+            failed_embed = Embed(description="You can't warn yourself")
+            await ctx.followup.send(embed=failed_embed)
         else:
             warn_id = randint(0, 100000)
-            embed = Embed(
-                title="Lead of Advertising - Advertising Warning", color=Color.red()
-            )
-            embed.description = ":warning: **You were warned in __Lead of Advertising__, see below for details** :warning:"
-            embed.add_field(name="Moderator", value=ctx.user.mention, inline=False)
+            embed = Embed(title="Lead of Advertising - Advertising Warning", color=Color.red())
+            embed.description = "<a:warning:1122999390773194772> **You were warned in __Lead of Advertising__, see below for details** <a:warning:1122999390773194772>"
+            embed.add_field(name="<a:mod:1122999654913691658> Moderator", value=ctx.user.mention, inline=False)
             embed.add_field(
-                name="<a:AnimateArrow:1048415904125435994> Location of Infraction:",
+                name="<a:arrowsRight:1122999872405119166> Location of Infraction:",
                 value=channel.mention,
                 inline=False,
             )
-            embed.add_field(
-                name=":bell: Reason:", value=reason, inline=False
-            )
+            embed.add_field(name="<a:bell:1122999564299931689> Reason:", value=reason, inline=False)
             if notes is not None:
                 embed.add_field(
-                    name="<:moderator:908227618439041044> Moderator's Notes:",
+                    name="<a:alert2:1122999727135395851> Moderator's Notes:",
                     value=notes,
                     inline=False,
                 )
 
             warn_data = LOAWarn(member, ctx.user, warn_id)
-            if warn_data.give(channel, reason) == False:
-                await ctx.followup.send(
-                    f"The member was warned recently. Please wait <t:{warn_data.get_time()}:R>"
-                )
+            if not warn_data.give(channel, reason):
+                await ctx.followup.send(f"The member was warned recently. Please wait <t:{warn_data.get_time()}:R>")
             else:
                 warn_data.give(channel, reason)
                 warnpoints = warn_data.get_points()
                 embed.add_field(
-                    name="<a:loading:807933356004081714> Total Infractions:",
+                    name="<a:arrowsRight:1122999872405119166> Total Infractions:",
                     value=warnpoints,
                     inline=False,
                 )
                 embed.add_field(name="Warn ID", value=warn_id, inline=False)
 
-                timeout_dict = {
-                    6: (8, "8 hour timeout"),
-                    7: (12, "12 hour timeout"),
-                    8: (12, "24 hour timeout"),
-                    9: (None, "Kick"),
-                    10: (None, "Ban"),
+                punishment_actions = {
+                    6: ("8hr", "Warned 6 times", "An 8 hour timeout will be applied"),
+                    7: ("12hr", "Warned 7 times", "A 12 hour timeout will be applied"),
+                    8: ("12hr", "Warned 6 times", "A 12 hour timeout will be applied"),
+                    9: ("kick", "Warned 9 times", "Kick"),
+                    10: ("ban", None, "Ban"),
                 }
 
-                if warnpoints in timeout_dict:
-                    timeout_hours, result = timeout_dict[warnpoints]
-
-                    if timeout_hours is not None:
-                        await member.edit(
-                            timed_out_until=(
-                                utcnow() + timedelta(hours=int(timeout_hours))
-                            ),
-                            reason=result,
-                        )
-
+                if warnpoints in punishment_actions:
+                    action = punishment_actions[warnpoints]
+                    if action[0] == "ban":
+                        do_act = "No need to take action. The automod for ban has kicked in"
+                        result = "Ban"
                         try:
-                            timeoutmsg = Embed(
-                                description=f"You have received a timeout of {timeout_hours} hours from **{ctx.guild.name}** because you have reached {warnpoints} warn points"
+                            ban_msg = Embed(
+                                description=f"You have been banned from **{ctx.guild.name}** because you have reached the 10 warn point punishment.\n\nTo appeal for your ban, please fill in this form https://forms.gle/kpjMC9RMV1QkBY9t6"
                             )
-                            await member.send(embed=timeoutmsg)
+                            await member.send(embed=ban_msg)
                         except:
                             pass
+                        await member.ban(reason="Banned for reaching 10 adwarns")
                     else:
-                        try:
-                            if warnpoints == 9:
-                                kickmsg = Embed(
-                                    description=f"You are kicked from **{ctx.guild.name}** because you have reached 9 warn points"
-                                )
-                                await member.send(embed=kickmsg)
-                            elif warnpoints == 10:
-                                banmsg = Embed(
-                                    description=f"You have been banned from **{ctx.guild.name}** because you have reached the 10 warn point punishment.\n\nTo appeal for your ban, please fill in this form https://forms.gle/kpjMC9RMV1QkBY9t6"
-                                )
-                                await member.send(embed=banmsg)
-                        except:
-                            pass
+                        timeout_duration, timeout_reason, result = action
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do `w!timeout {member} {timeout_duration} ?r {timeout_reason}`"
+                else:
+                    do_act = None
+                    result = "No Punishment"
 
-                        if warnpoints == 9:
-                            await member.kick(reason="Kicked for reaching 9 adwarns")
-                        elif warnpoints == 10:
-                            await member.ban(reason="Banned for reaching 10 adwarns")
-
-                result = result if warnpoints >= 9 else "No Punishment"
                 embed.add_field(
-                            name="<a:alert_police:779420414878285894> Punishment:",
-                            value=result,
-                            inline=False,
-                        )
+                    name="<a:alert:1122999311257583687> Punishment:",
+                    value=result,
+                    inline=False,
+                )
                 LOA_ASPECT = self.bot.get_user(710733052699213844)
                 embed.set_footer(
-                            text="If you feel this warn was a mistake, please DM {} to appeal or use `/appeal apply WARN_ID`".format(
-                                LOA_ASPECT
-                            )
-                        )
+                    text="If you feel this warn was a mistake, please use `/appeal apply WARN_ID` or DM {} to appeal".format(
+                        LOA_ASPECT
+                    )
+                )
                 embed.set_thumbnail(url=member.display_avatar)
                 await adwarn_channel.send(member.mention, embed=embed)
                 await ctx.followup.send(
-                            f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
-                        )
+                    f"Warning sent. Check {adwarn_channel.mention}",
+                    ephemeral=True
+                )
+
+                if do_act:
+                    await ctx.channel.send("{}\n\n{}".format(ctx.user.mention, do_act))
+
 
     async def adwarn_give(
         self,
@@ -235,7 +217,10 @@ class warncog(Cog):
 
     @Serverutil.command(description="Adwarn someone for violating the ad rules")
     @Serverutil.checks.has_any_role(
-        925790259294396455, 925790259319558154, 1011971782426767390, 980142809094971423,
+        925790259294396455,
+        925790259319558154,
+        1011971782426767390,
+        980142809094971423,
     )
     @Serverutil.describe(
         channel="Where was the ad deleted?",
@@ -251,6 +236,7 @@ class warncog(Cog):
             "Ad has an invalid invite",
             "Back-to-Back advertising",
             "Ad has a long description",
+            "Ad contains a public ping or mention",
             "Ad description is too short",
             "Ad is an invite reward server",
             "NSFW ad, imagery or description",
