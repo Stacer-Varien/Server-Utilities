@@ -67,7 +67,6 @@ class breakcog(GroupCog, name="break"):
                 auto_break.add_field(name="Reason", value=reason, inline=False)
 
                 await break_log.send(embed=auto_break)
-
             else:
                 parse_timespan(duration)
                 requested_break = Embed(title="New Break Request")
@@ -180,6 +179,21 @@ class breakcog(GroupCog, name="break"):
                     )
 
                 Break(member).deny(ctx.guild.id)
+
+    @Serverutil.command(name="cancel", description="Cancel your break request")
+    async def cancel(self, ctx: Interaction):
+        await ctx.response.defer(thinking=True)
+        if ctx.guild.id == 841671029066956831:
+            data = Break(ctx.user).check(ctx.guild.id)
+
+            if data == None:
+                await ctx.followup.send("You haven't applied for a break")
+            else:
+                embed = Embed(
+                    description="Break canceled and removed", color=Color.random()
+                )
+                Break(ctx.user).cancel(ctx.guild.id)
+                await ctx.followup.send(embed=embed)
 
     @approve.error
     async def approve_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
