@@ -42,7 +42,7 @@ class warncog(Cog):
                 embed.add_field(name="Notes", value=notes, inline=False)
 
             warn_data = Warn(member, ctx.user, warn_id)
-            if not warn_data.give(channel, reason):
+            if warn_data.give(channel, reason) is False:
                 await ctx.followup.send(
                     f"Please wait <t:{warn_data.get_time()}:R> to adwarn the member"
                 )
@@ -140,7 +140,7 @@ class warncog(Cog):
                 )
 
             warn_data = LOAWarn(member, ctx.user, warn_id)
-            if not warn_data.give(channel, reason):
+            if warn_data.give(channel, reason) == False:
                 await ctx.followup.send(f"The member was warned recently. Please wait <t:{warn_data.get_time()}:R>")
             else:
                 warn_data.give(channel, reason)
