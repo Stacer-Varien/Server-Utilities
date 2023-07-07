@@ -39,7 +39,7 @@ class LOAmodCog(GroupCog, name="moderation"):
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
-        if LOAMod().today <= LOAMod().sunday:
+        if LOAMod().reset_week() is False:
             await ctx.followup.send(
                 "DON'T RESET YET!\n\nYou can do a reset on {} to clear the database".format(
                     LOAMod().sunday.strftime("%d-%m-%Y")
