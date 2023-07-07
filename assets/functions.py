@@ -56,7 +56,10 @@ class LOAWarn:
     def check(self):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?",
-            (self.user.id, self.warn_id),
+            (
+                self.user.id,
+                self.warn_id,
+            ),
         ).fetchone()
         db.commit()
 
@@ -66,6 +69,7 @@ class LOAWarn:
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ?", (self.user.id,)
         ).fetchone()
+        db.commit()
         data2 = db.execute(
             "SELECT * FROM loaAdwarnData_v2 WHERE user_id= ?", (self.user.id,)
         ).fetchone()
@@ -78,7 +82,12 @@ class LOAWarn:
         if data is None:
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
-                (self.user.id, "{} - {}".format(channel.mention, reason), self.warn_id, self.moderator.id),
+                (
+                    self.user.id,
+                    "{} - {}".format(channel.mention, reason),
+                    self.warn_id,
+                    self.moderator.id,
+                ),
             )
             db.commit()
 
@@ -161,6 +170,13 @@ class LOAWarn:
         db.commit()
         return timedata[0]
 
+    def delete(self):
+        if self.get_points() == 10:
+            db.execute("DELETE FROM loaAdwarnData WHERE user_id = ?;", (self.user.id,))
+            db.execute(
+                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
+            )
+            db.commit()
 
 
 class LOAMod:
@@ -182,6 +198,7 @@ class LOAMod:
                 int(end),
             ),
         )
+        db.commit()
         if data.rowcount == 0:
             db.execute(
                 "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
@@ -190,7 +207,7 @@ class LOAMod:
                     self.mod.id,
                 ),
             )
-        db.commit()
+            db.commit()
 
     def reset_week(self):
         start = int(self.monday.strftime("%d%m%Y"))
@@ -210,6 +227,7 @@ class LOAMod:
 
     async def checks(self, bot: Bot):
         data = db.execute("SELECT * FROM LOAwarnData_v3").fetchall()
+        db.commit()
         mods = []
         for i in data:
             mod = await bot.fetch_user(int(i[0]))
@@ -541,6 +559,18 @@ class Break:
         db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
+    def cancel(self, server: int):
+        approved = self.check(server)
+        if approved[4] == 0:
+            db.execute(
+                "DELETE FROM breakData WHERE user_id = ? AND approved = ?",
+                (
+                    self.member.id,
+                    0,
+                ),
+            )
+            db.commit()
+
     def add_request(
         self,
         server: int,
@@ -550,7 +580,7 @@ class Break:
         start: int,
         ends: int,
     ):
-        db.execute(
+        data = db.execute(
             "INSERT OR IGNORE INTO breakData (user_id, guild_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?)",
             (
                 self.member.id,
@@ -563,6 +593,21 @@ class Break:
             ),
         )
         db.commit()
+
+        if data.rowcount == 0:
+            db.execute(
+                "UPDATE breakData SET duration = ?, reason = ?, accepted = ?, start = ?, ends = ? WHERE user_id = ? AND guild_id = ?",
+                (
+                    duration,
+                    reason,
+                    accepted,
+                    start,
+                    ends,
+                    self.member.id,
+                    server,
+                ),
+            )
+            db.commit()
 
     def check(self, server: int):
         data = db.execute(
@@ -579,24 +624,10 @@ class Break:
 
     def approve(self, server: int, start: int, ends: int):
         db.execute(
-            "UPDATE breakData SET accepted = ? WHERE user_id = ? AND guild_id = ?",
+            "UPDATE breakData SET accepted = ?, start = ?, ends = ? WHERE user_id = ? AND guild_id = ?",
             (
                 1,
-                self.member.id,
-                server,
-            ),
-        )
-        db.execute(
-            "UPDATE breakData SET start = ? WHERE user_id = ? AND guild_id = ?",
-            (
                 start,
-                self.member.id,
-                server,
-            ),
-        )
-        db.execute(
-            "UPDATE breakData SET ends = ? WHERE user_id = ? AND guild_id = ?",
-            (
                 ends,
                 self.member.id,
                 server,
