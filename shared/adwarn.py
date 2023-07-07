@@ -165,6 +165,7 @@ class warncog(Cog):
                     if action[0] == "ban":
                         do_act = "No need to take action. The automod for ban has kicked in"
                         result = "Ban"
+                        warn_data.delete()
                         try:
                             ban_msg = Embed(
                                 description=f"You have been banned from **{ctx.guild.name}** because you have reached the 10 warn point punishment.\n\nTo appeal for your ban, please fill in this form https://forms.gle/kpjMC9RMV1QkBY9t6"
@@ -173,9 +174,11 @@ class warncog(Cog):
                         except:
                             pass
                         await member.ban(reason="Banned for reaching 10 adwarns")
+                    elif action[0] == "kick":
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do `w!kick {member.id} ?r Warned 9 times`"
                     else:
                         timeout_duration, timeout_reason, result = action
-                        do_act = f"The member has a total of {warnpoints} warnings. Please do `w!timeout {member} {timeout_duration} ?r {timeout_reason}`"
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do `w!timeout {member.id} {timeout_duration} ?r {timeout_reason}`"
                 else:
                     do_act = None
                     result = "No Punishment"
