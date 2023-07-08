@@ -8,6 +8,7 @@ from discord import (
     app_commands as Serverutil,
 )
 from discord.ext.commands import Cog, Bot
+from assets.buttons import MobileView
 from config import hazead, loa
 from random import randint
 from datetime import timedelta
@@ -175,10 +176,12 @@ class warncog(Cog):
                             pass
                         await member.ban(reason="Banned for reaching 10 adwarns")
                     elif action[0] == "kick":
-                        do_act = f"The member has a total of {warnpoints} warnings. Please do `w!kick {member.id} ?r Warned 9 times`"
+                        mobile_act=f"`w!kick {member.id} ?r Warned 9 times`"
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do {mobile_act}"
                     else:
                         timeout_duration, timeout_reason, result = action
-                        do_act = f"The member has a total of {warnpoints} warnings. Please do `w!timeout {member.id} {timeout_duration} ?r {timeout_reason}`"
+                        mobile_act=f"`w!timeout {member.id} {timeout_duration} ?r {timeout_reason}`"
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do {mobile_act}"
                 else:
                     do_act = None
                     result = "No Punishment"
@@ -202,7 +205,14 @@ class warncog(Cog):
                 )
 
                 if do_act:
-                    await ctx.channel.send("{}\n\n{}".format(ctx.user.mention, do_act))
+                    view=MobileView(ctx.user)
+                    await ctx.channel.send("{}\n\n{}".format(ctx.user.mention, do_act), view=view)
+                    await view.wait()
+
+                    if view.value is True:
+                        await ctx.channel.send(mobile_act)
+                    else:
+                        pass
 
 
     async def adwarn_give(

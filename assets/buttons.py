@@ -21,3 +21,17 @@ class Confirmation(ui.View):
     
     async def interaction_check(self, ctx: Interaction):
         return ctx.user.id == self.author.id
+
+class MobileView(ui.View):
+    def __init__(self, author:Optional[User]=None):
+        super().__init__(timeout=600)
+        self.value = None
+        self.author=author
+
+    @ui.button(label="Mobile Version", style=ButtonStyle.green)
+    async def confirm(self, button: ui.Button, ctx: Interaction):
+        self.value = True
+        self.stop()
+    
+    async def interaction_check(self, ctx: Interaction):
+        return ctx.user.id == self.author.id

@@ -1,7 +1,7 @@
 from discord import Color, Embed, Message
 from discord.ext.commands import Cog, Bot
 from assets.functions import Warn, LOAMod
-from assets.confirm_buttoms import Confirmation
+from assets.buttons import Confirmation
 from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
