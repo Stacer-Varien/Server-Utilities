@@ -176,11 +176,11 @@ class warncog(Cog):
                             pass
                         await member.ban(reason="Banned for reaching 10 adwarns")
                     elif action[0] == "kick":
-                        mobile_act=f"`w!kick {member.id} ?r Warned 9 times`"
+                        mobile_act=f"w!kick {member.id} ?r Warned 9 times"
                         do_act = f"The member has a total of {warnpoints} warnings. Please do {mobile_act}"
                     else:
                         timeout_duration, timeout_reason, result = action
-                        mobile_act=f"`w!timeout {member.id} {timeout_duration} ?r {timeout_reason}`"
+                        mobile_act=f"w!timeout {member.id} {timeout_duration} ?r {timeout_reason}"
                         do_act = f"The member has a total of {warnpoints} warnings. Please do {mobile_act}"
                 else:
                     do_act = None
@@ -209,8 +209,8 @@ class warncog(Cog):
                     await ctx.channel.send("{}\n\n{}".format(ctx.user.mention, do_act), view=view)
                     await view.wait()
 
-                    if view.value is True:
-                        await ctx.channel.send(mobile_act)
+                    if view.value:
+                        await ctx.channel.send(embed=Embed(description=mobile_act, color=Color.random()))
                     else:
                         pass
 
