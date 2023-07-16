@@ -479,11 +479,11 @@ class resigncog(GroupCog, name="resign"):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
         resign = Resign(ctx.user)
-        if leaving:
-            if leaving == True:
+        if leaving == True:
                 leaving = 1
-            else:
+        else:
                 leaving = 0
+
         data = resign.check(leaving)
 
         if data == None:
