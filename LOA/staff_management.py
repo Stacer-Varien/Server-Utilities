@@ -473,16 +473,16 @@ class resigncog(GroupCog, name="resign"):
         self,
         ctx: Interaction,
         member: Member,
-        department: Literal["Core Team", "Management", "Marketing", "Human Resource"],
+        department: Literal["Core Team", "Management", "Marketing", "Human Resource", "Moderator"],
         leaving: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
-        resign = Resign(ctx.user)
-        if leaving == True:
-                leaving = 1
+        resign = Resign(member)
+        if leaving == None or leaving == False:
+            leaving = 0
         else:
-                leaving = 0
+            leaving = 1
 
         data = resign.check(leaving)
 
