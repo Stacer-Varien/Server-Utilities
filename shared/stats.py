@@ -35,7 +35,7 @@ class slashinfo(Cog):
         embed.add_field(name="Bot ID", value=self.bot.user.id, inline=True)
         embed.add_field(
             name="Creation Date",
-            value=self.bot.user.created_at.strftime(format),
+            value=f"<t:{round(self.bot.user.created_at.timestamp())}:F>",
             inline=True,
         )
         embed.add_field(
@@ -99,9 +99,6 @@ class botpro(GroupCog, name="bot"):
         embed.color = Color.random()
         embed.title = "Terms of Service when using Server Utilities"
         embed.description = """
-**Use of Alt Accounts**
-There is no limits to the use of alt accounts. However, using them to try and break the bot in some way is not allowed.
-
 **Defamation and Reputational Harm**
 Spreading rumours and false reports about Server Utilities (such as calling it a nuke bot), causing unwanted drama or attacking me or Server Utilities is punishable.
 
@@ -109,7 +106,7 @@ Spreading rumours and false reports about Server Utilities (such as calling it a
 Under no circumstances, Server Utilities (including its token) is not for sale.
 
 **Adding Server Utilities**
-Server Utilities, under no condition by a 3rd party, is not up for grabs or free to have. The bot is ONLY for my servers including LOA and LSS (it was added conditionally)
+Server Utilities is not up for grabs or free to have. The bot is ONLY for my servers including LOA and LSS. Add my bot, [Jeanne](https://top.gg/bot/831993597166747679) instead
 
 **Copyright**
 Even though Server Utilities's repository is public and free to use for educational and/or experimental purposes, you are not allowed to impersonate it and/or sell the source code as it is under a Conditioned MIT License and Common Clause License. (To learn more about the Licenses, please use `/bot license`)

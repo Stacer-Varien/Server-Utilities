@@ -1,6 +1,5 @@
 from discord import ui, TextStyle, Interaction, Embed
 from discord.ext.commands import Bot
-from config import db
 
 
 class Strike_Appeal(ui.Modal, title="Strike Appeal Form"):
@@ -32,7 +31,7 @@ class Strike_Appeal(ui.Modal, title="Strike Appeal Form"):
         embed.set_footer(
             text="To accept or deny the appeal, use `/strike appeal approve MEMBER` or `/strike appeal deny MEMBER`"
         )
-        db.commit()
+
         channel = self.bot.get_channel(1004744695085285457)
 
         await channel.send(embed=embed)

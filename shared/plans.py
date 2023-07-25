@@ -23,35 +23,33 @@ class plancog(GroupCog, name="plan"):
     async def add(self, ctx: Interaction, member: Member, ends: str, plan: str):
         await ctx.response.defer(ephemeral=True)
         today = datetime.now()
-        ending_time = today + timedelta(seconds=(parse_timespan(ends)))
+        ending_time = today + timedelta(seconds=parse_timespan(ends))
         plan_id = randint(1, 100000)
 
         if ctx.guild.id == 925790259160166460:
-            guild = 925790259160166460
-
+            guild_id = 925790259160166460
+            plan_log_channel_id = 956554797060866058
         else:
-            guild = 704888699590279221
+            guild_id = 704888699590279221
+            plan_log_channel_id = 990246941029990420
 
-        Plans(guild).add(
-            member, round(ending_time.timestamp()), plan, ctx.user, plan_id
-        )
+        Plans(guild_id).add(member, round(ending_time.timestamp()), plan, ctx.author, plan_id)
 
-        ha_planlog = await self.bot.fetch_channel(956554797060866058)
-        loa_planlog = await self.bot.fetch_channel(990246941029990420)
-        planned = Embed(title="New plan", color=Color.blue())
+        plan_log_channel = self.bot.get_channel(plan_log_channel_id)
+        planned = Embed(title="New Plan", color=Color.blue())
         planned.add_field(
-            name=member,
-            value=f"**Plan Started:** <t:{round(today.timestamp())}:R>\n**Plan:** {plan}\n**Made by:** {ctx.user}\n**Ends when:** <t:{round(ending_time.timestamp())}:F>\n**Plan ID:** {plan_id}",
+            name=str(member),
+            value=(
+                f"**Plan Started:** <t:{round(today.timestamp())}:R>\n"
+                f"**Plan:** {plan}\n"
+                f"**Made by:** {ctx.author}\n"
+                f"**Ends when:** <t:{round(ending_time.timestamp())}:F>\n"
+                f"**Plan ID:** {plan_id}"
+            ),
         )
-        if ctx.guild.id == 925790259160166460:
-            await ha_planlog.send(embed=planned)
-            await ctx.followup.send(
-                "Plan added to {}".format(ha_planlog.mention), ephemeral=True
-            )
-        else:
-            await loa_planlog.send(embed=planned)
-            await ctx.followup.send(
-                "Plan added to {}".format(loa_planlog.mention), ephemeral=True
+        await plan_log_channel.send(embed=planned)
+        await ctx.followup.send(
+                "Plan added to {}".format(plan_log_channel.mention), ephemeral=True
             )
 
     @Serverutil.command(description="End a plan if cancelled early")
@@ -59,21 +57,19 @@ class plancog(GroupCog, name="plan"):
     async def end(self, ctx: Interaction, plan_id: int):
         await ctx.response.defer(ephemeral=True)
         if ctx.guild.id == hazead:
-            guild = hazead
-
+            guild_id = hazead
         else:
-            guild = loa
+            guild_id = loa
 
-        plan = Plans(guild)
+        plan = Plans(guild_id)
         result = plan.get(plan_id)
 
-        if result == None:
+        if result is None:
             await ctx.followup.send("Invalid Plan ID.")
 
         else:
             plan.remove(plan_id)
             await ctx.followup.send("Plan removed")
-
 
 async def setup(bot: Bot):
     await bot.add_cog(
