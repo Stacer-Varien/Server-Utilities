@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from humanfriendly import parse_timespan
+from humanfriendly import InvalidTimespan, parse_timespan
 from discord import Embed, Color, Interaction, Member, Object
 from discord import app_commands as Serverutil
 from discord.ext.commands import Bot, GroupCog
@@ -67,7 +67,6 @@ class breakcog(GroupCog, name="break"):
                 auto_break.add_field(name="Reason", value=reason, inline=False)
 
                 await break_log.send(embed=auto_break)
-
             else:
                 parse_timespan(duration)
                 requested_break = Embed(title="New Break Request")
@@ -94,9 +93,10 @@ class breakcog(GroupCog, name="break"):
     @apply.error
     async def apply_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
         if isinstance(error, Serverutil.CommandInvokeError):
-            await ctx.followup.send(
-                embed=Embed(description=str(error), color=Color.red())
-            )
+            if InvalidTimespan:
+                await ctx.followup.send(
+                    embed=Embed(description=str(error), color=Color.red())
+                )
 
     @Serverutil.command(description="Approve the break")
     @Serverutil.checks.has_any_role(core_team, om, 995151171004137492)
@@ -180,6 +180,21 @@ class breakcog(GroupCog, name="break"):
                     )
 
                 Break(member).deny(ctx.guild.id)
+
+    @Serverutil.command(name="cancel", description="Cancel your break request")
+    async def cancel(self, ctx: Interaction):
+        await ctx.response.defer(thinking=True)
+        if ctx.guild.id == 841671029066956831:
+            data = Break(ctx.user).check(ctx.guild.id)
+
+            if data == None:
+                await ctx.followup.send("You haven't applied for a break")
+            else:
+                embed = Embed(
+                    description="Break canceled and removed", color=Color.random()
+                )
+                Break(ctx.user).cancel(ctx.guild.id)
+                await ctx.followup.send(embed=embed)
 
     @approve.error
     async def approve_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
@@ -459,17 +474,17 @@ class resigncog(GroupCog, name="resign"):
         self,
         ctx: Interaction,
         member: Member,
-        department: Literal["Core Team", "Management", "Marketing", "Human Resource"],
+        department: Literal["Core Team", "Management", "Marketing", "Human Resource", "Moderator"],
         leaving: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672222136991757)
-        resign = Resign(ctx.user)
-        if leaving:
-            if leaving == True:
-                leaving = 1
-            else:
-                leaving = 0
+        resign = Resign(member)
+        if leaving == None or leaving == False:
+            leaving = 0
+        else:
+            leaving = 1
+
         data = resign.check(leaving)
 
         if data == None:
