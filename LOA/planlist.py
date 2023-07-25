@@ -80,6 +80,25 @@ What you can get for getting any of our plans:
 """
                 await ctx.followup.send(embed=embed)
 
+    @Serverutil.command(name="discounts-and-gifting",description="...")
+    async def discounts_and_gifts(self, ctx:Interaction):
+        await ctx.response.defer()
+        thread_cat: CategoryChannel = self.bot.get_channel(862275910165594142)
+        for channel in thread_cat.channels:
+            if ctx.channel.id == channel.id:        
+                embed=Embed()
+                embed.color=Color.blue()
+                embed.title="LOA Coins Discounts & Gifting"
+                embed.description="""
+Want to give someone else a LOA Coins Product? DM <@!710733052699213844> and tell us who do you want to give it to and we will help you to give them that thing with **NO EXTRA CHARGE**
+
+Discounts available:
+- LOA Memberships perks listed above
+- 15% off if you own / staff a Lead of Certifications certified server (Refer to ⁠<#941117023914713148> Lead of Certification server)
+
+Note: You **ARE ALLOWED** to use both discounts at the same time
+                """
+
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(pricelistcog(bot), guild=Object(id=lss))
