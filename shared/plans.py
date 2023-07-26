@@ -33,7 +33,7 @@ class plancog(GroupCog, name="plan"):
             guild_id = 704888699590279221
             plan_log_channel_id = 990246941029990420
 
-        Plans(guild_id).add(member, round(ending_time.timestamp()), plan, ctx.author, plan_id)
+        Plans(guild_id).add(member, round(ending_time.timestamp()), plan, ctx.user, plan_id)
 
         plan_log_channel = self.bot.get_channel(plan_log_channel_id)
         planned = Embed(title="New Plan", color=Color.blue())
@@ -42,7 +42,7 @@ class plancog(GroupCog, name="plan"):
             value=(
                 f"**Plan Started:** <t:{round(today.timestamp())}:R>\n"
                 f"**Plan:** {plan}\n"
-                f"**Made by:** {ctx.author}\n"
+                f"**Made by:** {ctx.user}\n"
                 f"**Ends when:** <t:{round(ending_time.timestamp())}:F>\n"
                 f"**Plan ID:** {plan_id}"
             ),
