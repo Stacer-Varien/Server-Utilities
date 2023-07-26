@@ -103,8 +103,8 @@ class ownercog(Cog):
                 await ctx.author.send(file=File(file))
             except:
                 content="""
-ERROR!
-# Failed to send database! 
+# ERROR!
+## Failed to send database! 
         
 Make sure private messages between **me and you are opened** or check the server if the database exists"""
                 await ctx.send(content)

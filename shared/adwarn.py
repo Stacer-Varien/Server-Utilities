@@ -1,3 +1,4 @@
+from sqlite3 import OperationalError
 from discord import (
     Color,
     Embed,
@@ -177,11 +178,11 @@ class warncog(Cog):
                         await member.ban(reason="Banned for reaching 10 adwarns")
                     elif action[0] == "kick":
                         mobile_act=f"w!kick {member.id} ?r Warned 9 times"
-                        do_act = f"The member has a total of {warnpoints} warnings. Please do {mobile_act}"
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
                     else:
                         timeout_duration, timeout_reason, result = action
                         mobile_act=f"w!timeout {member.id} {timeout_duration} ?r {timeout_reason}"
-                        do_act = f"The member has a total of {warnpoints} warnings. Please do {mobile_act}"
+                        do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
                 else:
                     do_act = None
                     result = "No Punishment"
@@ -259,6 +260,7 @@ class warncog(Cog):
     ):
         await ctx.response.defer()
         await self.adwarn_give(ctx, member, channel, reason, notes)
+
 
 
 async def setup(bot: Bot):

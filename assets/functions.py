@@ -97,11 +97,21 @@ class LOAWarn:
             )
             db.commit()
 
-            db.execute(
+            data = db.execute(
                 "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
                 (self.moderator.id, 1, start, end),
             )
             db.commit()
+
+            if data.rowcount == 0:
+                db.execute(
+                    "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
+                    (
+                        1,
+                        self.moderator.id,
+                    ),
+                )
+                db.commit()
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
@@ -185,29 +195,6 @@ class LOAMod:
         self.today = date.today()
         self.monday = self.today - timedelta(days=self.today.weekday())
         self.sunday = self.monday + timedelta(days=6)
-
-    def update_week(self):
-        start = int(self.monday.strftime("%d%m%Y"))
-        end = int(self.sunday.strftime("%d%m%Y"))
-        data = db.execute(
-            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
-            (
-                self.mod.id,
-                1,
-                int(start),
-                int(end),
-            ),
-        )
-        db.commit()
-        if data.rowcount == 0:
-            db.execute(
-                "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
-                (
-                    1,
-                    self.mod.id,
-                ),
-            )
-            db.commit()
 
     def reset_week(self):
         start = int(self.monday.strftime("%d%m%Y"))
@@ -425,25 +412,29 @@ class Strike:
         self.member = member
 
     def give(self):
-        db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 0)",
+        data = db.execute(
+            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, ?)",
             (
                 self.department,
                 self.member.id,
-            ),
-        )
-        db.execute(
-            "UPDATE strikeData SET count = count + 1 WHERE department = ? AND user_id = ?",
-            (
-                self.department,
-                self.member.id,
+                1,
             ),
         )
         db.commit()
+        if data.rowcount == 0:
+            db.execute(
+                "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
+                (
+                    1,
+                    self.department,
+                    self.member.id,
+                ),
+            )
+            db.commit()
 
     def counts(self):
         data = db.execute(
-            "SELECT count(*) FROM strikeData WHERE department = ? AND user_id = ?",
+            "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
             (
                 self.department,
                 self.member.id,
@@ -471,6 +462,7 @@ class Strike:
                 self.member.id,
             ),
         )
+        db.commit()
 
         if self.counts() == 0:
             db.execute(

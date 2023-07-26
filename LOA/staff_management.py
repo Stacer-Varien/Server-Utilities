@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from humanfriendly import parse_timespan
+from humanfriendly import InvalidTimespan, parse_timespan
 from discord import Embed, Color, Interaction, Member, Object
 from discord import app_commands as Serverutil
 from discord.ext.commands import Bot, GroupCog
@@ -93,9 +93,10 @@ class breakcog(GroupCog, name="break"):
     @apply.error
     async def apply_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
         if isinstance(error, Serverutil.CommandInvokeError):
-            await ctx.followup.send(
-                embed=Embed(description=str(error), color=Color.red())
-            )
+            if InvalidTimespan:
+                await ctx.followup.send(
+                    embed=Embed(description=str(error), color=Color.red())
+                )
 
     @Serverutil.command(description="Approve the break")
     @Serverutil.checks.has_any_role(core_team, om, 995151171004137492)
