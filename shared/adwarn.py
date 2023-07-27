@@ -1,4 +1,3 @@
-from sqlite3 import OperationalError
 from discord import (
     Color,
     Embed,
@@ -166,7 +165,11 @@ class warncog(Cog):
                     action = punishment_actions[warnpoints]
                     if action[0] == "ban":
                         do_act = "No need to take action. The automod for ban has kicked in"
-                        result = "Ban"
+                        embed.add_field(
+                            name="<a:alert:1122999311257583687> Punishment:",
+                            value="Ban",
+                            inline=False,
+                            )
                         warn_data.delete()
                         try:
                             ban_msg = Embed(
@@ -179,19 +182,27 @@ class warncog(Cog):
                     elif action[0] == "kick":
                         mobile_act=f"w!kick {member.id} ?r Warned 9 times"
                         do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
+                        embed.add_field(
+                            name="<a:alert:1122999311257583687> Punishment:",
+                            value="Kick",
+                            inline=False,
+                            )                        
                     else:
                         timeout_duration, timeout_reason, result = action
                         mobile_act=f"w!timeout {member.id} {timeout_duration} ?r {timeout_reason}"
                         do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
+                        embed.add_field(
+                            name="<a:alert:1122999311257583687> Punishment:",
+                            value=result,
+                            inline=False,
+                            )
                 else:
                     do_act = None
-                    result = "No Punishment"
-
-                embed.add_field(
-                    name="<a:alert:1122999311257583687> Punishment:",
-                    value=result,
-                    inline=False,
-                )
+                    embed.add_field(
+                        name="<a:alert:1122999311257583687> Punishment:",
+                        value="No Punishment",
+                        inline=False,
+                    )
                 LOA_ASPECT = self.bot.get_user(710733052699213844)
                 embed.set_footer(
                     text="If you feel this warn was a mistake, please use `/appeal apply WARN_ID` or DM {} to appeal".format(
@@ -260,7 +271,6 @@ class warncog(Cog):
     ):
         await ctx.response.defer()
         await self.adwarn_give(ctx, member, channel, reason, notes)
-
 
 
 async def setup(bot: Bot):

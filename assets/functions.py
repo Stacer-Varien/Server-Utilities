@@ -412,29 +412,25 @@ class Strike:
         self.member = member
 
     def give(self):
-        data = db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, ?)",
+        db.execute(
+            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 0)",
             (
                 self.department,
                 self.member.id,
-                1,
+            ),
+        )
+        db.execute(
+            "UPDATE strikeData SET count = count + 1 WHERE department = ? AND user_id = ?",
+            (
+                self.department,
+                self.member.id,
             ),
         )
         db.commit()
-        if data.rowcount == 0:
-            db.execute(
-                "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
-                (
-                    1,
-                    self.department,
-                    self.member.id,
-                ),
-            )
-            db.commit()
 
     def counts(self):
         data = db.execute(
-            "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
+            "SELECT count(*) FROM strikeData WHERE department = ? AND user_id = ?",
             (
                 self.department,
                 self.member.id,
@@ -462,7 +458,6 @@ class Strike:
                 self.member.id,
             ),
         )
-        db.commit()
 
         if self.counts() == 0:
             db.execute(
@@ -775,3 +770,32 @@ class Plans:
             ),
         )
         db.commit()
+
+
+class YouTube:
+    def __init__(self, channel: str) -> None:
+        self.channel = channel
+
+    def get_latest_vid(self):
+        data = db.execute(
+            "SELECT latest_video FROM youtube WHERE channel_id = ?", (self.channel,)
+        ).fetchone()
+        db.commit()
+        return str(data[0]) if data else None
+
+    def update_video(self, new_video: str):
+        db.execute(
+            "UPDATE youtube SET latest_video = ? WHERE channel_id = ?",
+            (
+                new_video,
+                self.channel,
+            ),
+        )
+        db.commit()
+
+    def get_channel(self):
+        data = db.execute(
+            "SELECT channel_name FROM youtube WHERE channel_id = ?", (self.channel,)
+        ).fetchone()[0]
+        db.commit()
+        return str(data)
