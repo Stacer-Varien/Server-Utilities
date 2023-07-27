@@ -1,5 +1,4 @@
-from sqlite3 import OperationalError
-from discord import Color, Embed, Interaction, Object, app_commands
+from discord import Interaction, Object, app_commands
 from discord.ext.commands import Cog, Bot
 import traceback
 from config import lss, hazead, orleans, loa
@@ -15,11 +14,6 @@ class errors(Cog):
         self, ctx: Interaction, error: app_commands.AppCommandError
     ):
         if isinstance(error, app_commands.CommandInvokeError):
-            if OperationalError:
-                embed=Embed(color=Color.red())
-                embed.description="It seems {} has left my database opened without saving or my database is being edited while I'm online.\nPlease try again after 5 minutes.".format(str(self.bot.application.owner))
-                await ctx.followup.send(embed=embed)
-
             traceback_error = traceback.format_exception(
                 error, error, error.__traceback__
             )
@@ -28,7 +22,7 @@ class errors(Cog):
 
         try:
             thread = await self.bot.fetch_channel(1078749692457930842)
-            await thread.send(f"```{traceback_error}```")
+            await thread.send(f"```{''.join(traceback_error)}```")
         except:
             return
 

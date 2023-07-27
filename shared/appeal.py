@@ -151,6 +151,7 @@ class appealcog(GroupCog, name="appeal"):
                 await ctx.followup.send("Please open your DMs to do the appeal process")
 
     async def appeal_start(self, ctx: Interaction, warn_id: int):
+        await ctx.response.defer(ephemeral=True)
         if ctx.guild.id == 925790259160166460:
             await self.HA_appeal(ctx, warn_id)
         elif ctx.guild.id == 925790259160166460:
