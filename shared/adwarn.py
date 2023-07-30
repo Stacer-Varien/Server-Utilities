@@ -54,9 +54,19 @@ class warncog(Cog):
                 embed.add_field(name="Warn Points", value=warnpoints, inline=True)
 
                 punishment_actions = {
-                    3: ("2hr", "2 hour mute punishment applied", "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied"),
-                    6: (None, "Member has reached the 6 warn point punishment. A kick punishment was applied"),
-                    10: (None, "Member has reached the 10 warn point punishment. A ban punishment was applied"),
+                    3: (
+                        "2hr",
+                        "2 hour mute punishment applied",
+                        "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied",
+                    ),
+                    6: (
+                        None,
+                        "Member has reached the 6 warn point punishment. A kick punishment was applied",
+                    ),
+                    10: (
+                        None,
+                        "Member has reached the 10 warn point punishment. A ban punishment was applied",
+                    ),
                 }
 
                 if warnpoints in punishment_actions:
@@ -124,15 +134,23 @@ class warncog(Cog):
             await ctx.followup.send(embed=failed_embed)
         else:
             warn_id = randint(0, 100000)
-            embed = Embed(title="Lead of Advertising - Advertising Warning", color=Color.red())
+            embed = Embed(
+                title="Lead of Advertising - Advertising Warning", color=Color.red()
+            )
             embed.description = "<a:warning:1122999390773194772> **You were warned in __Lead of Advertising__, see below for details** <a:warning:1122999390773194772>"
-            embed.add_field(name="<a:mod:1122999654913691658> Moderator", value=ctx.user.mention, inline=False)
+            embed.add_field(
+                name="<a:mod:1122999654913691658> Moderator",
+                value=ctx.user.mention,
+                inline=False,
+            )
             embed.add_field(
                 name="<a:arrowsRight:1122999872405119166> Location of Infraction:",
                 value=channel.mention,
                 inline=False,
             )
-            embed.add_field(name="<a:bell:1122999564299931689> Reason:", value=reason, inline=False)
+            embed.add_field(
+                name="<a:bell:1122999564299931689> Reason:", value=reason, inline=False
+            )
             if notes is not None:
                 embed.add_field(
                     name="<a:alert2:1122999727135395851> Moderator's Notes:",
@@ -142,7 +160,9 @@ class warncog(Cog):
 
             warn_data = LOAWarn(member, ctx.user, warn_id)
             if warn_data.give(channel, reason) == False:
-                await ctx.followup.send(f"The member was warned recently. Please wait <t:{warn_data.get_time()}:R>")
+                await ctx.followup.send(
+                    f"The member was warned recently. Please wait <t:{warn_data.get_time()}:R>"
+                )
             else:
                 warn_data.give(channel, reason)
                 warnpoints = warn_data.get_points()
@@ -164,12 +184,14 @@ class warncog(Cog):
                 if warnpoints in punishment_actions:
                     action = punishment_actions[warnpoints]
                     if action[0] == "ban":
-                        do_act = "No need to take action. The automod for ban has kicked in"
+                        do_act = (
+                            "No need to take action. The automod for ban has kicked in"
+                        )
                         embed.add_field(
                             name="<a:alert:1122999311257583687> Punishment:",
                             value="Ban",
                             inline=False,
-                            )
+                        )
                         warn_data.delete()
                         try:
                             ban_msg = Embed(
@@ -180,22 +202,22 @@ class warncog(Cog):
                             pass
                         await member.ban(reason="Banned for reaching 10 adwarns")
                     elif action[0] == "kick":
-                        mobile_act=f"w!kick {member.id} ?r Warned 9 times"
+                        mobile_act = f"w!kick {member.id} ?r Warned 9 times"
                         do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
                         embed.add_field(
                             name="<a:alert:1122999311257583687> Punishment:",
                             value="Kick",
                             inline=False,
-                            )                        
+                        )
                     else:
                         timeout_duration, timeout_reason, result = action
-                        mobile_act=f"w!timeout {member.id} {timeout_duration} ?r {timeout_reason}"
+                        mobile_act = f"w!timeout {member.id} {timeout_duration} ?r {timeout_reason}"
                         do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
                         embed.add_field(
                             name="<a:alert:1122999311257583687> Punishment:",
                             value=result,
                             inline=False,
-                            )
+                        )
                 else:
                     do_act = None
                     embed.add_field(
@@ -212,20 +234,22 @@ class warncog(Cog):
                 embed.set_thumbnail(url=member.display_avatar)
                 await adwarn_channel.send(member.mention, embed=embed)
                 await ctx.followup.send(
-                    f"Warning sent. Check {adwarn_channel.mention}",
-                    ephemeral=True
+                    f"Warning sent. Check {adwarn_channel.mention}", ephemeral=True
                 )
 
                 if do_act:
-                    view=MobileView(ctx.user)
-                    await ctx.channel.send("{}\n\n{}".format(ctx.user.mention, do_act), view=view)
+                    view = MobileView(ctx.user)
+                    await ctx.channel.send(
+                        "{}\n\n{}".format(ctx.user.mention, do_act), view=view
+                    )
                     await view.wait()
 
                     if view.value:
-                        await ctx.channel.send(embed=Embed(description=mobile_act, color=Color.random()))
+                        await ctx.channel.send(
+                            embed=Embed(description=mobile_act, color=Color.random())
+                        )
                     else:
                         pass
-
 
     async def adwarn_give(
         self,
@@ -246,6 +270,7 @@ class warncog(Cog):
         925790259319558154,
         1011971782426767390,
         980142809094971423,
+        972072908065218560
     )
     @Serverutil.describe(
         channel="Where was the ad deleted?",
@@ -272,6 +297,35 @@ class warncog(Cog):
         await ctx.response.defer()
         await self.adwarn_give(ctx, member, channel, reason, notes)
 
+    @Serverutil.command("Remove an adwarn")
+    @Serverutil.describe(member="Which member recieved the adwarn?", warn_id="What is the warn ID you are removing?", reason="What was the reason for removing it?")
+    @Serverutil.checks.has_any_role(925790259319558157,
+        889019375988916264,
+        947109389855248504,
+        961433835277516822,
+        919410986249756673)
+    async def remove(self, ctx:Interaction, member:Member, warn_id:int, reason:str):
+        warn_data = LOAWarn(user=member, warn_id=warn_id)
+
+        if warn_data.check() == None:
+            await ctx.followup.send(
+                "This user has not been warned or incorrect warn ID",
+                ephemeral=True,
+            )
+        else:
+            modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
+            if ctx.channel.id == 954594959074418738:
+                warn_data.remove()
+                modchannel = await ctx.guild.fetch_channel(745107170827305080)
+                removed = Embed(
+                    description=f"Adwarn with Warn ID `{warn_id} has been removed. You now have {warn_data.get_points()} adwarns",
+                    color=Color.random()
+                )
+                removed.add_field(name="Reason", value=reason, inline=False)
+                await ctx.followup.send("Adwarn Removed")
+                await modchannel.send(member.mention, embed=removed)
+            else:
+                await ctx.followup.send("Please do this command in {}".format(modchannel1.mention))
 
 async def setup(bot: Bot):
     await bot.add_cog(warncog(bot), guilds=[Object(hazead), Object(loa)])
