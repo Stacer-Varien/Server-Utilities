@@ -227,7 +227,7 @@ class appealcog(GroupCog, name="appeal"):
         889019375988916264,
         947109389855248504,
         961433835277516822,
-        919410986249756673,
+        919410986249756673
     )
     @serverutil.describe(warn_id="Insert the warn_id ID shown from the member's appeal")
     async def approve(self, ctx: Interaction, member: Member, warn_id: int):
