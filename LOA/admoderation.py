@@ -9,6 +9,7 @@ from discord.ext.commands import Bot, GroupCog
 from config import lss
 from assets.functions import LOAMod
 
+
 class LOAmodCog(GroupCog, name="moderation"):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -35,7 +36,7 @@ class LOAmodCog(GroupCog, name="moderation"):
         1074770253294342144,
         1074770323293085716,
         1076650317392916591,
-        949147509660483614,
+        949147509660483614
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
@@ -60,6 +61,7 @@ class LOAmodCog(GroupCog, name="moderation"):
         if isinstance(error, Serverutil.MissingAnyRole):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
+
 
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
