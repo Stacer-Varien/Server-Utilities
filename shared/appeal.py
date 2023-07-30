@@ -194,9 +194,9 @@ class appealcog(GroupCog, name="appeal"):
                 ephemeral=True,
             )
         else:
-            warn_data.remove()
             modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
-            if ctx.channel.id == 954594959074418738:
+            if ctx.channel.id == 954594959074418738 or ctx.xhannel.id == 1112136237034246205:
+                warn_data.remove()
                 modchannel = await ctx.guild.fetch_channel(745107170827305080)
                 appealed = Embed(
                     description=f"Your appeal has been approved. You now have {warn_data.get_points()} adwarns",
