@@ -7,13 +7,13 @@ from config import lss, hazead, orleans, loa
 class errors(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.bot.tree.on_error = self.on_app_command_error
+        self.bot.on_app_command_error = self.on_app_command_error
 
     @Cog.listener()
     async def on_app_command_error(
-        self, ctx: Interaction, error: app_commands.AppCommandError
+        self, ctx: Interaction, error: app_commands.errors.AppCommandError
     ):
-        if isinstance(error, app_commands.CommandInvokeError):
+        if isinstance(error, app_commands.errors.CommandInvokeError):
             traceback_error = traceback.format_exception(
                 error, error, error.__traceback__
             )
