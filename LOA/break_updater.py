@@ -34,8 +34,8 @@ class BreakUpdater(commands.Cog):
                             await break_channel.send(f"{member.mention}, your break has ended")
                 except Exception:
                     continue
-        except:
-            pass
+        except Exception as e:
+            print(f"Error occurred in check_break: {e}")
 
     @check_break.before_loop
     async def before_check_break(self):
