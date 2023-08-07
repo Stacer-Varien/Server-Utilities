@@ -16,8 +16,8 @@ class PlanUpdaterCog(commands.Cog):
 
         plans = Plans(704888699590279221)
 
-        if plans.check() is None:
-            return
+        if plans.check() == None:
+            pass
         else:
             for i in plans.check():
                 buyer = await self.bot.fetch_user(int(i[0]))
