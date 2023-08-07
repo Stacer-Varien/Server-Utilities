@@ -63,7 +63,7 @@ class LOAWarn:
         ).fetchone()
         db.commit()
 
-        return data
+        return data if data else None
 
     def give(self, channel: TextChannel, reason: str):
         data = db.execute(
@@ -79,7 +79,7 @@ class LOAWarn:
         current_time = datetime.now()
         next_warn = current_time + timedelta(minutes=45)
 
-        if data is None:
+        if data == None:
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
                 (
@@ -93,13 +93,22 @@ class LOAWarn:
 
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (self.user.id, 1, round(next_warn.timestamp())),
+                (
+                    self.user.id,
+                    1,
+                    round(next_warn.timestamp()),
+                ),
             )
             db.commit()
 
             data = db.execute(
                 "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
-                (self.moderator.id, 1, start, end),
+                (
+                    self.moderator.id,
+                    1,
+                    start,
+                    end,
+                ),
             )
             db.commit()
 
@@ -115,20 +124,21 @@ class LOAWarn:
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ? WHERE user_id = ?",
-                (1, self.user.id),
-            )
-            db.commit()
-
-            db.execute(
-                "UPDATE loaAdwarnData_v2 SET time = ? WHERE user_id = ?",
-                (round(next_warn.timestamp()), self.user.id),
+                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
+                (
+                    1,
+                    round(next_warn.timestamp()),
+                    self.user.id,
+                ),
             )
             db.commit()
 
             db.execute(
                 "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
-                (1, self.moderator.id),
+                (
+                    1,
+                    self.moderator.id,
+                ),
             )
             db.commit()
 
@@ -141,37 +151,43 @@ class LOAWarn:
             (self.user.id,),
         ).fetchone()
         db.commit()
-        if warnpointdata is None or warnpointdata[0] == 0:
-            return 0
-        else:
-            return warnpointdata[0]
+        return warnpointdata[0] if warnpointdata else 0
 
     def remove(self):
         data = self.check()
-        db.execute(
-            "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
-            (self.warn_id, self.user.id),
-        )
-        db.commit()
-
-        db.execute(
-            "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
-            (1, self.user.id),
-        )
-        db.commit()
-
-        db.execute(
-            "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
-            (1, int(data[3])),
-        )
-        db.commit()
-
-        if self.get_points() == 0:
+        if data == None:
+            return None
+        else:
             db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
-                (self.user.id,),
+                "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
+                (
+                    self.warn_id,
+                    self.user.id,
+                ),
             )
             db.commit()
+
+            db.execute(
+                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
+                (
+                    1,
+                    self.user.id,
+                ),
+            )
+            db.commit()
+
+            db.execute(
+                "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
+                (1, int(data[3])),
+            )
+            db.commit()
+
+            if self.get_points() == 0:
+                db.execute(
+                    "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
+                    (self.user.id,),
+                )
+                db.commit()
 
     def get_time(self) -> int:
         timedata = db.execute(
@@ -263,11 +279,7 @@ class Warn:
         ).fetchone()
         db.commit()
 
-        if data == None:
-            return None
-
-        else:
-            return data
+        return data if data else None
 
     def auto_give(self, channel: TextChannel):
         data = db.execute(
@@ -294,7 +306,11 @@ class Warn:
 
             db.execute(
                 "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (self.user.id, 1, round(next_warn.timestamp())),
+                (
+                    self.user.id,
+                    1,
+                    round(next_warn.timestamp()),
+                ),
             )
             db.commit()
 
@@ -343,41 +359,33 @@ class Warn:
 
             db.execute(
                 "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (self.user.id, 1, round(next_warn.timestamp())),
+                (
+                    self.user.id,
+                    1,
+                    round(next_warn.timestamp()),
+                ),
             )
             db.commit()
 
         elif int(data2[2]) < round(current_time.timestamp()):
             db.execute(
-                "UPDATE warnData_v2 SET warn_point = warn_point + ? WHERE user_id = ?",
+                "UPDATE warnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
                 (
                     1,
-                    self.user.id,
-                ),
-            )
-            db.commit()
-
-            db.execute(
-                "UPDATE warnData_v2 SET time = ? WHERE user_id= ?",
-                (
                     round(next_warn.timestamp()),
                     self.user.id,
                 ),
             )
             db.commit()
-
         elif int(data2[2]) > round(current_time.timestamp()):
             return False
 
     def get_points(self) -> int:
-        try:
-            warnpointdata = db.execute(
-                "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
-            ).fetchone()
-            db.commit()
-            return warnpointdata[0]
-        except:
-            return 1
+        warnpointdata = db.execute(
+            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
+        db.commit()
+        return warnpointdata[0] if warnpointdata else 0
 
     def get_time(self) -> int:
         timedata = db.execute(
@@ -412,25 +420,27 @@ class Strike:
         self.member = member
 
     def give(self):
-        db.execute(
+        data = db.execute(
             "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 0)",
             (
                 self.department,
                 self.member.id,
             ),
         )
-        db.execute(
-            "UPDATE strikeData SET count = count + 1 WHERE department = ? AND user_id = ?",
-            (
-                self.department,
-                self.member.id,
-            ),
-        )
         db.commit()
+        if data.rowcount == 0:
+            db.execute(
+                "UPDATE strikeData SET count = count + 1 WHERE department = ? AND user_id = ?",
+                (
+                    self.department,
+                    self.member.id,
+                ),
+            )
+            db.commit()
 
     def counts(self):
         data = db.execute(
-            "SELECT count(*) FROM strikeData WHERE department = ? AND user_id = ?",
+            "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
             (
                 self.department,
                 self.member.id,
@@ -604,10 +614,7 @@ class Break:
                 server,
             ),
         ).fetchone()
-        if data == None:
-            return None
-        else:
-            return data
+        return data if data else None
 
     def approve(self, server: int, start: int, ends: int):
         db.execute(
@@ -648,16 +655,14 @@ class Resign:
         self.member = member
 
     def apply(self, leaving: bool):
-        if leaving == True:
-            leaving = 1
-        else:
-            leaving = 0
+        leave = 1 if leaving == True else 0
+
         db.execute(
-            "INSERT OR IGNORE INTO resignData (user_id, accepted, leaving) VALUES (?, ?, ?)",
+            "INSERT OR IGNORE INTO resignData (user_id, accepted, leave) VALUES (?, ?, ?)",
             (
                 self.member.id,
                 0,
-                leaving,
+                leave,
             ),
         )
         db.commit()
@@ -665,14 +670,14 @@ class Resign:
     def check(self, leaving: int):
         data = db.execute(
             "SELECT * FROM resignData WHERE user_id = ? AND leaving = ?",
-            (self.member.id, leaving),
+            (
+                self.member.id,
+                leaving,
+            ),
         ).fetchone()
         db.commit()
 
-        if data == None:
-            return None
-        else:
-            return data
+        return data if data else None
 
     def approve(self):
         db.execute(
@@ -691,7 +696,10 @@ class Resign:
     async def resigned(self, channel: TextChannel):
         check_accepted = db.execute(
             "SELECT accepted FROM resignData WHERE user_id = ? AND leaving = ?",
-            (self.member.id, 1),
+            (
+                self.member.id,
+                1,
+            ),
         ).fetchone()
 
         if check_accepted == None:  # if they just left without requesting for resigning
@@ -748,17 +756,14 @@ class Plans:
             ),
         ).fetchone()
 
-        if data == None:
-            return None
-        else:
-            return data
+        return data if data else None
 
     def check(self):
         data = db.execute(
             "SELECT * FROM planData WHERE server_id = ?", (self.server,)
         ).fetchall()
         db.commit()
-        return data
+        return data if data else None
 
     def remove(self, buyer: User, plan_id: int):
         db.execute(
