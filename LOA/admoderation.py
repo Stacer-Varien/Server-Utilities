@@ -40,7 +40,7 @@ class LOAmodCog(GroupCog, name="moderation"):
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
-        if LOAMod().reset_week() is False:
+        if LOAMod().reset_week() == False:
             await ctx.followup.send(
                 "DON'T RESET YET!\n\nYou can do a reset on {} to clear the database".format(
                     LOAMod().sunday.strftime("%d-%m-%Y")
@@ -51,14 +51,14 @@ class LOAmodCog(GroupCog, name="moderation"):
             await ctx.followup.send("Moderator checks for last week have been reseted")
 
     @_stats.error
-    async def _stats_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
-        if isinstance(error, Serverutil.MissingAnyRole):
+    async def _stats_error(self, ctx: Interaction, error: Serverutil.errors.AppCommandError):
+        if isinstance(error, Serverutil.errors.MissingAnyRole):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
 
     @_reset.error
-    async def _reset_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
-        if isinstance(error, Serverutil.MissingAnyRole):
+    async def _reset_error(self, ctx: Interaction, error: Serverutil.errors.AppCommandError):
+        if isinstance(error, Serverutil.errors.MissingAnyRole):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
 
