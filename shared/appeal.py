@@ -150,13 +150,6 @@ class appealcog(GroupCog, name="appeal"):
             except:
                 await ctx.followup.send("Please open your DMs to do the appeal process")
 
-    async def appeal_start(self, ctx: Interaction, warn_id: int):
-        await ctx.response.defer(ephemeral=True)
-        if ctx.guild.id == 925790259160166460:
-            await self.HA_appeal(ctx, warn_id)
-        elif ctx.guild.id == 925790259160166460:
-            await self.LOA_appeal(ctx, warn_id)
-
     async def approve_HA_appeal(self, ctx: Interaction, member: Member, warn_id: int):
         if ctx.channel.id == 951783773006073906:
             appeal_data = Appeal(member, warn_id)
@@ -209,17 +202,14 @@ class appealcog(GroupCog, name="appeal"):
                     "Please do this command in {}".format(modchannel1.mention)
                 )
 
-    async def approve_appeal(self, ctx: Interaction, member: Member, warn_id: int):
-        if ctx.guild.id == 925790259160166460:
-            await self.approve_HA_appeal(ctx, member, warn_id)
-        elif ctx.guild.id == 704888699590279221:
-            await self.approve_LOA_appeal(ctx, member, warn_id)
-
     @serverutil.command(description="Apply for an adwarn appeal")
     @serverutil.describe(warn_id="Insert the warn ID that you wish to appeal your warn")
     async def apply(self, ctx: Interaction, warn_id: int):
         await ctx.response.defer()
-        await self.appeal_start(ctx, warn_id)
+        if ctx.guild.id == 925790259160166460:
+            await self.HA_appeal(ctx, warn_id)
+        elif ctx.guild.id == 925790259160166460:
+            await self.LOA_appeal(ctx, warn_id)
 
     @serverutil.command(description="Approve an appeal")
     @serverutil.checks.has_any_role(
@@ -232,7 +222,10 @@ class appealcog(GroupCog, name="appeal"):
     @serverutil.describe(warn_id="Insert the warn_id ID shown from the member's appeal")
     async def approve(self, ctx: Interaction, member: Member, warn_id: int):
         await ctx.response.defer()
-        await self.approve_appeal(ctx, member, warn_id)
+        if ctx.guild.id == 925790259160166460:
+            await self.approve_HA_appeal(ctx, member, warn_id)
+        elif ctx.guild.id == 704888699590279221:
+            await self.approve_LOA_appeal(ctx, member, warn_id)
 
 async def setup(bot: Bot):
     await bot.add_cog(appealcog(bot), guilds=[Object(hazead), Object(loa)])
