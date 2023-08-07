@@ -14,7 +14,7 @@ from random import randint
 from datetime import timedelta
 from discord.utils import utcnow
 from assets.functions import LOAWarn, Warn
-from typing import Optional, Literal
+from typing import List, Optional, Literal
 
 
 class warncog(Cog):
@@ -33,21 +33,22 @@ class warncog(Cog):
         if member == ctx.user:
             failed_embed = Embed(description="You can't warn yourself")
             await ctx.followup.send(embed=failed_embed)
-        else:
-            embed = Embed()
-            warn_id = randint(0, 100000)
-            embed = Embed(title="You were adwarned", color=0xFF0000)
-            embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
-            embed.add_field(name="Reason", value=reason, inline=False)
-            if notes is not None:
-                embed.add_field(name="Notes", value=notes, inline=False)
+            return
 
-            warn_data = Warn(member, ctx.user, warn_id)
-            if warn_data.give(channel, reason) is False:
+        embed = Embed()
+        warn_id = randint(0, 100000)
+        embed = Embed(title="You were adwarned", color=0xFF0000)
+        embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
+        embed.add_field(name="Reason", value=reason, inline=False)
+        if notes is not None:
+            embed.add_field(name="Notes", value=notes, inline=False)
+
+        warn_data = Warn(member, ctx.user, warn_id)
+        if warn_data.give(channel, reason) == False:
                 await ctx.followup.send(
                     f"Please wait <t:{warn_data.get_time()}:R> to adwarn the member"
                 )
-            else:
+        else:
                 warn_data.give(channel, reason)
                 warnpoints = warn_data.get_points()
                 embed.add_field(name="Warn ID", value=warn_id, inline=True)
@@ -251,7 +252,21 @@ class warncog(Cog):
                     else:
                         pass
 
-    async def adwarn_give(
+    @Serverutil.command(description="Adwarn someone for violating the ad rules")
+    @Serverutil.checks.has_any_role(
+        925790259294396455,
+        925790259319558154,
+        1011971782426767390,
+        980142809094971423,
+        972072908065218560,
+    )
+    @Serverutil.describe(
+        channel="Where was the ad deleted?",
+        reason="What is the reason for the warn?",
+        notes="Add notes if necessary",
+    )
+    @Serverutil.choices()
+    async def adwarn(
         self,
         ctx: Interaction,
         member: Member,
@@ -259,52 +274,62 @@ class warncog(Cog):
         reason: str,
         notes: Optional[str] = None,
     ):
+        await ctx.response.defer()
         if ctx.guild.id == 925790259160166460:
             await self.HA_warn(ctx, member, channel, reason, notes)
         elif ctx.guild.id == 704888699590279221:
             await self.LOA_warn(ctx, member, channel, reason, notes)
 
-    @Serverutil.command(description="Adwarn someone for violating the ad rules")
-    @Serverutil.checks.has_any_role(
-        925790259294396455,
-        925790259319558154,
-        1011971782426767390,
-        980142809094971423,
-        972072908065218560
-    )
-    @Serverutil.describe(
-        channel="Where was the ad deleted?",
-        reason="What is the reason for the warn?",
-        notes="Add notes if necessary",
-    )
-    async def adwarn(
-        self,
-        ctx: Interaction,
-        member: Member,
-        channel: TextChannel,
-        reason: Literal[
-            "Ad has an invalid invite",
-            "Back-to-Back advertising",
-            "Ad has a long description",
-            "Ad contains a public ping or mention",
-            "Ad description is too short",
-            "Ad is an invite reward server",
-            "NSFW ad, imagery or description",
-            "Advertising in wrong channel",
-        ],
-        notes: Optional[str] = None,
-    ):
-        await ctx.response.defer()
-        await self.adwarn_give(ctx, member, channel, reason, notes)
+    @adwarn.autocomplete("reason")
+    async def autocomplete_callback(
+        self, ctx: Interaction, current: str
+    ) -> List[Serverutil.Choice[str]]:
+        if ctx.guild.id == 925790259160166460:
+            reasons = [
+                "Ad has an invalid invite",
+                "Back-to-Back advertising",
+                "Ad contains a public ping or mention",
+                "Ad is an invite reward server",
+                "NSFW ad, imagery or description",
+                "Advertising in wrong channel",
+                "Ad has a short description",
+                "Ad has a long description",
+            ]
+            return [
+                Serverutil.Choice(name=reason, value=reason)
+                for reason in reasons
+                if current.lower() in reason.lower()
+            ]
+        elif ctx.guild.id == 704888699590279221:
+            reasons = [
+                "Ad has an invalid invite",
+                "Back-to-Back advertising",
+                "Ad contains a public ping or mention",
+                "Ad is an invite reward server",
+                "NSFW ad, imagery or description",
+                "Advertising in wrong channel",
+            ]
+            return [
+                Serverutil.Choice(name=reason, value=reason)
+                for reason in reasons
+                if current.lower() in reason.lower()
+            ]
 
-    @Serverutil.command("Remove an adwarn")
-    @Serverutil.describe(member="Which member recieved the adwarn?", warn_id="What is the warn ID you are removing?", reason="What was the reason for removing it?")
-    @Serverutil.checks.has_any_role(925790259319558157,
+    @Serverutil.command(description="Remove an adwarn")
+    @Serverutil.describe(
+        member="Which member recieved the adwarn?",
+        warn_id="What is the warn ID you are removing?",
+        reason="What was the reason for removing it?",
+    )
+    @Serverutil.checks.has_any_role(
+        925790259319558157,
         889019375988916264,
         947109389855248504,
         961433835277516822,
-        919410986249756673)
-    async def remove(self, ctx:Interaction, member:Member, warn_id:int, reason:str):
+        919410986249756673,
+    )
+    async def remove(self, ctx: Interaction, member: Member, warn_id: int, reason: str):
+        await ctx.response.defer()
         warn_data = LOAWarn(user=member, warn_id=warn_id)
 
         if warn_data.check() == None:
@@ -315,17 +340,20 @@ class warncog(Cog):
         else:
             modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
             if ctx.channel.id == 954594959074418738:
-                warn_data.remove()
                 modchannel = await ctx.guild.fetch_channel(745107170827305080)
                 removed = Embed(
                     description=f"Adwarn with Warn ID `{warn_id} has been removed. You now have {warn_data.get_points()} adwarns",
-                    color=Color.random()
+                    color=Color.random(),
                 )
                 removed.add_field(name="Reason", value=reason, inline=False)
+                warn_data.remove()
                 await ctx.followup.send("Adwarn Removed")
                 await modchannel.send(member.mention, embed=removed)
             else:
-                await ctx.followup.send("Please do this command in {}".format(modchannel1.mention))
+                await ctx.followup.send(
+                    "Please do this command in {}".format(modchannel1.mention)
+                )
+
 
 async def setup(bot: Bot):
     await bot.add_cog(warncog(bot), guilds=[Object(hazead), Object(loa)])
