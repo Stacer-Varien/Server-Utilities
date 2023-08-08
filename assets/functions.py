@@ -154,40 +154,40 @@ class LOAWarn:
         return warnpointdata[0] if warnpointdata else 0
 
     def remove(self):
-        data = self.check()
-        if data == None:
-            return None
-        else:
+        mod_id = int(self.check()[3])
+        db.execute(
+            "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
+            (
+                self.warn_id,
+                self.user.id,
+            ),
+        )
+        db.commit()
+
+        db.execute(
+            "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
+            (
+                1,
+                self.user.id,
+            ),
+        )
+        db.commit()
+
+        db.execute(
+            "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
+            (
+                1,
+                mod_id,
+            ),
+        )
+        db.commit()
+
+        if self.get_points() == 0:
             db.execute(
-                "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
-                (
-                    self.warn_id,
-                    self.user.id,
-                ),
+                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
+                (self.user.id,),
             )
             db.commit()
-
-            db.execute(
-                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
-                (
-                    1,
-                    self.user.id,
-                ),
-            )
-            db.commit()
-
-            db.execute(
-                "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
-                (1, int(data[3])),
-            )
-            db.commit()
-
-            if self.get_points() == 0:
-                db.execute(
-                    "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
-                    (self.user.id,),
-                )
-                db.commit()
 
     def get_time(self) -> int:
         timedata = db.execute(
