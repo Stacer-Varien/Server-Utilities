@@ -246,6 +246,7 @@ class warncog(Cog):
                     await view.wait()
 
                     if view.value:
+                        await ctx.edit_original_response(view=None)
                         await ctx.channel.send(
                             embed=Embed(description=mobile_act, color=Color.random())
                         )
@@ -340,13 +341,14 @@ class warncog(Cog):
         else:
             modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
             if ctx.channel.id == 954594959074418738:
+                warn_data.remove()
                 modchannel = await ctx.guild.fetch_channel(745107170827305080)
                 removed = Embed(
-                    description=f"Adwarn with Warn ID `{warn_id} has been removed. You now have {warn_data.get_points()} adwarns",
+                    description=f"Adwarn with Warn ID `{warn_id}` has been removed. You now have {warn_data.get_points()} adwarns",
                     color=Color.random(),
                 )
                 removed.add_field(name="Reason", value=reason, inline=False)
-                warn_data.remove()
+                
                 await ctx.followup.send("Adwarn Removed")
                 await modchannel.send(member.mention, embed=removed)
             else:
