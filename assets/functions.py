@@ -34,6 +34,7 @@ class Appeal:
                 self.user.id,
             ),
         )
+        db.commit()
         db.execute(
             "UPDATE warnDATA_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
             (
