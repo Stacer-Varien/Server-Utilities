@@ -19,13 +19,12 @@ class automodcog(Cog):
                 if not message.author.bot:
                     await message.delete()
                     warn_id = f"{randint(0,100000)}"
-                    appeal_id = f"{randint(0,100000)}"
                     warn_data = Warn(message.author, self.bot.user, warn_id)
 
-                    if warn_data.auto_give(message.channel, appeal_id) == False:
+                    if warn_data.auto_give(message.channel) == False:
                         pass
                     else:
-                        warn_data.auto_give(message.channel, appeal_id)
+                        warn_data.auto_give(message.channel)
                         adwarn_channel = message.guild.get_channel(925790260695281703)
                         reason = f"Incorrectly advertising in {message.channel.mention}"
 
@@ -105,6 +104,7 @@ class automodcog(Cog):
             attachments = bool(message.attachments)
             if attachments == True:
                 if len(message.attachments) > 5:
+                    await message.delete()
                     await message.channel.send(
                         "HEY {}! You are sending too many attachments at once!".format(
                             message.author.mention
