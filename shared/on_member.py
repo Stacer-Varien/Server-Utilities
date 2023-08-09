@@ -1,5 +1,5 @@
 from discord import Embed, Colour, Member
-from discord.ext.commands import Cog
+from discord.ext.commands import Cog, Bot
 
 from assets.functions import Resign
 
@@ -9,7 +9,7 @@ HAZE_ADS = 925790259160166460
 
 
 class MemberCog(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot:Bot):
         self.bot = bot
 
     @Cog.listener()
@@ -24,7 +24,9 @@ class MemberCog(Cog):
                 " **__Special Servers:__**\n"
                 "1. Lead of Advertising: https://discord.gg/gpDcZfF\n"
                 "2. Semi-Erasor https://discord.gg/VhgWsfN8ku\n"
-                "3. Orleans https://discord.gg/Vfa796yvNq"
+                "3. Orleans https://discord.gg/Vfa796yvNq\n"
+                "4. Gremory Castle https://discord.gg/8c9BCXa83S\n"
+                "5. Lead of Technology https://discord.gg/TaAwTzC4p7"
             )
 
             embed = Embed(colour=Colour.blue())
@@ -40,7 +42,7 @@ class MemberCog(Cog):
                 print(f"Failed to send welcome message: {e}")
 
     @Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member:Member):
         try:
             if member.guild.id == HAZE_ADS:
                 channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
@@ -59,5 +61,5 @@ class MemberCog(Cog):
         except Exception as e:
             print(f"Error: {e}")
 
-async def setup(bot):
+async def setup(bot:Bot):
     await bot.add_cog(MemberCog(bot))
