@@ -188,7 +188,7 @@ class appealcog(GroupCog, name="appeal"):
             )
         else:
             modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
-            if ctx.channel.id == 954594959074418738 or ctx.xhannel.id == 1112136237034246205:
+            if ctx.channel.id == 954594959074418738 or ctx.channel.id == 1112136237034246205:
                 warn_data.remove()
                 modchannel = await ctx.guild.fetch_channel(745107170827305080)
                 appealed = Embed(
@@ -213,11 +213,16 @@ class appealcog(GroupCog, name="appeal"):
 
     @serverutil.command(description="Approve an appeal")
     @serverutil.checks.has_any_role(
+        925790259319558159,
+        925790259319558158,
         925790259319558157,
+        1011971782426767390,
+        925790259319558154,
         889019375988916264,
+        749608853376598116,
+        919410986249756673,
         947109389855248504,
-        961433835277516822,
-        919410986249756673
+        849778145087062046
     )
     @serverutil.describe(warn_id="Insert the warn_id ID shown from the member's appeal")
     async def approve(self, ctx: Interaction, member: Member, warn_id: int):
