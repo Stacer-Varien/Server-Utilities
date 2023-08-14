@@ -422,7 +422,7 @@ class Strike:
 
     def give(self):
         data = db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 0)",
+            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 1)",
             (
                 self.department,
                 self.member.id,
