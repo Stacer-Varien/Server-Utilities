@@ -22,11 +22,10 @@ class MemberCog(Cog):
                 "<#925790259877412876> and <#925790259877412883> so you don't get in trouble."
                 " Now please, enjoy your stay and start advertising yourself!\n\n"
                 " **__Special Servers:__**\n"
-                "1. Lead of Advertising: https://discord.gg/gpDcZfF\n"
-                "2. Semi-Erasor https://discord.gg/VhgWsfN8ku\n"
-                "3. Orleans https://discord.gg/Vfa796yvNq\n"
-                "4. Gremory Castle https://discord.gg/8c9BCXa83S\n"
-                "5. Lead of Technology https://discord.gg/TaAwTzC4p7"
+                "1. Orleans https://discord.gg/Vfa796yvNq\n"
+                "2. Lead of Advertising: https://discord.gg/gpDcZfF\n"                
+                "3. Gremory Castle https://discord.gg/8c9BCXa83S\n"
+                "4. Lead of Technology https://discord.gg/TaAwTzC4p7"
             )
 
             embed = Embed(colour=Colour.blue())
