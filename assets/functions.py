@@ -431,8 +431,9 @@ class Strike:
         db.commit()
         if data.rowcount == 0:
             db.execute(
-                "UPDATE strikeData SET count = count + 1 WHERE department = ? AND user_id = ?",
+                "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
                 (
+                	1,
                     self.department,
                     self.member.id,
                 ),
@@ -655,7 +656,7 @@ class Resign:
     def __init__(self, member: User):
         self.member = member
 
-    def apply(self, leaving: bool):
+    def apply(self, leaving: bool = None):
         leave = 1 if leaving == True else 0
 
         db.execute(
