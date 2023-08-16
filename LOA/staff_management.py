@@ -440,32 +440,32 @@ class resigncog(GroupCog, name="resign"):
     async def apply(
         self,
         ctx: Interaction,
-        department: Literal["Core Team", "Management", "Marketing", "Human Resource"],
+        department: Literal[
+            "Core Team", "Management", "Marketing", "Human Resource", "Moderator"
+        ],
         reason: str,
         planning_to_leave: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
         Resign(ctx.user).apply(planning_to_leave)
 
-        channel = await self.bot.fetch_channel(1002513633760260166)
+        channel = await ctx.guild.fetch_channel(1002513633760260166)
 
         request = Embed(
             title="Resignation request of {} | {}".format(ctx.user, ctx.user.id),
-            color=ctx.user.color,
+            color=Color.random(),
         )
         request.add_field(name="Department", value=department, inline=False)
         request.add_field(name="Reason of Resigning", value=reason, inline=False)
-        if planning_to_leave:
-            if planning_to_leave == True:
-                request.add_field(name="Plans to leave LSS", value="Yes", inline=False)
-            else:
-                request.add_field(name="Plans to leave LSS", value="No", inline=False)
+        if planning_to_leave == False or planning_to_leave == None:
+            request.add_field(name="Plans to leave LSS", value="No", inline=False)
+        else:
+            request.add_field(name="Plans to leave LSS", value="Yes", inline=False)
         request.set_footer(
             text="To accept or deny the resignation, use `/resign approve MEMBER` or `/resign deny MEMBER`"
         )
-
-        await ctx.followup.send("Your resignation has been requested")
         await channel.send(embed=request)
+        await ctx.followup.send("Your resignation has been requested")
 
     @Serverutil.command(description="Approve a resignation")
     @Serverutil.checks.has_any_role(core_team, chr, coo)
@@ -473,11 +473,13 @@ class resigncog(GroupCog, name="resign"):
         self,
         ctx: Interaction,
         member: Member,
-        department: Literal["Core Team", "Management", "Marketing", "Human Resource", "Moderator"],
+        department: Literal[
+            "Core Team", "Management", "Marketing", "Human Resource", "Moderator", "All"
+        ],
         leaving: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
-        channel = self.bot.get_channel(841672222136991757)
+        channel = await ctx.guild.fetch_channel(841672222136991757)
         resign = Resign(member)
         if leaving == None or leaving == False:
             leaving = 0
