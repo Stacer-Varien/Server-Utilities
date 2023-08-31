@@ -16,7 +16,7 @@ class YTNotifier(commands.Cog):
         self.konekovibes.start()
         self.whitephoenix.start()
 
-    @tasks.loop(minutes=5, reconnect=True)
+    @tasks.loop(minutes=5)
     async def konekovibes(self):
         print(f"Now Checking For {CHANNEL_ID_1}")
         youtube=YouTube(CHANNEL_ID_1)
@@ -41,7 +41,7 @@ class YTNotifier(commands.Cog):
                 webhook.send(msg)
                 print(f"{latest_video_url} found and posted")
 
-    @tasks.loop(minutes=5, reconnect=True)
+    @tasks.loop(minutes=5)
     async def whitephoenix(self):
         print(f"Now Checking For {CHANNEL_ID_2}")
         youtube=YouTube(CHANNEL_ID_2)
@@ -52,7 +52,7 @@ class YTNotifier(commands.Cog):
 
         latest_video = youtube.get_latest_vid()
 
-        if latest_video is None:
+        if latest_video == None:
             return
 
         if latest_video != latest_video_url:

@@ -660,7 +660,7 @@ class Resign:
         leave = 1 if leaving == True else 0
 
         db.execute(
-            "INSERT OR IGNORE INTO resignData (user_id, accepted, leave) VALUES (?, ?, ?)",
+            "INSERT OR IGNORE INTO resignData (user_id, accepted, leaving) VALUES (?, ?, ?)",
             (
                 self.member.id,
                 0,
