@@ -1,10 +1,19 @@
-from discord import Interaction, Object, app_commands
-from discord.ext.commands import Cog, Bot
 import traceback
+
+from discord import (
+    Interaction,
+    Object,
+    app_commands,
+    NotFound,
+    Forbidden,
+    HTTPException,
+)
+from discord.ext.commands import Cog, Bot
+
 from config import lss, hazead, orleans, loa
 
 
-class errors(Cog):
+class Errors(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.bot.on_app_command_error = self.on_app_command_error
@@ -14,6 +23,7 @@ class errors(Cog):
         self, ctx: Interaction, error: app_commands.errors.AppCommandError
     ):
         if isinstance(error, app_commands.errors.CommandInvokeError):
+            # noinspection PyTypeChecker
             traceback_error = traceback.format_exception(
                 error, error, error.__traceback__
             )
@@ -23,12 +33,12 @@ class errors(Cog):
         try:
             thread = await self.bot.fetch_channel(1078749692457930842)
             await thread.send(f"```{''.join(traceback_error)}```")
-        except:
+        except (NotFound, Forbidden, HTTPException):
             return
 
 
 async def setup(bot: Bot):
     await bot.add_cog(
-        errors(bot),
+        Errors(bot),
         guilds=[Object(id=lss), Object(id=hazead), Object(id=orleans), Object(id=loa)],
     )
