@@ -3,17 +3,16 @@ from discord.ext.commands import Cog, Bot
 
 from assets.functions import Resign
 
-
 WELCOME_CHANNEL_ID = 925790259877412877
 HAZE_ADS = 925790259160166460
 
 
 class MemberCog(Cog):
-    def __init__(self, bot:Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     @Cog.listener()
-    async def on_member_join(self, member:Member):
+    async def on_member_join(self, member: Member):
         if member.guild.id == HAZE_ADS:
             channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
             welcome = (
@@ -23,7 +22,7 @@ class MemberCog(Cog):
                 " Now please, enjoy your stay and start advertising yourself!\n\n"
                 " **__Special Servers:__**\n"
                 "1. Orleans https://discord.gg/Vfa796yvNq\n"
-                "2. Lead of Advertising: https://discord.gg/gpDcZfF\n"                
+                "2. Lead of Advertising: https://discord.gg/gpDcZfF\n"
                 "3. Gremory Castle https://discord.gg/8c9BCXa83S\n"
                 "4. Lead of Technology https://discord.gg/TaAwTzC4p7"
             )
@@ -41,7 +40,7 @@ class MemberCog(Cog):
                 print(f"Failed to send welcome message: {e}")
 
     @Cog.listener()
-    async def on_member_remove(self, member:Member):
+    async def on_member_remove(self, member: Member):
         try:
             if member.guild.id == HAZE_ADS:
                 channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
@@ -60,5 +59,6 @@ class MemberCog(Cog):
         except Exception as e:
             print(f"Error: {e}")
 
-async def setup(bot:Bot):
+
+async def setup(bot: Bot):
     await bot.add_cog(MemberCog(bot))
