@@ -3,7 +3,7 @@ from discord.ext.commands import Bot
 
 
 class Strike_Appeal(ui.Modal, title="Strike Appeal Form"):
-    def __init__(self, bot: Bot, department:str):
+    def __init__(self, bot: Bot, department: str):
         super().__init__()
         self.bot = bot
         self.department = department
