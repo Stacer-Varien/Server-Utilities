@@ -1,3 +1,8 @@
+from os import execv
+from sys import executable, argv
+from typing import Literal, Optional
+
+from discord import Embed, File, Game, Activity, Object, ActivityType, HTTPException
 from discord.ext.commands import (
     Cog,
     Bot,
@@ -8,10 +13,6 @@ from discord.ext.commands import (
     Greedy,
     command,
 )
-from discord import Embed, File, Game, Activity, Object, ActivityType, HTTPException
-from os import execv
-from sys import executable, argv
-from typing import Literal, Optional
 
 
 def restart_bot():
@@ -94,15 +95,15 @@ class ownercog(Cog):
                 ret += 1
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
-    
+
     @command(aliases=["db", "database"])
     @is_owner()
-    async def senddb(self, ctx:Context):
-        with open('database.db', 'rb') as file:
+    async def senddb(self, ctx: Context):
+        with open("database.db", "rb") as file:
             try:
                 await ctx.author.send(file=File(file))
             except:
-                content="""
+                content = """
 # ERROR!
 ## Failed to send database! 
         
