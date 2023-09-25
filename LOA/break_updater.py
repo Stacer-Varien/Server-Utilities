@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from discord.ext import tasks, commands
+
 from assets.functions import Break
 
 
@@ -29,9 +31,13 @@ class BreakUpdater(commands.Cog):
                         member = guild.get_member(int(a[0]))
 
                         if member is not None:
-                            await member.remove_roles(break_role, reason="Break has ended")
+                            await member.remove_roles(
+                                break_role, reason="Break has ended"
+                            )
                             Break(member).remove()
-                            await break_channel.send(f"{member.mention}, your break has ended")
+                            await break_channel.send(
+                                f"{member.mention}, your break has ended"
+                            )
                 except Exception:
                     continue
         except Exception as e:
