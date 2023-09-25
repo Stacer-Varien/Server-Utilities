@@ -1,4 +1,3 @@
-import os
 from discord import (
     Color,
     Embed,
@@ -9,6 +8,7 @@ from discord import (
     app_commands as Serverutil,
 )
 from discord.ext.commands import GroupCog, Bot
+
 from assets.functions import Partner
 from config import hazead, orleans
 
