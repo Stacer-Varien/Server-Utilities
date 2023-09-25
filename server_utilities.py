@@ -1,6 +1,8 @@
 from os import listdir
+
 from discord import Intents, Object
 from discord.ext.commands import Bot, when_mentioned_or
+
 from config import TOKEN, lss, loa, orleans, hazead
 
 intents = Intents().all()
