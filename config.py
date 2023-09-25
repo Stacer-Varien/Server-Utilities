@@ -1,5 +1,6 @@
 from os import getenv
 from sqlite3 import connect
+
 from dotenv import load_dotenv
 
 load_dotenv()
