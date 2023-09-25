@@ -1,10 +1,12 @@
+from datetime import timedelta
+from random import randint
+
 from discord import Color, Embed, Message
 from discord.ext.commands import Cog, Bot
-from assets.functions import Warn, LOAMod
-from assets.buttons import Confirmation
-from random import randint
-from datetime import timedelta
 from discord.utils import utcnow
+
+from assets.buttons import Confirmation
+from assets.functions import Warn, LOAMod
 from assets.not_allowed import no_invites, no_nsfw_spam, not_allowed_nsfw
 
 
@@ -143,7 +145,9 @@ class automodcog(Cog):
 
                 if view.value == True:
                     data.add_wick_action_point()
-                    embed = Embed(title=f"Wick {action} command used", color=Color.blue())
+                    embed = Embed(
+                        title=f"Wick {action} command used", color=Color.blue()
+                    )
                     embed.add_field(
                         name="Used by",
                         value=f"{message.author.mention} | {message.author} | {message.author.id}",
