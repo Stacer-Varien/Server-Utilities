@@ -1,6 +1,8 @@
+from datetime import datetime
+
 from discord import Embed
 from discord.ext import tasks, commands
-from datetime import datetime
+
 from assets.functions import Plans
 
 
@@ -69,10 +71,11 @@ class PlanUpdaterCog(commands.Cog):
     @update_plans_loa.before_loop
     async def before_update_plans_loa(self):
         await self.bot.wait_until_ready()
-    
+
     @update_plans_ha.before_loop
     async def before_update_plans_ha(self):
         await self.bot.wait_until_ready()
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(PlanUpdaterCog(bot))
