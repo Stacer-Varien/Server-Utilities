@@ -1,5 +1,5 @@
-import platform
 import os
+import platform
 
 pip = "install -U pip"
 packages = "install -U discord requests python-dotenv humanfriendly datetime tabulate git+https://github.com/Gorialis/jishaku"
