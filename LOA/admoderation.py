@@ -6,8 +6,9 @@ from discord import (
     app_commands as Serverutil,
 )
 from discord.ext.commands import Bot, GroupCog
-from config import lss
+
 from assets.functions import LOAMod
+from config import lss
 
 
 class LOAmodCog(GroupCog, name="moderation"):
@@ -36,7 +37,7 @@ class LOAmodCog(GroupCog, name="moderation"):
         1074770253294342144,
         1074770323293085716,
         1076650317392916591,
-        949147509660483614
+        949147509660483614,
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
@@ -51,13 +52,17 @@ class LOAmodCog(GroupCog, name="moderation"):
             await ctx.followup.send("Moderator checks for last week have been reseted")
 
     @_stats.error
-    async def _stats_error(self, ctx: Interaction, error: Serverutil.errors.AppCommandError):
+    async def _stats_error(
+        self, ctx: Interaction, error: Serverutil.errors.AppCommandError
+    ):
         if isinstance(error, Serverutil.errors.MissingAnyRole):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
 
     @_reset.error
-    async def _reset_error(self, ctx: Interaction, error: Serverutil.errors.AppCommandError):
+    async def _reset_error(
+        self, ctx: Interaction, error: Serverutil.errors.AppCommandError
+    ):
         if isinstance(error, Serverutil.errors.MissingAnyRole):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
