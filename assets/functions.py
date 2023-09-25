@@ -1,15 +1,26 @@
-from datetime import date, datetime, timedelta
 import os
-from discord import Color, Embed, Guild, Interaction, Member, TextChannel, User
-from assets.not_allowed import no_invites, no_pings
-from config import db
+from datetime import date, datetime, timedelta
 from typing import Optional
+
+from discord import (
+    Color,
+    Embed,
+    Guild,
+    Interaction,
+    Member,
+    TextChannel,
+    User,
+    Forbidden,
+)
 from discord.ext.commands import Bot
 from tabulate import tabulate
 
+from assets.not_allowed import no_invites, no_pings
+from config import db
+
 
 class Appeal:
-    def __init__(self, user: User, warn_id: int):
+    def __init__(self, user: Member, warn_id: int):
         self.user = user
         self.warn_id = warn_id
 
@@ -21,10 +32,7 @@ class Appeal:
                 self.warn_id,
             ),
         ).fetchone()
-        if data == None:
-            return None
-        else:
-            return data
+        return data if data else None
 
     def remove(self):
         db.execute(
@@ -46,7 +54,9 @@ class Appeal:
 
 
 class LOAWarn:
-    def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
+    def __init__(
+        self, user: Member, moderator: User = None, warn_id: int = None
+    ) -> None:
         self.user = user
         self.moderator = moderator
         self.warn_id = warn_id
@@ -66,13 +76,13 @@ class LOAWarn:
 
         return data if data else None
 
-    def give(self, channel: TextChannel, reason: str):
+    async def give(self, channel: TextChannel, reason: str):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ?", (self.user.id,)
         ).fetchone()
         db.commit()
-        data2 = db.execute(
-            "SELECT * FROM loaAdwarnData_v2 WHERE user_id= ?", (self.user.id,)
+        warntime = db.execute(
+            "SELECT time FROM loaAdwarnData_v2 WHERE user_id= ?", (self.user.id,)
         ).fetchone()
         db.commit()
         start = int(self.monday.strftime("%d%m%Y"))
@@ -80,7 +90,7 @@ class LOAWarn:
         current_time = datetime.now()
         next_warn = current_time + timedelta(minutes=45)
 
-        if data == None:
+        if data is None:
             db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
                 (
@@ -92,7 +102,7 @@ class LOAWarn:
             )
             db.commit()
 
-            db.execute(
+            datav2 = db.execute(
                 "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
                 (
                     self.user.id,
@@ -102,7 +112,18 @@ class LOAWarn:
             )
             db.commit()
 
-            data = db.execute(
+            if datav2.rowcount == 0:
+                db.execute(
+                    "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
+                    (
+                        1,
+                        round(next_warn.timestamp()),
+                        self.user.id,
+                    ),
+                )
+                db.commit()
+
+            datav3 = db.execute(
                 "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
                 (
                     self.moderator.id,
@@ -113,7 +134,7 @@ class LOAWarn:
             )
             db.commit()
 
-            if data.rowcount == 0:
+            if datav3.rowcount == 0:
                 db.execute(
                     "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
                     (
@@ -123,7 +144,7 @@ class LOAWarn:
                 )
                 db.commit()
 
-        elif int(data2[2]) < round(current_time.timestamp()):
+        elif int(warntime[0]) < round(current_time.timestamp()):
             db.execute(
                 "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
                 (
@@ -142,8 +163,7 @@ class LOAWarn:
                 ),
             )
             db.commit()
-
-        elif int(data2[2]) > round(current_time.timestamp()):
+        elif int(warntime[0]) > round(current_time.timestamp()):
             return False
 
     def get_points(self) -> int:
@@ -229,7 +249,8 @@ class LOAMod:
         else:
             return False
 
-    async def checks(self, bot: Bot):
+    @staticmethod
+    async def checks(bot: Bot):
         data = db.execute("SELECT * FROM LOAwarnData_v3").fetchall()
         db.commit()
         mods = []
@@ -265,7 +286,9 @@ class LOAMod:
 
 
 class Warn:
-    def __init__(self, user: User, moderator: User = None, warn_id: int = None) -> None:
+    def __init__(
+        self, user: Member, moderator: User = None, warn_id: int = None
+    ) -> None:
         self.user = user
         self.moderator = moderator
         self.warn_id = warn_id
@@ -294,7 +317,7 @@ class Warn:
         next_warn = current_time + timedelta(hours=1)
 
         reason = f"Incorrectly advertising in {channel.mention}"
-        if data == None:
+        if data is None:
             db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
                 (
@@ -347,7 +370,7 @@ class Warn:
         db.commit()
         current_time = datetime.now()
         next_warn = current_time + timedelta(hours=1)
-        if data == None:
+        if data is None:
             db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
                 (
@@ -433,7 +456,7 @@ class Strike:
             db.execute(
                 "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
                 (
-                	1,
+                    1,
                     self.department,
                     self.member.id,
                 ),
@@ -487,22 +510,16 @@ class Partner:
         self.user = user
         self.server = server
 
-    def check(self):
+    def check(self) -> bool | None:
         if self.server.id == 740584420645535775:
             path = "/partnerships/orleans/{}.txt".format(self.user.id)
             check = os.path.exists(path)
-            if check == True:
-                return True
-            else:
-                return None
+            return True if check else None
 
         elif self.server.id == 925790259160166460:
             path = "/partnerships/hazeads/{}.txt".format(self.user.id)
             check = os.path.exists(path)
-            if check == True:
-                return True
-            else:
-                return None
+            return True if check else None
 
     async def approve(self, ctx: Interaction):
         if self.server.id == 740584420645535775:
@@ -540,16 +557,17 @@ class Partner:
                 f"Your partnership request was denied because:\n{reason}"
             )
             msg = "Partnership denied AND reason sent"
-        except:
+        except Forbidden:
             msg = "Partnership denied"
-        return await ctx.followup.send(msg)
+        await ctx.followup.send(msg)
 
 
 class Break:
     def __init__(self, member: Optional[User] = None) -> None:
         self.member = member
 
-    def check_breaks(self):
+    @staticmethod
+    def check_breaks():
         data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
         db.commit()
         return data
@@ -657,7 +675,7 @@ class Resign:
         self.member = member
 
     def apply(self, leaving: bool = None):
-        leave = 1 if leaving == True else 0
+        leave = 1 if (leaving is True) else 0
 
         db.execute(
             "INSERT OR IGNORE INTO resignData (user_id, accepted, leaving) VALUES (?, ?, ?)",
@@ -704,7 +722,7 @@ class Resign:
             ),
         ).fetchone()
 
-        if check_accepted == None:  # if they just left without requesting for resigning
+        if check_accepted is None:  # if they just left without requesting for resigning
             no_resign = Embed(
                 title=f"{self.member} ({self.member.id}) left the server",
                 color=Color.red(),
