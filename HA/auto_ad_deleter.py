@@ -2,7 +2,7 @@ from discord.ext import tasks
 from discord.ext.commands import Cog, Bot
 
 
-class timerrule(Cog):
+class TimeRule(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self._5min_rule.start()
@@ -20,4 +20,4 @@ class timerrule(Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(timerrule(bot))
+    await bot.add_cog(TimeRule(bot))
