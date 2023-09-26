@@ -4,7 +4,6 @@ from discord.ext.commands import Cog, Bot
 
 from assets.applications import AppButtons
 
-
 class ApplicationCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
