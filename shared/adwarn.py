@@ -19,7 +19,6 @@ from assets.buttons import MobileView
 from assets.functions import LOAWarn, Warn
 from config import hazead, loa
 
-
 class WarnCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -109,7 +108,7 @@ class WarnCog(Cog):
                                 text="To appeal for your ban, join with this invite code: qZFhxyhTQh"
                             )
                             await member.send(embed=ban_msg)
-                        except:
+                        except Forbidden:
                             pass
                         await member.kick(reason="Kick punishment applied")
                     result = action[1]
