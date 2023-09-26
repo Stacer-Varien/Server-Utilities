@@ -14,14 +14,14 @@ operationmanager = 841671956999045141
 loa_staff_team = 706750926320566345
 
 
-class plancog(GroupCog, name="plan"):
+class PlanCog(GroupCog, name="plan"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
     @Serverutil.command(description="Add a plan a member claimed")
     @Serverutil.describe(ends="Example: 1m (1 minute), 3w (3 weeks), 2y (2 years)")
     @Serverutil.checks.has_any_role(planmanager, operationmanager, loa_staff_team)
-    async def add(self, ctx: Interaction, member: Member, ends: str, plan: str):
+    async def add(self, ctx: Interaction, buyer: Member, ends: str, plan: str):
         await ctx.response.defer(ephemeral=True)
         today = datetime.now()
         ending_time = today + timedelta(seconds=parse_timespan(ends))
@@ -35,13 +35,13 @@ class plancog(GroupCog, name="plan"):
             plan_log_channel_id = 990246941029990420
 
         Plans(guild_id).add(
-            member, round(ending_time.timestamp()), plan, ctx.user, plan_id
+            buyer, round(ending_time.timestamp()), plan, ctx.user, plan_id
         )
 
         plan_log_channel = self.bot.get_channel(plan_log_channel_id)
         planned = Embed(title="New Plan", color=Color.blue())
         planned.add_field(
-            name=str(member),
+            name=str(buyer),
             value=(
                 f"**Plan Started:** <t:{round(today.timestamp())}:R>\n"
                 f"**Plan:** {plan}\n"
@@ -71,11 +71,11 @@ class plancog(GroupCog, name="plan"):
             await ctx.followup.send("Invalid Plan ID.")
 
         else:
-            plan.remove(plan_id)
+            plan.remove(plan_id=plan_id)
             await ctx.followup.send("Plan removed")
 
 
 async def setup(bot: Bot):
     await bot.add_cog(
-        plancog(bot), guilds=[Object(id=hazead), Object(id=loa), Object(id=lss)]
+        PlanCog(bot), guilds=[Object(id=hazead), Object(id=loa), Object(id=lss)]
     )
