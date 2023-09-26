@@ -4,7 +4,6 @@ from discord.ext import tasks, commands
 
 from assets.functions import Break
 
-
 class BreakUpdater(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
