@@ -29,7 +29,7 @@ class YTNotifier(commands.Cog):
 
             latest_video = youtube.get_latest_vid()
 
-            if latest_video == None:
+            if latest_video is None:
                 return
 
             if latest_video != latest_video_url:
