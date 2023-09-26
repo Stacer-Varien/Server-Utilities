@@ -18,7 +18,6 @@ from tabulate import tabulate
 from assets.not_allowed import no_invites, no_pings
 from config import db
 
-
 class Appeal:
     def __init__(self, user: Member, warn_id: int):
         self.user = user
@@ -463,7 +462,7 @@ class Strike:
             )
             db.commit()
 
-    def counts(self)->int:
+    def counts(self) -> int:
         data = db.execute(
             "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
             (
@@ -569,7 +568,7 @@ class Break:
         self.member = member
 
     @staticmethod
-    def check_breaks()->list|None:
+    def check_breaks() -> list | None:
         data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
         db.commit()
         return data if data else None
@@ -754,7 +753,7 @@ class Plans:
     def __init__(self, server: int):
         self.server = server
 
-    def add(self, user: User, until: int, plan: str, claimee: User, plan_id: int):
+    def add(self, user: Member, until: int, plan: str, claimee: User, plan_id: int):
         db.execute(
             "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
             (
@@ -780,7 +779,7 @@ class Plans:
 
         return data if data else None
 
-    def check(self):
+    def check(self)->list|None:
         data = db.execute(
             "SELECT * FROM planData WHERE server_id = ?", (self.server,)
         ).fetchall()
