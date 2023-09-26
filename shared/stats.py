@@ -10,7 +10,6 @@ from discord.ext.commands import Cog, Bot, GroupCog
 
 from config import lss, hazead, loa, orleans
 
-format = "%a, %d %b %Y | %H:%M:%S"
 start_time = time()
 
 
@@ -20,7 +19,7 @@ def replace_all(text: str, dic: dict):
     return text
 
 
-class slashinfo(Cog):
+class InfoCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -78,7 +77,7 @@ class slashinfo(Cog):
                 ("%botav%", str(bot.display_avatar)),
             ]
         )
-        if bot.bot == True:
+        if bot.bot:
             try:
                 json = loads(replace_all(content, parms))
 
@@ -91,7 +90,7 @@ class slashinfo(Cog):
         await ctx.followup.send("This is a user account, not a bot account")
 
 
-class botpro(GroupCog, name="bot"):
+class BotTosCog(GroupCog, name="bot"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -116,7 +115,7 @@ Even though Server Utilities's repository is public and free to use for educatio
         await ctx.response.send_message(embed=embed, delete_after=180)
 
     @Serverutil.command(name="license", description="View the licenses of the bot")
-    async def license(sefl, ctx: Interaction):
+    async def license(self, ctx: Interaction):
         content = """
 Conditioned MIT License
 
@@ -180,10 +179,10 @@ Licensor: Stacer-Varien
 
 async def setup(bot: Bot):
     await bot.add_cog(
-        slashinfo(bot),
+        InfoCog(bot),
         guilds=[Object(id=lss), Object(id=hazead), Object(id=orleans), Object(id=loa)],
     )
     await bot.add_cog(
-        botpro(bot),
+        BotTosCog(bot),
         guilds=[Object(id=lss), Object(id=hazead), Object(id=orleans), Object(id=loa)],
     )
