@@ -438,12 +438,12 @@ def check_illegal_mentions(message, channel: int):
 
 class Strike:
     def __init__(
-        self, department: Optional[str] = None, member: Optional[User] = None
+        self, department: Optional[str] = None, member: Optional[Member] = None
     ) -> None:
         self.department = department
         self.member = member
 
-    def give(self):
+    async def give(self):
         data = db.execute(
             "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 1)",
             (
@@ -463,7 +463,7 @@ class Strike:
             )
             db.commit()
 
-    def counts(self):
+    def counts(self)->int:
         data = db.execute(
             "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
             (
@@ -471,8 +471,9 @@ class Strike:
                 self.member.id,
             ),
         ).fetchone()
+        db.commit()
 
-        return data[0] if data else 0
+        return int(data[0]) if data else 0
 
     def check(self):
         data = db.execute(
@@ -483,9 +484,9 @@ class Strike:
             ),
         ).fetchone()
 
-        return data
+        return data if data else None
 
-    def revoke(self):
+    async def revoke(self):
         db.execute(
             "UPDATE strikeData SET count = count - 1 WHERE department = ? AND user_id = ?",
             (
@@ -493,6 +494,7 @@ class Strike:
                 self.member.id,
             ),
         )
+        db.commit()
 
         if self.counts() == 0:
             db.execute(
@@ -502,7 +504,7 @@ class Strike:
                     self.member.id,
                 ),
             )
-        db.commit()
+            db.commit()
 
 
 class Partner:
@@ -563,20 +565,20 @@ class Partner:
 
 
 class Break:
-    def __init__(self, member: Optional[User] = None) -> None:
+    def __init__(self, member: Optional[Member] = None) -> None:
         self.member = member
 
     @staticmethod
-    def check_breaks():
+    def check_breaks()->list|None:
         data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
         db.commit()
-        return data
+        return data if data else None
 
-    def remove(self):
+    async def remove(self):
         db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
-    def cancel(self, server: int):
+    async def cancel(self, server: int):
         approved = self.check(server)
         if approved[4] == 0:
             db.execute(
@@ -588,7 +590,7 @@ class Break:
             )
             db.commit()
 
-    def add_request(
+    async def add_request(
         self,
         server: int,
         duration: str,
@@ -636,7 +638,7 @@ class Break:
         ).fetchone()
         return data if data else None
 
-    def approve(self, server: int, start: int, ends: int):
+    async def approve(self, server: int, start: int, ends: int):
         db.execute(
             "UPDATE breakData SET accepted = ?, start = ?, ends = ? WHERE user_id = ? AND guild_id = ?",
             (
@@ -649,7 +651,7 @@ class Break:
         )
         db.commit()
 
-    def deny(self, server: int):
+    async def deny(self, server: int):
         db.execute(
             "DELETE FROM breakData WHERE user_id = ? AND guild_id = ?",
             (
@@ -659,7 +661,7 @@ class Break:
         )
         db.commit()
 
-    def end(self, server: int):
+    async def end(self, server: int):
         db.execute(
             "DELETE FROM breakData WHERE user_id = ? AND guild_id = ?",
             (
@@ -671,7 +673,7 @@ class Break:
 
 
 class Resign:
-    def __init__(self, member: User):
+    def __init__(self, member: Member):
         self.member = member
 
     def apply(self, leaving: bool = None):
@@ -687,7 +689,7 @@ class Resign:
         )
         db.commit()
 
-    def check(self, leaving: int):
+    def check(self, leaving: Optional[int]):
         data = db.execute(
             "SELECT * FROM resignData WHERE user_id = ? AND leaving = ?",
             (
@@ -699,7 +701,7 @@ class Resign:
 
         return data if data else None
 
-    def approve(self):
+    async def approve(self):
         db.execute(
             "UPDATE resignData SET accepted = ? WHERE user_id = ?",
             (
@@ -709,7 +711,7 @@ class Resign:
         )
         db.commit()
 
-    def deny(self):
+    async def deny(self):
         db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
         db.commit()
 
