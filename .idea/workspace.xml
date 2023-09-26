@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="653381f4-7dc7-49f2-8d00-38972dc51368" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HA/staff_app_tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/HA/staff_app_tasks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LOA/admoderation.py" beforeDir="false" afterPath="$PROJECT_DIR$/LOA/admoderation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LOA/break_updater.py" beforeDir="false" afterPath="$PROJECT_DIR$/LOA/break_updater.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LOA/staff_management.py" beforeDir="false" afterPath="$PROJECT_DIR$/LOA/staff_management.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/buttons.py" beforeDir="false" afterPath="$PROJECT_DIR$/assets/buttons.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/assets/functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/adwarn.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/adwarn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/appeal.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/appeal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/error.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/error.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/on_message.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/on_message.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/owner.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/owner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/plan_updater.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/plan_updater.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/plans.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/plans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/stats.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/stats.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2VtNutrH3KD79hEWiGrb9497pOm" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/Varien/Downloads/doki-theme.15.0.0.zip",
+    "settings.editor.selected.configurable": "preferences.keymap"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="653381f4-7dc7-49f2-8d00-38972dc51368" name="Changes" comment="" />
+      <created>1695651649250</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1695651649250</updated>
+    </task>
+    <servers />
+  </component>
+</project>
