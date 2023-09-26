@@ -5,7 +5,7 @@ from discord.ext.commands import Cog, Bot
 from assets.applications import AppButtons
 
 
-class application(Cog):
+class ApplicationCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.reload_apps.start()
@@ -26,4 +26,4 @@ class application(Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(application(bot))
+    await bot.add_cog(ApplicationCog(bot))
