@@ -2,14 +2,14 @@ from discord import ui, TextStyle, Interaction, Embed
 from discord.ext.commands import Bot
 
 
-class Strike_Appeal(ui.Modal, title="Strike Appeal Form"):
+class StrikeAppeal(ui.Modal, title="Strike Appeal Form"):
     def __init__(self, bot: Bot, department: str):
         super().__init__()
         self.bot = bot
         self.department = department
 
     strike_appeal = ui.TextInput(
-        label="Reason for appealling strike",
+        label="Reason for appealing strike",
         min_length=4,
         max_length=1024,
         required=True,
@@ -36,6 +36,6 @@ class Strike_Appeal(ui.Modal, title="Strike Appeal Form"):
 
         await channel.send(embed=embed)
         await ctx.response.send_message(
-            "Your strike appeal has been logged. Please wait for the appropriate staff to decide if its approvable or not.\nThank you",
+            "Your strike appeal has been logged. Please wait for the appropriate staff to decide if it can be approved or not.\nThank you",
             ephemeral=True,
         )
