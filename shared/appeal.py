@@ -34,20 +34,20 @@ class AppealCog(GroupCog, name="appeal"):
             def check(m: Message):
                 attachments = bool(m.attachments)
                 content = bool(m.content)
-                if attachments == True:
-                    if content == True:
+                if attachments is True:
+                    if content is True:
                         return m.author == ctx.user and m.content and m.attachments
-                    elif content == True:
+                    if content is True:
                         return m.author == ctx.user and m.content
-                    elif attachments == True:
+                    if attachments is True:
                         return m.author == ctx.user and m.attachments
-                    elif attachments == True and content == False:
+                    if attachments is True and content is False:
                         return m.author == ctx.user and m.attachments
-                elif content == True:
+                if content is True:
                     return m.author == ctx.user and m.content
-                elif attachments == True:
+                if attachments is True:
                     return m.author == ctx.user and m.attachments
-                elif attachments == True and content == False:
+                if attachments is True and content is False:
                     return m.author == ctx.user and m.attachments
 
             try:
@@ -79,11 +79,11 @@ class AppealCog(GroupCog, name="appeal"):
                     await appeal_log.send(
                         "{}\n{}".format(msg.content, images), embed=appeal
                     )
-                except:
+                except Exception:
                     await appeal_log.send(msg.content, embed=appeal)
-            except:
+            except TimeoutError:
                 await ctx.user.send("You have ran out of time. Please try again.")
-        except:
+        except Forbidden:
             await ctx.followup.send(
                 "Please open your DMs to start the appeal process", ephemeral=True
             )
@@ -110,13 +110,13 @@ class AppealCog(GroupCog, name="appeal"):
             def check(m: Message):
                 attachments = bool(m.attachments)
                 content = bool(m.content)
-                if attachments == True and content == True:
+                if attachments is True and content is True:
                     return m.author == ctx.user and m.content and m.attachments
-                elif content == True:
+                if content is True:
                     return m.author == ctx.user and m.content
-                elif attachments == True:
+                if attachments is True:
                     return m.author == ctx.user and m.attachments
-                elif attachments == True and content == False:
+                if attachments is True and content is False:
                     return m.author == ctx.user and m.attachments
 
             try:
@@ -147,7 +147,7 @@ class AppealCog(GroupCog, name="appeal"):
                     await appeal_log.send(
                         "{}\n{}".format(msg.content, images), embed=embed
                     )
-                except:
+                except Exception:
                     await appeal_log.send(msg.content, embed=embed)
 
                 await ctx.user.send(
@@ -155,7 +155,7 @@ class AppealCog(GroupCog, name="appeal"):
                 )
             except TimeoutError:
                 await ctx.user.send("Times up! Please try again later")
-        except:
+        except Forbidden:
             await ctx.followup.send("Please open your DMs to do the appeal process")
 
     async def approve_ha_appeal(self, ctx: Interaction, member: Member, warn_id: int):
@@ -188,7 +188,8 @@ class AppealCog(GroupCog, name="appeal"):
                 "Please do the command in {}".format(ch.mention), ephemeral=True
             )
 
-    async def approve_loa_appeal(self, ctx: Interaction, member: Member, warn_id: int):
+    @staticmethod
+    async def approve_loa_appeal(ctx: Interaction, member: Member, warn_id: int):
         warn_data = LOAWarn(user=member, warn_id=warn_id)
 
         if warn_data.check() is None:
