@@ -14,12 +14,11 @@ from discord.ext.commands import (
     command,
 )
 
-
 def restart_bot():
     execv(executable, ["python"] + argv)
 
 
-class ownercog(Cog):
+class OwnerCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -102,7 +101,7 @@ class ownercog(Cog):
         with open("database.db", "rb") as file:
             try:
                 await ctx.author.send(file=File(file))
-            except:
+            except Exception:
                 content = """
 # ERROR!
 ## Failed to send database! 
@@ -112,4 +111,4 @@ Make sure private messages between **me and you are opened** or check the server
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(ownercog(bot))
+    await bot.add_cog(OwnerCog(bot))
