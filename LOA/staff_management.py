@@ -20,6 +20,7 @@ team_leader = 841682891599773767  # strike
 staff_supervisor = 962628294627438682  # strike
 om = 841671956999045141  # break
 
+
 class BreakCog(GroupCog, name="break"):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -41,7 +42,7 @@ class BreakCog(GroupCog, name="break"):
                 break_log = await self.bot.fetch_channel(1001053890277556235)
                 time = round(
                     (
-                            datetime.now() + timedelta(seconds=parse_timespan(duration))
+                        datetime.now() + timedelta(seconds=parse_timespan(duration))
                     ).timestamp()
                 )
                 duration = "<t:{}:D>".format(time)
@@ -191,8 +192,8 @@ class BreakCog(GroupCog, name="break"):
                 await ctx.followup.send("You haven't applied for a break")
                 return
             embed = Embed(
-                    description="Break canceled and removed", color=Color.random()
-                )
+                description="Break canceled and removed", color=Color.random()
+            )
             await Break(ctx.user).cancel(ctx.guild.id)
             await ctx.followup.send(embed=embed)
 
@@ -223,15 +224,16 @@ class BreakCog(GroupCog, name="break"):
                 return
 
             await ctx.followup.send(
-                    "You are not on break. Please request for a break first."
-                )
+                "You are not on break. Please request for a break first."
+            )
+
 
 class StrikeCog(GroupCog, name="strike"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
     async def addstrike(
-            self, ctx: Interaction, member: Member, department: str, reason: str
+        self, ctx: Interaction, member: Member, department: str, reason: str
     ):
         channel = self.bot.get_channel(841672405444591657)
         strike = Strike(department, member)
@@ -256,11 +258,11 @@ class StrikeCog(GroupCog, name="strike"):
         841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
     )
     async def give(
-            self,
-            ctx: Interaction,
-            member: Member,
-            department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
-            reason: str,
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        reason: str,
     ):
         await ctx.response.defer(ephemeral=True)
 
@@ -274,7 +276,6 @@ class StrikeCog(GroupCog, name="strike"):
                 ephemeral=True,
             )
             return
-
 
         await self.addstrike(ctx, member, department, reason)
 
@@ -313,11 +314,11 @@ class StrikeCog(GroupCog, name="strike"):
         core_team, chr, coo, team_leader, staff_supervisor, om, 1095048263985549382
     )
     async def remove(
-            self,
-            ctx: Interaction,
-            member: Member,
-            department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
-            reason: str,
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        reason: str,
     ):
         await ctx.response.defer(ephemeral=True)
         channel = self.bot.get_channel(841672405444591657)
@@ -350,9 +351,9 @@ class StrikeCog(GroupCog, name="strike"):
         department="Which department you were striked in?",
     )
     async def apply(
-            self,
-            ctx: Interaction,
-            department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        self,
+        ctx: Interaction,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
     ):
         await ctx.channel.typing()
         check = Strike(department, ctx.user).check()
@@ -369,10 +370,10 @@ class StrikeCog(GroupCog, name="strike"):
         841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
     )
     async def approve(
-            self,
-            ctx: Interaction,
-            member: Member,
-            department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
     ):
         await ctx.response.defer()
         channel = self.bot.get_channel(841672405444591657)
@@ -391,8 +392,10 @@ class StrikeCog(GroupCog, name="strike"):
         staff_member = ctx.guild.get_member(int(user[1]))
         strikes = strike.counts()
 
-        msg = "{}, your strike appeal has been approved. You now have {} strikes".format(
-            staff_member.mention, strikes
+        msg = (
+            "{}, your strike appeal has been approved. You now have {} strikes".format(
+                staff_member.mention, strikes
+            )
         )
 
         if ctx.channel.id == 841672405444591657:
@@ -407,10 +410,10 @@ class StrikeCog(GroupCog, name="strike"):
         841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
     )
     async def deny(
-            self,
-            ctx: Interaction,
-            member: Member,
-            department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal["Management", "Human Resources", "Moderation", "Marketing"],
     ):
         await ctx.response.defer()
         channel = self.bot.get_channel(841672405444591657)
@@ -425,16 +428,16 @@ class StrikeCog(GroupCog, name="strike"):
             await ctx.followup.send("Invalid department entered")
             return
 
-
         staff_member = ctx.guild.get_member(int(user[1]))
         msg = "{}, your strike appeal has been denied.".format(staff_member.mention)
 
         if ctx.channel.id == 841672405444591657:
-                await ctx.channel.send(msg)
-                return
+            await ctx.channel.send(msg)
+            return
 
         await channel.send(msg)
         await ctx.followup.send("Appeal denied")
+
 
 class ResignCog(GroupCog, name="resign"):
     def __init__(self, bot: Bot):
@@ -442,13 +445,13 @@ class ResignCog(GroupCog, name="resign"):
 
     @Serverutil.command(name="apply", description="Apply for resignation")
     async def apply(
-            self,
-            ctx: Interaction,
-            department: Literal[
-                "Core Team", "Management", "Marketing", "Human Resource", "Moderator"
-            ],
-            reason: str,
-            planning_to_leave: Optional[bool] = None,
+        self,
+        ctx: Interaction,
+        department: Literal[
+            "Core Team", "Management", "Marketing", "Human Resource", "Moderator"
+        ],
+        reason: str,
+        planning_to_leave: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
         Resign(ctx.user).apply(planning_to_leave)
@@ -474,13 +477,13 @@ class ResignCog(GroupCog, name="resign"):
     @Serverutil.command(description="Approve a resignation")
     @Serverutil.checks.has_any_role(core_team, chr, coo)
     async def approve(
-            self,
-            ctx: Interaction,
-            member: Member,
-            department: Literal[
-                "Core Team", "Management", "Marketing", "Human Resource", "Moderator", "All"
-            ],
-            leaving: Optional[bool] = None,
+        self,
+        ctx: Interaction,
+        member: Member,
+        department: Literal[
+            "Core Team", "Management", "Marketing", "Human Resource", "Moderator", "All"
+        ],
+        leaving: Optional[bool] = None,
     ):
         await ctx.response.defer(ephemeral=True)
         channel = await ctx.guild.fetch_channel(841672222136991757)
