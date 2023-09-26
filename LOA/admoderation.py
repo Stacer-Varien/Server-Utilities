@@ -10,7 +10,6 @@ from discord.ext.commands import Bot, GroupCog
 from assets.functions import LOAMod
 from config import lss
 
-
 class LOAmodCog(GroupCog, name="moderation"):
     def __init__(self, bot: Bot):
         self.bot = bot
