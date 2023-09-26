@@ -4,14 +4,10 @@ from discord import (
     Interaction,
     Object,
     app_commands,
-    NotFound,
-    Forbidden,
-    HTTPException,
 )
 from discord.ext.commands import Cog, Bot
 
 from config import lss, hazead, orleans, loa
-
 
 class Errors(Cog):
     def __init__(self, bot: Bot):
@@ -30,11 +26,8 @@ class Errors(Cog):
             with open("errors.txt", "a") as f:
                 f.writelines("".join(traceback_error))
 
-        try:
             thread = await self.bot.fetch_channel(1078749692457930842)
             await thread.send(f"```{''.join(traceback_error)}```")
-        except (NotFound, Forbidden, HTTPException):
-            return
 
 
 async def setup(bot: Bot):
