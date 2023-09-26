@@ -128,13 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-#databases
-database.db
-logging.db
-
 #files
-/assets/media.py
-*.db
-cmd-invoke-errors.txt
-voter_data.json
-assets/Images/
+database.db
+errors.txt
+
+#directories
+/autopost
