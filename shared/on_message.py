@@ -15,6 +15,7 @@ class AutomodCog(Cog):
 
     @Cog.listener()
     async def on_message(self, message: Message):
+
         if "discord.gg" in message.content:
             if message.channel.id in no_invites:
                 if not message.author.bot:
@@ -91,24 +92,24 @@ class AutomodCog(Cog):
             attachments = bool(message.attachments)
             content = bool(message.content)
 
-        if content is True and attachments is False:
-            await message.delete()
-            return
-        if content is True and attachments is True:
-            return
-        if attachments is True and content is False:
-            return
-        if message.channel.id in no_nsfw_spam:
-            attachments = bool(message.attachments)
-            if attachments is True:
-                if len(message.attachments) > 5:
-                    await message.delete()
-                    await message.channel.send(
-                        "HEY {}! You are sending too many attachments at once!".format(
-                            message.author.mention
-                        ),
-                        delete_after=5,
-                    )
+            if content is True and attachments is False:
+                await message.delete()
+                return
+            if content is True and attachments is True:
+                return
+            if attachments is True and content is False:
+                return
+            if message.channel.id in no_nsfw_spam:
+                attachments = bool(message.attachments)
+                if attachments is True:
+                    if len(message.attachments) > 5:
+                        await message.delete()
+                        await message.channel.send(
+                            "HEY {}! You are sending too many attachments at once!".format(
+                                message.author.mention
+                            ),
+                            delete_after=5,
+                        )
             return
         if message.channel.id == 954594959074418738:
             if not message.author.bot:
@@ -125,7 +126,7 @@ class AutomodCog(Cog):
                 elif message.content.lower().startswith("w!b"):
                     action = "Ban"
                 elif message.content.lower().startswith(
-                    "w!hb"
+                        "w!hb"
                 ) or message.content.lower().startswith("w!hackban"):
                     action = "Hackban"
                 elif message.content.lower().startswith("w!wa"):
@@ -178,7 +179,6 @@ class AutomodCog(Cog):
                     )
                     await m.edit(embed=added, view=None, delete_after=5)
         await self.bot.process_commands(message)
-
 
 async def setup(bot: Bot):
     await bot.add_cog(AutomodCog(bot))
