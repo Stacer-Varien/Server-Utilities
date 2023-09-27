@@ -25,11 +25,11 @@ class WarnCog(Cog):
 
     @staticmethod
     async def ha_warn(
-        ctx: Interaction,
-        member: Member,
-        channel: TextChannel,
-        reason: str,
-        notes: Optional[str] = None,
+            ctx: Interaction,
+            member: Member,
+            channel: TextChannel,
+            reason: str,
+            notes: Optional[str] = None,
     ):
         global result
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
@@ -43,7 +43,6 @@ class WarnCog(Cog):
             await ctx.followup.send(embed=failed_embed)
             return
 
-        embed = Embed()
         warn_id = randint(0, 100000)
         embed = Embed(title="You were adwarned", color=0xFF0000)
         embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
@@ -134,12 +133,12 @@ class WarnCog(Cog):
         )
 
     async def loa_warn(
-        self,
-        ctx: Interaction,
-        member: Member,
-        channel: TextChannel,
-        reason: str,
-        notes: Optional[str] = None,
+            self,
+            ctx: Interaction,
+            member: Member,
+            channel: TextChannel,
+            reason: str,
+            notes: Optional[str] = None,
     ):
         adwarn_channel = await ctx.guild.fetch_channel(745107170827305080)
         if member == ctx.user:
@@ -177,7 +176,7 @@ class WarnCog(Cog):
             )
 
         warn_data = LOAWarn(member, ctx.user, warn_id)
-        if not await warn_data.give(channel, reason):
+        if await warn_data.give(channel, reason) is False:
             await ctx.followup.send(
                 f"The member was warned recently. Please wait <t:{warn_data.get_time()}:R>"
             )
@@ -291,12 +290,12 @@ class WarnCog(Cog):
         notes="Add notes if necessary",
     )
     async def adwarn(
-        self,
-        ctx: Interaction,
-        member: Member,
-        channel: TextChannel,
-        reason: str,
-        notes: Optional[str] = None,
+            self,
+            ctx: Interaction,
+            member: Member,
+            channel: TextChannel,
+            reason: str,
+            notes: Optional[str] = None,
     ):
         await ctx.response.defer()
         if ctx.guild.id == 925790259160166460:
@@ -306,7 +305,7 @@ class WarnCog(Cog):
 
     @adwarn.autocomplete("reason")
     async def autocomplete_callback(
-        self, ctx: Interaction, current: str
+            self, ctx: Interaction, current: str
     ) -> List[Serverutil.Choice[str]]:
         if ctx.guild.id == 925790259160166460:
             reasons = [
@@ -383,7 +382,6 @@ class WarnCog(Cog):
         await ctx.followup.send(
             "Please do this command in {}".format(modchannel1.mention), ephemeral=True
         )
-
 
 async def setup(bot: Bot):
     await bot.add_cog(WarnCog(bot), guilds=[Object(hazead), Object(loa)])
