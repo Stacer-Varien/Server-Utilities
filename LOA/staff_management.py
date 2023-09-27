@@ -550,5 +550,5 @@ class ResignCog(GroupCog, name="resign"):
 
 async def setup(bot: Bot):
     await bot.add_cog(BreakCog(bot), guild=Object(id=lss))
-    await bot.add_cog(strikecog(bot), guild=Object(id=lss))
-    await bot.add_cog(resigncog(bot), guild=Object(id=lss))
+    await bot.add_cog(StrikeCog(bot), guild=Object(id=lss))
+    await bot.add_cog(ResignCog(bot), guild=Object(id=lss))
