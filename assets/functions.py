@@ -1,6 +1,6 @@
 import os
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import Literal, Optional
 
 from discord import (
     Color,
@@ -51,10 +51,9 @@ class Appeal:
         )
         db.commit()
 
-
 class LOAWarn:
     def __init__(
-        self, user: Member, moderator: User = None, warn_id: int = None
+            self, user: Member, moderator: User = None, warn_id: int = None
     ) -> None:
         self.user = user
         self.moderator = moderator
@@ -75,7 +74,7 @@ class LOAWarn:
 
         return data if data else None
 
-    async def give(self, channel: TextChannel, reason: str):
+    async def give(self, channel: TextChannel, reason: str)-> (Literal[False] |None):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ?", (self.user.id,)
         ).fetchone()
@@ -142,8 +141,9 @@ class LOAWarn:
                     ),
                 )
                 db.commit()
+            return
 
-        elif int(warntime[0]) < round(current_time.timestamp()):
+        if int(warntime[0]) < round(current_time.timestamp()):
             db.execute(
                 "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
                 (
@@ -162,7 +162,8 @@ class LOAWarn:
                 ),
             )
             db.commit()
-        elif int(warntime[0]) > round(current_time.timestamp()):
+            return
+        if int(warntime[0]) > round(current_time.timestamp()):
             return False
 
     def get_points(self) -> int:
@@ -224,7 +225,6 @@ class LOAWarn:
             )
             db.commit()
 
-
 class LOAMod:
     def __init__(self, mod: Optional[User] = None) -> None:
         self.mod = mod
@@ -283,10 +283,9 @@ class LOAMod:
             )
             db.commit()
 
-
 class Warn:
     def __init__(
-        self, user: Member, moderator: User = None, warn_id: int = None
+            self, user: Member, moderator: User = None, warn_id: int = None
     ) -> None:
         self.user = user
         self.moderator = moderator
@@ -417,14 +416,12 @@ class Warn:
         db.commit()
         return timedata[0]
 
-
 def check_illegal_invites(message, channel: int):
     if "discord.gg" in message:
         if channel in no_invites:
             return True
         else:
             return False
-
 
 def check_illegal_mentions(message, channel: int):
     pings = ["@everyone", "@here"]
@@ -434,10 +431,9 @@ def check_illegal_mentions(message, channel: int):
         else:
             return False
 
-
 class Strike:
     def __init__(
-        self, department: Optional[str] = None, member: Optional[Member] = None
+            self, department: Optional[str] = None, member: Optional[Member] = None
     ) -> None:
         self.department = department
         self.member = member
@@ -505,7 +501,6 @@ class Strike:
             )
             db.commit()
 
-
 class Partner:
     def __init__(self, user: Member, server: Guild):
         self.user = user
@@ -562,7 +557,6 @@ class Partner:
             msg = "Partnership denied"
         await ctx.followup.send(msg)
 
-
 class Break:
     def __init__(self, member: Optional[Member] = None) -> None:
         self.member = member
@@ -590,13 +584,13 @@ class Break:
             db.commit()
 
     async def add_request(
-        self,
-        server: int,
-        duration: str,
-        reason: str,
-        accepted: int,
-        start: int,
-        ends: int,
+            self,
+            server: int,
+            duration: str,
+            reason: str,
+            accepted: int,
+            start: int,
+            ends: int,
     ):
         data = db.execute(
             "INSERT OR IGNORE INTO breakData (user_id, guild_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?)",
@@ -670,7 +664,6 @@ class Break:
         )
         db.commit()
 
-
 class Resign:
     def __init__(self, member: Member):
         self.member = member
@@ -731,7 +724,7 @@ class Resign:
             await channel.send(embed=no_resign)
 
         elif (
-            int(check_accepted[0]) == 0
+                int(check_accepted[0]) == 0
         ):  # if they left without an accepted resignation
             not_accepted = Embed(
                 title=f"{self.member} ({self.member.id}) left the server without an approved resignation",
@@ -747,7 +740,6 @@ class Resign:
                 color=Color.green(),
             )
             await channel.send(embed=accepted)
-
 
 class Plans:
     def __init__(self, server: int):
@@ -779,7 +771,7 @@ class Plans:
 
         return data if data else None
 
-    def check(self)->list|None:
+    def check(self) -> list | None:
         data = db.execute(
             "SELECT * FROM planData WHERE server_id = ?", (self.server,)
         ).fetchall()
@@ -796,7 +788,6 @@ class Plans:
             ),
         )
         db.commit()
-
 
 class YouTube:
     def __init__(self, channel: str) -> None:
