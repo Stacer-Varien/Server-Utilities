@@ -18,6 +18,7 @@ from tabulate import tabulate
 from assets.not_allowed import no_invites, no_pings
 from config import db
 
+
 class Appeal:
     def __init__(self, user: Member, warn_id: int):
         self.user = user
@@ -51,109 +52,81 @@ class Appeal:
         )
         db.commit()
 
+
 class LOAWarn:
     def __init__(
-            self, user: Member, moderator: User = None, warn_id: int = None
-    ) -> None:
-        self.user = user
+        self, moderator: Optional[User] = None) -> None:
         self.moderator = moderator
-        self.warn_id = warn_id
-        self.today = date.today()
-        self.monday = self.today - timedelta(days=self.today.weekday())
-        self.sunday = self.monday + timedelta(days=6)
 
-    def check(self):
+    def check(self, user:Member,warn_id:int):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?",
             (
-                self.user.id,
-                self.warn_id,
+                user.id,
+                warn_id,
             ),
         ).fetchone()
         db.commit()
 
         return data if data else None
 
-    async def give(self, channel: TextChannel, reason: str)-> (Literal[False] |None):
+    @staticmethod
+    def check_time(member: Member) ->(int|Literal[True]):
         data = db.execute(
-            "SELECT * FROM loaAdwarnData WHERE user_id = ?", (self.user.id,)
+            "SELECT time from loaAdwarnData_v2 WHERE user_id = ?", (member.id,)
         ).fetchone()
         db.commit()
-        warntime = db.execute(
-            "SELECT time FROM loaAdwarnData_v2 WHERE user_id= ?", (self.user.id,)
-        ).fetchone()
-        db.commit()
-        start = int(self.monday.strftime("%d%m%Y"))
-        end = int(self.sunday.strftime("%d%m%Y"))
+
+        if (data == None) or (int(data[0]) <= round(datetime.now().timestamp())):
+            return True
+        return int(data[0])
+
+    async def give(self, user:Member, channel: TextChannel, reason: str, warn_id:int) -> (Literal[False] | None):
         current_time = datetime.now()
-        next_warn = current_time + timedelta(minutes=45)
+        next_warn = current_time + timedelta(minutes=25)
 
-        if data is None:
-            db.execute(
-                "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
-                (
-                    self.user.id,
-                    "{} - {}".format(channel.mention, reason),
-                    self.warn_id,
-                    self.moderator.id,
-                ),
-            )
-            db.commit()
+        db.execute(
+            "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
+            (
+                user.id,
+                "{} - {}".format(channel.mention, reason),
+                warn_id,
+                self.moderator.id,
+            ),
+        )
+        db.commit()
 
-            datav2 = db.execute(
-                "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (
-                    self.user.id,
-                    1,
-                    round(next_warn.timestamp()),
-                ),
-            )
-            db.commit()
+        datav2 = db.execute(
+            "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
+            (
+                user.id,
+                1,
+                round(next_warn.timestamp()),
+            ),
+        )
+        db.commit()
 
-            if datav2.rowcount == 0:
-                db.execute(
-                    "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
-                    (
-                        1,
-                        round(next_warn.timestamp()),
-                        self.user.id,
-                    ),
-                )
-                db.commit()
-
-            datav3 = db.execute(
-                "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
-                (
-                    self.moderator.id,
-                    1,
-                    start,
-                    end,
-                ),
-            )
-            db.commit()
-
-            if datav3.rowcount == 0:
-                db.execute(
-                    "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
-                    (
-                        1,
-                        self.moderator.id,
-                    ),
-                )
-                db.commit()
-            return
-
-        if int(warntime[0]) < round(current_time.timestamp()):
+        if datav2.rowcount == 0:
             db.execute(
                 "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
                 (
                     1,
                     round(next_warn.timestamp()),
-                    self.user.id,
+                    user.id,
                 ),
             )
             db.commit()
 
+        datav3 = db.execute(
+            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
+            (
+                self.moderator.id,
+                1,
+            ),
+        )
+        db.commit()
+
+        if datav3.rowcount == 0:
             db.execute(
                 "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
                 (
@@ -162,9 +135,6 @@ class LOAWarn:
                 ),
             )
             db.commit()
-            return
-        if int(warntime[0]) > round(current_time.timestamp()):
-            return False
 
     def get_points(self) -> int:
         warnpointdata = db.execute(
@@ -174,13 +144,13 @@ class LOAWarn:
         db.commit()
         return warnpointdata[0] if warnpointdata else 0
 
-    def remove(self):
+    def remove(self, user:Member, warn_id:int):
         mod_id = int(self.check()[3])
         db.execute(
             "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
             (
-                self.warn_id,
-                self.user.id,
+                warn_id,
+                user.id,
             ),
         )
         db.commit()
@@ -189,7 +159,7 @@ class LOAWarn:
             "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
             (
                 1,
-                self.user.id,
+                user.id,
             ),
         )
         db.commit()
@@ -206,69 +176,44 @@ class LOAWarn:
         if self.get_points() == 0:
             db.execute(
                 "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
-                (self.user.id,),
+                (user.id,),
             )
             db.commit()
 
-    def get_time(self) -> int:
-        timedata = db.execute(
-            "SELECT time FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        db.commit()
-        return timedata[0]
-
-    def delete(self):
+    def delete(self, user:Member):
         if self.get_points() == 10:
-            db.execute("DELETE FROM loaAdwarnData WHERE user_id = ?;", (self.user.id,))
+            db.execute("DELETE FROM loaAdwarnData WHERE user_id = ?;", (user.id,))
+            db.commit()
             db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (self.user.id,)
+                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (user.id,)
             )
             db.commit()
+
 
 class LOAMod:
     def __init__(self, mod: Optional[User] = None) -> None:
         self.mod = mod
-        self.today = date.today()
-        self.monday = self.today - timedelta(days=self.today.weekday())
-        self.sunday = self.monday + timedelta(days=6)
-
-    def reset_week(self):
-        start = int(self.monday.strftime("%d%m%Y"))
-        end = int(self.sunday.strftime("%d%m%Y"))
-
-        if int(self.today.strftime("%d%m%Y")) == end:
-            db.execute(
-                "DELETE FROM LOAwarnData_v3 WHERE start = ? AND end = ?",
-                (
-                    start,
-                    end,
-                ),
-            )
-            db.commit()
-        else:
-            return False
 
     @staticmethod
     async def checks(bot: Bot):
-        data = db.execute("SELECT * FROM LOAwarnData_v3").fetchall()
+        data = db.execute("SELECT * FROM LOAwarnData_v3 DESC").fetchall()
         db.commit()
         mods = []
+        r = 0
         for i in data:
             mod = await bot.fetch_user(int(i[0]))
             points = i[1]
-            mods.append([str(mod), str(points)])
+            r += 1
+            mods.append(f"`{r}.` {mod.mention} - {points}\n")
 
-        col_names = ["Moderator", "Points"]
-        return tabulate(mods, headers=col_names, tablefmt="pretty")
+        return "".join(mods)
 
     def add_wick_action_point(self):
         data = db.execute(
-            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
+            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points) VALUES (?,?)",
             (
                 self.mod.id,
                 1,
-                int(self.today.strftime("%d%m%Y")),
-                int(self.sunday.strftime("%d%m%Y")),
             ),
         )
         db.commit()
@@ -283,9 +228,10 @@ class LOAMod:
             )
             db.commit()
 
+
 class Warn:
     def __init__(
-            self, user: Member, moderator: User = None, warn_id: int = None
+        self, user: Member, moderator: User = None, warn_id: int = None
     ) -> None:
         self.user = user
         self.moderator = moderator
@@ -416,12 +362,14 @@ class Warn:
         db.commit()
         return timedata[0]
 
+
 def check_illegal_invites(message, channel: int):
     if "discord.gg" in message:
         if channel in no_invites:
             return True
         else:
             return False
+
 
 def check_illegal_mentions(message, channel: int):
     pings = ["@everyone", "@here"]
@@ -431,9 +379,10 @@ def check_illegal_mentions(message, channel: int):
         else:
             return False
 
+
 class Strike:
     def __init__(
-            self, department: Optional[str] = None, member: Optional[Member] = None
+        self, department: Optional[str] = None, member: Optional[Member] = None
     ) -> None:
         self.department = department
         self.member = member
@@ -501,6 +450,7 @@ class Strike:
             )
             db.commit()
 
+
 class Partner:
     def __init__(self, user: Member, server: Guild):
         self.user = user
@@ -557,6 +507,7 @@ class Partner:
             msg = "Partnership denied"
         await ctx.followup.send(msg)
 
+
 class Break:
     def __init__(self, member: Optional[Member] = None) -> None:
         self.member = member
@@ -584,13 +535,13 @@ class Break:
             db.commit()
 
     async def add_request(
-            self,
-            server: int,
-            duration: str,
-            reason: str,
-            accepted: int,
-            start: int,
-            ends: int,
+        self,
+        server: int,
+        duration: str,
+        reason: str,
+        accepted: int,
+        start: int,
+        ends: int,
     ):
         data = db.execute(
             "INSERT OR IGNORE INTO breakData (user_id, guild_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?)",
@@ -664,6 +615,7 @@ class Break:
         )
         db.commit()
 
+
 class Resign:
     def __init__(self, member: Member):
         self.member = member
@@ -724,7 +676,7 @@ class Resign:
             await channel.send(embed=no_resign)
 
         elif (
-                int(check_accepted[0]) == 0
+            int(check_accepted[0]) == 0
         ):  # if they left without an accepted resignation
             not_accepted = Embed(
                 title=f"{self.member} ({self.member.id}) left the server without an approved resignation",
@@ -740,6 +692,7 @@ class Resign:
                 color=Color.green(),
             )
             await channel.send(embed=accepted)
+
 
 class Plans:
     def __init__(self, server: int):
@@ -788,6 +741,7 @@ class Plans:
             ),
         )
         db.commit()
+
 
 class YouTube:
     def __init__(self, channel: str) -> None:
