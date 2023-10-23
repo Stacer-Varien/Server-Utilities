@@ -6,7 +6,7 @@ from discord import (
     app_commands as Serverutil,
 )
 from discord.ext.commands import Bot, GroupCog
-
+from datetime import datetime
 from assets.functions import LOAMod
 from config import lss
 
@@ -40,7 +40,7 @@ class LOAmodCog(GroupCog, name="moderation"):
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
-        if not LOAMod().reset_week():
+        if datetime.today().weekday <6:
             await ctx.followup.send(
                 "DON'T RESET YET!\n\nYou can do a reset on {} to clear the database".format(
                     LOAMod().sunday.strftime("%d-%m-%Y")
