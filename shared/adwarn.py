@@ -7,6 +7,7 @@ from discord import (
     Embed,
     Member,
     Interaction,
+    Message,
     Object,
     TextChannel,
     app_commands as Serverutil,
@@ -14,24 +15,70 @@ from discord import (
 )
 from discord.ext.commands import Cog, Bot
 from discord.utils import utcnow
-
+from assets.menus import HAdropdownView, LOAdropdownView
 from assets.buttons import MobileView
 from assets.functions import LOAWarn, Warn
 from config import hazead, loa
 
+
 class WarnCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
+        self.loa_warn_context_menu = Serverutil.ContextMenu(
+            name="Adwarn", callback=self.loa_adwarn_callback
+        )
+        self.bot.tree.add_command(self.loa_warn_context_menu)
+        self.ha_warn_context_menu = Serverutil.ContextMenu(
+            name="Adwarn", callback=self.ha_adwarn_callback
+        )
+        self.bot.tree.add_command(self.haa_warn_context_menu)
+
+    async def cog_unload(self) -> None:
+        self.bot.tree.remove_command(
+            self.loa_warn_context_menu.name, type=self.loa_warn_context_menu.type
+        )
+        self.bot.tree.remove_command(
+            self.ha_warn_context_menu.name, type=self.ha_warn_context_menu.type
+        )
+
+    @Serverutil.guilds(704888699590279221)
+    @Serverutil.checks.has_any_role(
+        919410986249756673,
+        947109389855248504,
+        749608853376598116,
+        889019375988916264,
+        849904285286006794,
+        1136915107222401035,
+        972072908065218560,
+        1154076194837373021,
+        849778145087062046,
+    )
+    async def loa_adwarn_callback(self, ctx: Interaction, message: Message) -> None:
+        view = LOAdropdownView(self.bot, message.author, message.channel)
+        await ctx.response.defer(ephemeral=True)
+        await ctx.followup.send(view=view)
+
+    @Serverutil.guilds(925790259160166460)
+    @Serverutil.checks.has_any_role(
+        925790259319558159,
+        925790259319558158,
+        925790259319558157,
+        1011971782426767390,
+        925790259294396455,
+    )
+    async def ha_adwarn_callback(self, ctx: Interaction, message: Message) -> None:
+        view = HAdropdownView(self.bot, message.author, message.channel)
+        await ctx.response.defer(ephemeral=True)
+        await ctx.followup.send(view=view)
 
     @staticmethod
     async def ha_warn(
-            ctx: Interaction,
-            member: Member,
-            channel: TextChannel,
-            reason: str,
-            notes: Optional[str] = None,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
     ):
-        global result
         adwarn_channel = ctx.guild.get_channel(925790260695281703)
         if member == ctx.user:
             failed_embed = Embed(description="You can't warn yourself")
@@ -119,7 +166,6 @@ class WarnCog(Cog):
                     inline=False,
                 )
 
-            embed.add_field(name="Result", value=result, inline=False)
             embed.set_footer(
                 text="If you feel this warn was a mistake, please use `/appeal WARN_ID`"
             )
@@ -133,12 +179,12 @@ class WarnCog(Cog):
         )
 
     async def loa_warn(
-            self,
-            ctx: Interaction,
-            member: Member,
-            channel: TextChannel,
-            reason: str,
-            notes: Optional[str] = None,
+        self,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
     ):
         adwarn_channel = await ctx.guild.fetch_channel(745107170827305080)
         if member == ctx.user:
@@ -243,11 +289,8 @@ class WarnCog(Cog):
                 value="No Punishment",
                 inline=False,
             )
-        loa_aspect = self.bot.get_user(710733052699213844)
         embed.set_footer(
-            text="If you feel this warn was a mistake, please use `/appeal apply WARN_ID` or DM {} to appeal".format(
-                loa_aspect
-            )
+            text="If you feel this warn was a mistake, please open a ticket to appeal"
         )
         embed.set_thumbnail(url=member.display_avatar)
         m = await adwarn_channel.send(member.mention, embed=embed)
@@ -270,18 +313,19 @@ class WarnCog(Cog):
 
     @Serverutil.command(description="Adwarn someone for violating the ad rules")
     @Serverutil.checks.has_any_role(
-        1154076194837373021,
-        972072908065218560,
+        919410986249756673,
+        947109389855248504,
+        749608853376598116,
+        889019375988916264,
         849904285286006794,
         1136915107222401035,
-        889019375988916264,
-        749608853376598116,
-        947109389855248504,
+        972072908065218560,
+        1154076194837373021,
+        849778145087062046,
         925790259319558159,
         925790259319558158,
         925790259319558157,
         1011971782426767390,
-        925790259319558154,
         925790259294396455,
     )
     @Serverutil.describe(
@@ -290,12 +334,12 @@ class WarnCog(Cog):
         notes="Add notes if necessary",
     )
     async def adwarn(
-            self,
-            ctx: Interaction,
-            member: Member,
-            channel: TextChannel,
-            reason: str,
-            notes: Optional[str] = None,
+        self,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
     ):
         await ctx.response.defer()
         if ctx.guild.id == 925790259160166460:
@@ -305,7 +349,7 @@ class WarnCog(Cog):
 
     @adwarn.autocomplete("reason")
     async def autocomplete_callback(
-            self, ctx: Interaction, current: str
+        self, ctx: Interaction, current: str
     ) -> List[Serverutil.Choice[str]]:
         if ctx.guild.id == 925790259160166460:
             reasons = [
@@ -382,6 +426,7 @@ class WarnCog(Cog):
         await ctx.followup.send(
             "Please do this command in {}".format(modchannel1.mention), ephemeral=True
         )
+
 
 async def setup(bot: Bot):
     await bot.add_cog(WarnCog(bot), guilds=[Object(hazead), Object(loa)])
