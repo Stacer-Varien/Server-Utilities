@@ -31,7 +31,7 @@ class WarnCog(Cog):
         self.ha_warn_context_menu = Serverutil.ContextMenu(
             name="Adwarn", callback=self.ha_adwarn_callback
         )
-        self.bot.tree.add_command(self.haa_warn_context_menu)
+        self.bot.tree.add_command(self.ha_warn_context_menu)
 
     async def cog_unload(self) -> None:
         self.bot.tree.remove_command(
@@ -56,6 +56,7 @@ class WarnCog(Cog):
     async def loa_adwarn_callback(self, ctx: Interaction, message: Message) -> None:
         view = LOAdropdownView(self.bot, message.author, message.channel)
         await ctx.response.defer(ephemeral=True)
+        await message.delete()
         await ctx.followup.send(view=view)
 
     @Serverutil.guilds(925790259160166460)
@@ -172,7 +173,11 @@ class WarnCog(Cog):
             )
             embed.set_thumbnail(url=member.display_avatar)
             m = await adwarn_channel.send(member.mention, embed=embed)
-            await ctx.followup.send(f"Warning sent. Check {m.jump_url}", ephemeral=True)
+            msg = f"Warning sent. Check {m.jump_url}"
+            try:
+                await ctx.response.edit_message(msg)
+            except:
+                await ctx.followup.send(msg, ephemeral=True)
             return
 
         await ctx.followup.send(
@@ -288,23 +293,12 @@ class WarnCog(Cog):
             )
             embed.set_thumbnail(url=member.display_avatar)
             m = await adwarn_channel.send(member.mention, embed=embed)
-            await ctx.followup.send(f"Warning sent. Check {m.jump_url}", ephemeral=True)
-
-            if do_act:
-                view = MobileView(ctx.user)
-                await ctx.channel.send(
-                    "{}\n\n{}".format(ctx.user.mention, do_act), view=view
-                )
-                await view.wait()
-
-                if view.value:
-                    await ctx.edit_original_response(view=None)
-                    await ctx.channel.send(
-                        embed=Embed(description=mobile_act, color=Color.random())
-                    )
-                else:
-                    pass
-                return
+            msg = f"Warning sent. Check {m.jump_url}"
+            try:
+                await ctx.response.edit_message(msg)
+            except:
+                await ctx.followup.send(msg, ephemeral=True)
+            return
 
         await ctx.followup.send(
             f"The member was warned recently. Please wait <t:{warn_data.check_time(member)}:R>"
