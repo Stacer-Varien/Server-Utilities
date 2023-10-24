@@ -12,6 +12,7 @@ WEBHOOK_URL_2 = getenv("vanilla")  # Hazeads
 TOKEN = getenv("token")
 ORLEANS = getenv("orleans")
 HAZEADS = getenv("hazeads")
+LOA=getenv("loa_webhook")
 
 db = connect("database.db")
 
