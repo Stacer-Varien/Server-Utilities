@@ -89,7 +89,7 @@ class AppealCog(GroupCog, name="appeal"):
             )
 
     async def loa_appeal(self, ctx: Interaction, warn_id: int):
-        warn_data = LOAWarn(user=ctx.user, warn_id=warn_id).check()
+        warn_data = LOAWarn().check(ctx.user, warn_id)
 
         if warn_data is None:
             await ctx.followup.send(
@@ -190,9 +190,9 @@ class AppealCog(GroupCog, name="appeal"):
 
     @staticmethod
     async def approve_loa_appeal(ctx: Interaction, member: Member, warn_id: int):
-        warn_data = LOAWarn(user=member, warn_id=warn_id)
+        warn_data = LOAWarn()
 
-        if warn_data.check() is None:
+        if warn_data.check(member, warn_id) is None:
             await ctx.followup.send(
                 "This user has not been warned or incorrect warn ID",
                 ephemeral=True,
@@ -204,7 +204,7 @@ class AppealCog(GroupCog, name="appeal"):
             ctx.channel.id == 954594959074418738
             or ctx.channel.id == 1112136237034246205
         ):
-            warn_data.remove()
+            warn_data.remove(member, warn_id)
             modchannel = await ctx.guild.fetch_channel(745107170827305080)
             appealed = Embed(
                 description=f"Your appeal has been approved. You now have {warn_data.get_points()} adwarns",
