@@ -12,7 +12,8 @@ from datetime import datetime, timedelta
 from discord.utils import utcnow
 from humanfriendly import InvalidTimespan, parse_timespan, format_timespan
 from assets.functions import LOAMod
-from config import lss
+from config import loa, lss
+
 
 class LOAmodCog(GroupCog, name="moderation"):
     def __init__(self, bot: Bot):
@@ -22,7 +23,7 @@ class LOAmodCog(GroupCog, name="moderation"):
 
     @modgroup.command(name="cooldowns")
     @Serverutil.checks.has_any_role(1154076194837373021)
-    async def _cooldowns(self, ctx:Interaction):
+    async def _cooldowns(self, ctx: Interaction):
         ...
 
     @modgroup.command(
@@ -49,10 +50,9 @@ class LOAmodCog(GroupCog, name="moderation"):
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
-        if datetime.today().weekday <6:
+        if datetime.today().weekday < 6:
             await ctx.followup.send(
-                "DON'T RESET YET!\n\nYou can do a reset on a Sunday to clear the database".format(
-                )
+                "DON'T RESET YET!\n\nYou can do a reset on a Sunday to clear the database".format()
             )
             return
 
@@ -75,10 +75,11 @@ class LOAmodCog(GroupCog, name="moderation"):
             embed = Embed(description=error, color=Color.red())
             await ctx.followup.send(embed)
 
+
 class ModCog(Cog):
-    def __init__(self, bot:Bot) -> None:
-        self.bot=bot
-    
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot
+
     @Serverutil.command(description="Put a member on timeout")
     @Serverutil.checks.has_permissions(moderate_members=True)
     @Serverutil.describe(
@@ -101,7 +102,7 @@ class ModCog(Cog):
                 failed = Embed(description="You can't time yourself out")
                 await ctx.followup.send(embed=failed)
                 return
-            
+
             if not time or (parse_timespan(time) > 2505600.0):
                 time = "28d"
 
@@ -111,11 +112,17 @@ class ModCog(Cog):
                 reason="{} | {}".format(reason, ctx.user),
             )
             mute = Embed(title=":warning: You have been put on timeout", color=0xFF0000)
-            mute.add_field(name="<moderator:908227618439041044:> Moderator", value=ctx.user, inline=False)
-            mute.add_field(name=":timer: Duration", value=format_timespan(timed), inline=False)
+            mute.add_field(
+                name="<moderator:908227618439041044:> Moderator",
+                value=ctx.user,
+                inline=False,
+            )
+            mute.add_field(
+                name=":timer: Duration", value=format_timespan(timed), inline=False
+            )
             mute.add_field(name=":bell: Reason", value=reason, inline=False)
             mute.set_thumbnail(url=member.display_avatar)
-            m=await adwarn_channel.send(embed=mute)
+            m = await adwarn_channel.send(embed=mute)
             muted = Embed(
                 description=f"{member} has been put on timeout. Check {m.jump_url}",
                 color=0xFF0000,
@@ -123,9 +130,14 @@ class ModCog(Cog):
             await ctx.followup.send(embed=muted)
             LOAMod(ctx.user).add_mod_point()
             return
-        
-        await ctx.response.send_message(embed=Embed(description=f"Please use the command in {adwarn_channel.jump_url}", color=Color.red()), ephemeral=True)
-            
+
+        await ctx.response.send_message(
+            embed=Embed(
+                description=f"Please use the command in {adwarn_channel.jump_url}",
+                color=Color.red(),
+            ),
+            ephemeral=True,
+        )
 
     @timeout.error
     async def timeout_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
@@ -159,19 +171,29 @@ class ModCog(Cog):
                 timed_out_until=None, reason="{} | {}".format(reason, ctx.user)
             )
             unmute = Embed(title="Your timeout has been removed", color=0xFF0000)
-            unmute.add_field(name="<moderator:908227618439041044:> Moderator", value=ctx.user, inline=True)
+            unmute.add_field(
+                name="<moderator:908227618439041044:> Moderator",
+                value=ctx.user,
+                inline=True,
+            )
             unmute.add_field(name=":bell: Reason", value=reason, inline=False)
             unmute.set_thumbnail(url=member.display_avatar)
 
-            m=await adwarn_channel.send(embed=unmute)
+            m = await adwarn_channel.send(embed=unmute)
             unmuted = Embed(
                 description=f"{member} has been untimeouted. Check {m.jump_url}",
                 color=0xFF0000,
             )
-            
+
             await ctx.followup.send(embed=unmuted)
             return
-        await ctx.response.send_message(embed=Embed(description=f"Please use the command in {adwarn_channel.jump_url}", color=Color.red()), ephemeral=True)
+        await ctx.response.send_message(
+            embed=Embed(
+                description=f"Please use the command in {adwarn_channel.jump_url}",
+                color=Color.red(),
+            ),
+            ephemeral=True,
+        )
 
     @Serverutil.command(description="Ban someone in this server")
     @Serverutil.describe(
@@ -187,7 +209,6 @@ class ModCog(Cog):
         member: Member,
         reason: Serverutil.Range[str, None, 450] = None,
     ) -> None:
-
         adwarn_channel = await ctx.guild.fetch_channel(745107170827305080)
         if ctx.channel.id == 954594959074418738:
             if member == ctx.user:
@@ -221,12 +242,18 @@ class ModCog(Cog):
 
             await member.ban(reason="{} | Banned by {}".format(reason, ctx.user))
 
-            ban = Embed(title=f"Member Banned from **{ctx.guild.name}**", color=0xFF0000)
-            ban.add_field(name="<moderator:908227618439041044> Moderator", value=ctx.user, inline=True)
+            ban = Embed(
+                title=f"Member Banned from **{ctx.guild.name}**", color=0xFF0000
+            )
+            ban.add_field(
+                name="<moderator:908227618439041044> Moderator",
+                value=ctx.user,
+                inline=True,
+            )
             ban.add_field(name=":bell: Reason", value=reason, inline=False)
             ban.set_thumbnail(url=member.display_avatar)
 
-            m=await adwarn_channel.send(embed=ban)
+            m = await adwarn_channel.send(embed=ban)
 
             banned = Embed(
                 description=f"{member} has been banned. Check {m.jump_url}",
@@ -235,7 +262,85 @@ class ModCog(Cog):
             await ctx.followup.send(embed=banned)
             LOAMod(ctx.user).add_mod_point()
             return
-        await ctx.response.send_message(embed=Embed(description=f"Please use the command in {adwarn_channel.jump_url}", color=Color.red()), ephemeral=True)
+        await ctx.response.send_message(
+            embed=Embed(
+                description=f"Please use the command in {adwarn_channel.jump_url}",
+                color=Color.red(),
+            ),
+            ephemeral=True,
+        )
+
+    @Serverutil.command(description="Kick a member out of the server")
+    @Serverutil.describe(
+        member="Which member are you kicking?", reason="Why are they being kicked?"
+    )
+    @Serverutil.checks.has_permissions(kick_members=True)
+    @Serverutil.checks.bot_has_permissions(kick_members=True)
+    async def kick(
+        self,
+        ctx: Interaction,
+        member: Member,
+        reason: Serverutil.Range[str, None, 450] = None,
+    ) -> None:
+        adwarn_channel = await ctx.guild.fetch_channel(745107170827305080)
+        if ctx.channel.id == 954594959074418738:
+            if member.id == ctx.user.id:
+                failed = Embed(description="You can't kick yourself out")
+                await ctx.followup.send(embed=failed)
+                return
+            if ctx.user.top_role.position < member.top_role.position:
+                failed = Embed(
+                    description="{}'s position is higher than you...".format(member),
+                    color=Color.red(),
+                )
+                await ctx.followup.send(embed=failed)
+                return
+            if member.id == ctx.guild.owner.id:
+                failed = Embed(
+                    description="You cannot kick the owner of the server out...",
+                    color=Color.red(),
+                )
+                await ctx.followup.send(embed=failed)
+                return
+            if member == ctx.user:
+                failed = Embed(description="You can't kick yourself out")
+                await ctx.followup.send(embed=failed)
+                return
+
+            try:
+                kickmsg = Embed(
+                    description=f":boot: You are kicked from **{ctx.guild.name}** for **{reason}**"
+                )
+                await member.send(embed=kickmsg)
+            except:
+                pass
+
+            # await member.kick(reason="{} | {}".format(reason, ctx.user))
+            await ctx.guild.kick(member, reason="{} | Kicked by {}".format(reason, ctx.user))
+            kick = Embed(title=f":boot: Member kicked from {ctx.guild.name}", color=0xFF0000)
+            kick.add_field(name=":bust_in_silhouette: Member", value=member, inline=True)
+            kick.add_field(name="<moderator:908227618439041044> Moderator", value=ctx.user, inline=True)
+            kick.add_field(name=":bell: Reason", value=reason, inline=True)
+            kick.set_thumbnail(url=member.display_avatar)
+
+            m = await adwarn_channel.send(embed=kick)
+
+            kicked = Embed(
+                description=f"{member} has been kicked. Check {m.jump_url}",
+                color=0xFF0000,
+            )
+
+            await ctx.followup.send(embed=kicked)
+            return
+        await ctx.response.send_message(
+            embed=Embed(
+                description=f"Please use the command in {adwarn_channel.jump_url}",
+                color=Color.red(),
+            ),
+            ephemeral=True,
+        )
+
 
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
+    await bot.add_cog(ModCog(bot), guild=Object(loa))
