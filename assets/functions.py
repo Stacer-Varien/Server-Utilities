@@ -208,7 +208,7 @@ class LOAMod:
 
         return "".join(mods)
 
-    def add_wick_action_point(self):
+    def add_mod_point(self):
         data = db.execute(
             "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points) VALUES (?,?)",
             (
@@ -227,6 +227,11 @@ class LOAMod:
                 ),
             )
             db.commit()
+    
+    @staticmethod
+    def reset_week():
+        db.execute("DELETE FROM loaWarndata_v3;")
+        db.commit()
 
 
 class Warn:
