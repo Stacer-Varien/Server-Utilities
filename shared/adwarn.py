@@ -134,7 +134,7 @@ class WarnCog(Cog):
                             description=f"You have received a timeout of 3 hours from **{ctx.guild.name}**\nYou have reached the 3 warn point punishment"
                         )
                         await member.send(embed=timeout_msg)
-                    except Forbidden:
+                    except:
                         pass
                 elif action[0] is None:
                     if warnpoints == 6:
@@ -155,7 +155,7 @@ class WarnCog(Cog):
                                 text="To appeal for your ban, join with this invite code: qZFhxyhTQh"
                             )
                             await member.send(embed=ban_msg)
-                        except Forbidden:
+                        except:
                             pass
                         await member.kick(reason="Kick punishment applied")
                     result = action[1]
@@ -201,9 +201,9 @@ class WarnCog(Cog):
         embed = Embed(
             title=f"{ctx.guild.name} - Advertising Warning", color=Color.red()
         )
-        embed.description = ":warning: **You have recieved an ad violation warning"
+        embed.description = ":warning: **You have recieved an ad violation warning**"
         embed.add_field(
-            name=":moderator: Moderator",
+            name="<moderator:908227618439041044:> Moderator",
             value=ctx.user.mention,
             inline=False,
         )
