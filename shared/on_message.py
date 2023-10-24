@@ -142,7 +142,7 @@ class AutomodCog(Cog):
                 await view.wait()
 
                 if view.value is True:
-                    data.add_wick_action_point()
+                    data.add_mod_point()
                     embed = Embed(
                         title=f"Wick {action} command used", color=Color.blue()
                     )
