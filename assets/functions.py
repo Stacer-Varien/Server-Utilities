@@ -266,7 +266,7 @@ class Warn:
         next_warn = current_time + timedelta(hours=1)
 
         reason = f"Incorrectly advertising in {channel.mention}"
-        if data is None:
+        if data == None:
             db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
                 (
