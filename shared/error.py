@@ -19,7 +19,6 @@ class Errors(Cog):
         self, ctx: Interaction, error: app_commands.errors.AppCommandError
     ):
         if isinstance(error, app_commands.errors.CommandInvokeError):
-            # noinspection PyTypeChecker
             traceback_error = traceback.format_exception(
                 error, error, error.__traceback__
             )
