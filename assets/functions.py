@@ -193,6 +193,13 @@ class LOAWarn:
 class LOAMod:
     def __init__(self, mod: Optional[User] = None) -> None:
         self.mod = mod
+    
+    @staticmethod
+    def _cooldowns():
+        data=db.execute("SELECT * FROM loaAdwarnData_v2 DESC").fetchall()
+        db.commit()
+
+        return data if data else None
 
     @staticmethod
     async def checks(bot: Bot):

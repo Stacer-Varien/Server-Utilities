@@ -24,7 +24,11 @@ class LOAmodCog(GroupCog, name="moderation"):
     @modgroup.command(name="cooldowns")
     @Serverutil.checks.has_any_role(1154076194837373021)
     async def _cooldowns(self, ctx: Interaction):
-        ...
+        embed=Embed()
+        if ctx.channel.id == 954594959074418738:
+            embed.color=Color.blue()
+            data=LOAMod()
+            
 
     @modgroup.command(
         name="stats",
