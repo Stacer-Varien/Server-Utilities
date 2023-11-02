@@ -1,9 +1,10 @@
-from typing import List, Optional
+from config import loa
 from discord import (
     AllowedMentions,
     CategoryChannel,
     Color,
     Message,
+    Object,
     SelectOption,
     app_commands as Serverutil,
     Embed,
@@ -176,6 +177,7 @@ class SnippetsCog(Cog):
             self.snip_ping_context.name, type=self.snip_general_context.type
         )
 
+    @Serverutil.guilds(loa)
     @Serverutil.checks.has_any_role(
         919410986249756673, 849778145087062046, 1160575171732721715
     )
@@ -191,6 +193,7 @@ class SnippetsCog(Cog):
             "Please use these commands in the https://discord.com/channels/704888699590279221/1154685546136866878 channels"
         )
 
+    @Serverutil.guilds(loa)
     @Serverutil.checks.has_any_role(
         919410986249756673, 849778145087062046, 1160575171732721715
     )
@@ -207,15 +210,6 @@ class SnippetsCog(Cog):
             "Please use these commands in the https://discord.com/channels/704888699590279221/1154685546136866878 channels"
         )
 
-    @snip_general_callback.error
-    async def snip_general_error(
-        self, ctx: Interaction, error: Serverutil.AppCommandError
-    ):
-        embed = Embed(color=Color.red())
-        if isinstance(error, Serverutil.MissingAnyRole):
-            embed.description = str(error)
-            await ctx.response.send_message(embed=embed)
-
     @snip_ping_callback.error
     async def snip_ping_error(
         self, ctx: Interaction, error: Serverutil.AppCommandError
@@ -223,11 +217,9 @@ class SnippetsCog(Cog):
         embed = Embed(color=Color.red())
         if isinstance(error, Serverutil.CommandOnCooldown):
             embed.description = f"You have already selected a ping snippet. Try again after `{round(error.retry_after)} seconds`"
-        elif isinstance(error, Serverutil.MissingAnyRole):
-            embed.description = str(error)
-        await ctx.response.send_message(embed=embed)
+            await ctx.response.send_message(embed=embed)
 
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(SnippetsCog(bot))
+    await bot.add_cog(SnippetsCog(bot), guild=Object(loa))

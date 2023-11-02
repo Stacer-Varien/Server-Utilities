@@ -4,7 +4,7 @@ from typing import Literal, Optional
 from discord import app_commands as Serverutil
 from discord import Embed, Color, Interaction, Member, Object
 from discord.ext.commands import Bot, GroupCog
-from humanfriendly import parse_timespan
+from humanfriendly import InvalidTimespan, parse_timespan
 
 from assets.functions import Break, Resign, Strike
 from assets.strike_modal import StrikeAppeal
@@ -37,64 +37,33 @@ class BreakCog(GroupCog, name="break"):
 
         if break_role in ctx.user.roles:
             await ctx.followup.send("You are already on break")
-        else:
-            if ctx.user.id == 1033533294840664074:
-                break_log = await self.bot.fetch_channel(1001053890277556235)
-                time = round(
-                    (
-                        datetime.now() + timedelta(seconds=parse_timespan(duration))
-                    ).timestamp()
-                )
-                duration = "<t:{}:D>".format(time)
-                await Break(ctx.user).add_request(
-                    ctx.guild.id,
-                    duration,
-                    reason,
-                    1,
-                    round(datetime.now().timestamp()),
-                    time,
-                )
+            return
 
-                own_break = Embed(
-                    description="You are now on break", color=Color.blue()
-                )
-                own_break.add_field(name="Duration", value=duration, inline=False)
+        parse_timespan(duration)
+        requested_break = Embed(title="New Break Request")
+        requested_break.add_field(name="Staff Member", value=ctx.user, inline=False)
 
-                await ctx.user.add_roles(break_role, reason="Owner on break")
-                await channel.send(ctx.user.mention, embed=own_break)
-
-                auto_break = Embed(title="Break Automatically Given")
-                auto_break.add_field(name="Staff Member", value=ctx.user, inline=False)
-                auto_break.add_field(name="Duration", value=duration, inline=False)
-                auto_break.add_field(name="Reason", value=reason, inline=False)
-
-                await break_log.send(embed=auto_break)
-            else:
-                parse_timespan(duration)
-                requested_break = Embed(title="New Break Request")
-                requested_break.add_field(
-                    name="Staff Member", value=ctx.user, inline=False
-                )
-
-                requested_break.add_field(name="Duration", value=duration, inline=False)
-                requested_break.add_field(name="Reason", value=reason, inline=False)
-                requested_break.set_footer(
-                    text="To approve or deny this request, use `/break approve MEMBER` or `/break deny MEMBER`"
-                )
-                await Break(ctx.user).add_request(
-                    ctx.guild.id,
-                    duration,
-                    reason,
-                    0,
-                    0,
-                    0,
-                )
-                await ctx.followup.send("Break successfully requested")
-                await channel.send(embed=requested_break)
+        requested_break.add_field(name="Duration", value=duration, inline=False)
+        requested_break.add_field(name="Reason", value=reason, inline=False)
+        requested_break.set_footer(
+            text="To approve or deny this request, use `/break approve MEMBER` or `/break deny MEMBER`"
+        )
+        await Break(ctx.user).add_request(
+            ctx.guild.id,
+            duration,
+            reason,
+            0,
+            0,
+            0,
+        )
+        await ctx.followup.send("Break successfully requested")
+        await channel.send(embed=requested_break)
 
     @apply.error
     async def apply_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
-        if isinstance(error, Serverutil.CommandInvokeError):
+        if isinstance(error, Serverutil.CommandInvokeError) and isinstance(
+            error.original, InvalidTimespan
+        ):
             await ctx.followup.send(
                 embed=Embed(description=str(error), color=Color.red())
             )
@@ -107,50 +76,49 @@ class BreakCog(GroupCog, name="break"):
 
         if data is None:
             await ctx.followup.send("This member never applied for break")
+            return
 
-        elif int(data[0]) == ctx.user.id:
+        if int(data[0]) == ctx.user.id:
             await ctx.followup.send("You can't approve your own break request...")
+            return
 
-        else:
-            break_channel = await self.bot.fetch_channel(841676953613631499)
-            break_log = await self.bot.fetch_channel(1001053890277556235)
+        break_channel = await self.bot.fetch_channel(841676953613631499)
+        break_log = await self.bot.fetch_channel(1001053890277556235)
 
-            member = ctx.guild.get_member(int(data[0]))
+        member = ctx.guild.get_member(int(data[0]))
 
-            accepted_break = Embed(title="Break Approved")
-            accepted_break.add_field(name="Staff Member", value=member, inline=False)
+        accepted_break = Embed(title="Break Approved")
+        accepted_break.add_field(name="Staff Member", value=member, inline=False)
 
-            time = parse_timespan(str(data[2]))
-            duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
-            timing = "<t:{}:D>".format(duration)
-            await Break(member).approve(
-                ctx.guild.id, round(datetime.now().timestamp()), duration
-            )
+        time = parse_timespan(str(data[2]))
+        duration = round((datetime.now() + timedelta(seconds=time)).timestamp())
+        timing = "<t:{}:D>".format(duration)
+        await Break(member).approve(
+            ctx.guild.id, round(datetime.now().timestamp()), duration
+        )
 
-            accepted_break.add_field(name="Duration", value=timing, inline=False)
-            accepted_break.add_field(name="Reason", value=str(data[3]), inline=False)
-            accepted_break.add_field(
-                name="User who approved it", value=ctx.user, inline=False
-            )
+        accepted_break.add_field(name="Duration", value=timing, inline=False)
+        accepted_break.add_field(name="Reason", value=str(data[3]), inline=False)
+        accepted_break.add_field(
+            name="User who approved it", value=ctx.user, inline=False
+        )
 
-            break_role = ctx.guild.get_role(841682795277713498)
-            await member.add_roles(break_role, reason="Staff is on break")
-            await break_log.send(embed=accepted_break)
+        break_role = ctx.guild.get_role(841682795277713498)
+        await member.add_roles(break_role, reason="Staff is on break")
+        await break_log.send(embed=accepted_break)
 
-            if ctx.channel.id == 841676953613631499:
-                await ctx.followup.send(
-                    "{}, your break has been approved by {}".format(
-                        member.mention, ctx.user
-                    )
+        if ctx.channel.id == 841676953613631499:
+            await ctx.followup.send(
+                "{}, your break has been approved by {}".format(
+                    member.mention, ctx.user
                 )
+            )
+            return
 
-            else:
-                await ctx.followup.send(f"Accepted break of {member}")
-                await break_channel.send(
-                    "{}, your break has been approved by {}".format(
-                        member.mention, ctx.user
-                    )
-                )
+        await ctx.followup.send(f"Accepted break of {member}")
+        await break_channel.send(
+            "{}, your break has been approved by {}".format(member.mention, ctx.user)
+        )
 
     @Serverutil.command(name="deny", description="Deny the break")
     @Serverutil.checks.has_any_role(core_team, om, 995151171004137492)
@@ -161,26 +129,26 @@ class BreakCog(GroupCog, name="break"):
 
             if data is None:
                 await ctx.followup.send("This member never applied for break")
+                return
 
-            else:
-                break_channel = await self.bot.fetch_channel(841676953613631499)
+            break_channel = await self.bot.fetch_channel(841676953613631499)
 
-                member = ctx.guild.get_member(int(data[0]))
+            member = ctx.guild.get_member(int(data[0]))
 
-                if ctx.channel.id == 841676953613631499:
-                    await ctx.followup.send(
-                        "{}, your break has been denied by {}".format(
-                            member.mention, ctx.user
-                        )
+            if ctx.channel.id == 841676953613631499:
+                await ctx.followup.send(
+                    "{}, your break has been denied by {}".format(
+                        member.mention, ctx.user
                     )
+                )
+                return
 
-                else:
-                    await ctx.followup.send(f"Denied break of {member}")
-                    await break_channel.send(
-                        f"{member.mention}, your break has been denied by {ctx.user}"
-                    )
+            await ctx.followup.send(f"Denied break of {member}")
+            await break_channel.send(
+                f"{member.mention}, your break has been denied by {ctx.user}"
+            )
 
-                await Break(member).deny(ctx.guild.id)
+            await Break(member).deny(ctx.guild.id)
 
     @Serverutil.command(name="cancel", description="Cancel your break request")
     async def cancel(self, ctx: Interaction):
@@ -195,18 +163,6 @@ class BreakCog(GroupCog, name="break"):
                 description="Break canceled and removed", color=Color.random()
             )
             await Break(ctx.user).cancel(ctx.guild.id)
-            await ctx.followup.send(embed=embed)
-
-    @approve.error
-    async def approve_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
-        if isinstance(error, Serverutil.MissingAnyRole):
-            embed = Embed(description=str(error), color=Color.red())
-            await ctx.followup.send(embed=embed)
-
-    @_deny.error
-    async def _deny_error(self, ctx: Interaction, error: Serverutil.AppCommandError):
-        if isinstance(error, Serverutil.MissingAnyRole):
-            embed = Embed(description=str(error), color=Color.red())
             await ctx.followup.send(embed=embed)
 
     @Serverutil.command(name="end", description="End your break early")
@@ -302,10 +258,11 @@ class StrikeCog(GroupCog, name="strike"):
         cso = ctx.guild.get_role(949147509660483614)
         if cso in member.roles:
             await ctx.followup.send(f"You can't strike someone who is a {cso.name}...")
-        else:
-            if moddept in member.roles:
-                if ctx.user.top_role.position > moddept.position:
-                    await self.addstrike(ctx, member, "Moderation", reason)
+            return
+
+        if moddept in member.roles:
+            if ctx.user.top_role.position > moddept.position:
+                await self.addstrike(ctx, member, "Moderation", reason)
 
     @Serverutil.command(
         description="Remove a strike if a staff member has shown improvement"
@@ -384,7 +341,7 @@ class StrikeCog(GroupCog, name="strike"):
             await ctx.followup.send("This user has never been striked")
             return
 
-        elif str(user[0]) != department:
+        if str(user[0]) != department:
             await ctx.followup.send("Invalid department entered")
             return
 
@@ -464,7 +421,7 @@ class ResignCog(GroupCog, name="resign"):
         )
         request.add_field(name="Department", value=department, inline=False)
         request.add_field(name="Reason of Resigning", value=reason, inline=False)
-        if planning_to_leave == False or planning_to_leave == None:
+        if (planning_to_leave == False) or (planning_to_leave == None):
             request.add_field(name="Plans to leave LSS", value="No", inline=False)
         else:
             request.add_field(name="Plans to leave LSS", value="Yes", inline=False)
@@ -488,17 +445,17 @@ class ResignCog(GroupCog, name="resign"):
         await ctx.response.defer(ephemeral=True)
         channel = await ctx.guild.fetch_channel(841672222136991757)
         resign = Resign(member)
-        if leaving is None or leaving is False:
+        if (leaving == None) or (leaving == False):
             leaving = 0
         else:
             leaving = 1
 
         data = resign.check(leaving)
 
-        if data is None:
+        if data == None:
             await ctx.followup.send("Invalid Member")
 
-        elif data[0] == ctx.user.id:
+        if data[0] == ctx.user.id:
             await ctx.followup.send("You can't approve your own resignation")
             return
 

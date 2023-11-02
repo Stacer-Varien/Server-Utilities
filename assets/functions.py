@@ -221,7 +221,7 @@ class LOAMod:
             (
                 self.mod.id,
                 1,
-            ),
+            )
         )
         db.commit()
 
@@ -231,7 +231,7 @@ class LOAMod:
                 (
                     1,
                     self.mod.id,
-                ),
+                )
             )
             db.commit()
     
@@ -255,7 +255,7 @@ class Warn:
             (
                 self.user.id,
                 self.warn_id,
-            ),
+            )
         ).fetchone()
         db.commit()
 
@@ -281,7 +281,7 @@ class Warn:
                     self.moderator.id,
                     reason,
                     self.warn_id,
-                ),
+                )
             )
 
             db.execute(

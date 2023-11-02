@@ -9,13 +9,13 @@ from assets.buttons import Confirmation
 from assets.functions import Warn, LOAMod
 from assets.not_allowed import no_invites, no_nsfw_spam, not_allowed_nsfw
 
+
 class AutomodCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
     @Cog.listener()
     async def on_message(self, message: Message):
-
         if "discord.gg" in message.content:
             if message.channel.id in no_invites:
                 if not message.author.bot:
@@ -82,7 +82,7 @@ class AutomodCog(Cog):
                     )
                     embed.set_thumbnail(url=message.author.display_avatar)
                     await adwarn_channel.send(message.author.mention, embed=embed)
-                    return
+            return
 
         if message.channel.id in not_allowed_nsfw:
             await message.delete()
@@ -95,90 +95,21 @@ class AutomodCog(Cog):
             if content is True and attachments is False:
                 await message.delete()
                 return
-            if content is True and attachments is True:
+            if (content is True and attachments is True) or (attachments is True and content is False):
                 return
-            if attachments is True and content is False:
-                return
-            if message.channel.id in no_nsfw_spam:
-                attachments = bool(message.attachments)
-                if attachments is True:
-                    if len(message.attachments) > 5:
-                        await message.delete()
-                        await message.channel.send(
-                            "HEY {}! You are sending too many attachments at once!".format(
-                                message.author.mention
-                            ),
-                            delete_after=5,
-                        )
-            return
-        if message.channel.id == 954594959074418738:
-            if not message.author.bot:
-                data = LOAMod(message.author)
-                view = Confirmation(message.author)
-                m_url = message.jump_url
 
-                if message.content.lower().startswith("w!t"):
-                    action = "Timeout"
-                elif message.content.lower().startswith("w!san"):
-                    action = "Sanitize"
-                elif message.content.lower().startswith("w!k"):
-                    action = "Kick"
-                elif message.content.lower().startswith("w!b"):
-                    action = "Ban"
-                elif message.content.lower().startswith(
-                        "w!hb"
-                ) or message.content.lower().startswith("w!hackban"):
-                    action = "Hackban"
-                elif message.content.lower().startswith("w!wa"):
-                    action = "Warn"
-                else:
-                    return
+        if message.channel.id == 985976000020111440:
+            attachments = bool(message.attachments)
+            if attachments == True:
+                if len(message.attachments) > 5:
+                    await message.delete()
+                    await message.channel.send(
+                        "HEY {}! You are sending too many attachments at once!".format(
+                            message.author.mention
+                        ),
+                        delete_after=5,
+                    )
 
-                embed = Embed(
-                    description=f"You have used a {action} command.\nDid the command successfully execute?"
-                )
-                m = await message.channel.send(embed=embed, view=view)
-
-                await view.wait()
-
-                if view.value is True:
-                    data.add_mod_point()
-                    embed = Embed(
-                        title=f"Wick {action} command used", color=Color.blue()
-                    )
-                    embed.add_field(
-                        name="Used by",
-                        value=f"{message.author.mention} | {message.author} | {message.author.id}",
-                        inline=False,
-                    )
-                    embed.add_field(
-                        name="Executed command",
-                        value=f"{message.content}\n[Click here if the message still exists]({m_url})",
-                        inline=False,
-                    )
-                    embed.set_thumbnail(url=message.author.avatar)
-                    log_ch = await self.bot.fetch_channel(1097695442252349500)
-                    added = Embed(
-                        description="Confirmation complete. This message will be deleted.",
-                        color=Color.green(),
-                    )
-                    await m.edit(embed=added, view=None, delete_after=5)
-                    await log_ch.send(embed=embed)
-
-                elif view.value is False:
-                    added = Embed(
-                        description="Confirmation completed. This message will be deleted.",
-                        color=Color.red(),
-                    )
-                    await m.edit(embed=added, view=None, delete_after=5)
-
-                else:
-                    added = Embed(
-                        description="No confirmation. This message will be deleted.",
-                        color=Color.red(),
-                    )
-                    await m.edit(embed=added, view=None, delete_after=5)
-        await self.bot.process_commands(message)
 
 async def setup(bot: Bot):
     await bot.add_cog(AutomodCog(bot))

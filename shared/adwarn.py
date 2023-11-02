@@ -247,10 +247,9 @@ class WarnCog(Cog):
             if warnpoints in punishment_actions:
                 action = punishment_actions[warnpoints]
                 if action[0] == "ban":
-                    do_act = "No need to take action. The automod for ban has kicked in"
                     embed.add_field(
                         name=":exclamation: Punishment:",
-                        value="Ban",
+                        value="Immediate Ban",
                         inline=False,
                     )
                     warn_data.delete()
@@ -263,26 +262,20 @@ class WarnCog(Cog):
                         pass
                     await member.ban(reason="Banned for reaching 10 adwarns")
                 elif action[0] == "kick":
-                    mobile_act = f"w!kick {member.id} ?r Warned 9 times"
-                    do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
                     embed.add_field(
                         name=":exclamation: Punishment:",
                         value="Kick",
                         inline=False,
                     )
                 else:
-                    timeout_duration, timeout_reason, result = action
-                    mobile_act = (
-                        f"w!timeout {member.id} {timeout_duration} ?r {timeout_reason}"
-                    )
-                    do_act = f"The member has a total of {warnpoints} warnings. Please do `{mobile_act}`"
+                    result = action
+
                     embed.add_field(
                         name=":exclamation: Punishment:",
                         value=result,
                         inline=False,
                     )
             else:
-                do_act = None
                 embed.add_field(
                     name=":exclamation: Punishment:",
                     value="No Punishment",

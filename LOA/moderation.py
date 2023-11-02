@@ -24,11 +24,32 @@ class LOAmodCog(GroupCog, name="moderation"):
     @modgroup.command(name="cooldowns")
     @Serverutil.checks.has_any_role(1154076194837373021)
     async def _cooldowns(self, ctx: Interaction):
-        embed=Embed()
+        embed = Embed()
         if ctx.channel.id == 954594959074418738:
-            embed.color=Color.blue()
-            data=LOAMod()
-            
+            await ctx.response.defer()
+            embed.color = Color.blue()
+            data = LOAMod()._cooldowns()
+            if data == None:
+                embed.description = "No cooldowns available"
+            else:
+                cooldowns = []
+                for i in data:
+                    try:
+                        user = await ctx.guild.fetch_member(int(i[0]))
+                        cooldown = f"<t:{i[2]}:R>"
+                        cooldowns.append(f"{user} | {cooldown}\n")
+                    except:
+                        continue
+                embed.title = "User | Cooldown"
+                embed.description = "".join(cooldowns)
+                embed.set_footer(
+                    text="If the cooldown time says 'in x time', that means you have to wait until the member can be adwarned"
+                )
+
+            await ctx.followup.send(embed=embed)
+            return
+        embed.description = "Please use this command in https://ptb.discord.com/channels/704888699590279221/954594959074418738"
+        await ctx.response.send_message(embed=embed, ephemeral=True)
 
     @modgroup.command(
         name="stats",
@@ -62,22 +83,6 @@ class LOAmodCog(GroupCog, name="moderation"):
 
         LOAMod().reset_week()
         await ctx.followup.send("Moderator checks for last week have been reseted")
-
-    @_stats.error
-    async def _stats_error(
-        self, ctx: Interaction, error: Serverutil.errors.AppCommandError
-    ):
-        if isinstance(error, Serverutil.errors.MissingAnyRole):
-            embed = Embed(description=error, color=Color.red())
-            await ctx.followup.send(embed)
-
-    @_reset.error
-    async def _reset_error(
-        self, ctx: Interaction, error: Serverutil.errors.AppCommandError
-    ):
-        if isinstance(error, Serverutil.errors.MissingAnyRole):
-            embed = Embed(description=error, color=Color.red())
-            await ctx.followup.send(embed)
 
 
 class ModCog(Cog):
@@ -320,10 +325,20 @@ class ModCog(Cog):
                 pass
 
             # await member.kick(reason="{} | {}".format(reason, ctx.user))
-            await ctx.guild.kick(member, reason="{} | Kicked by {}".format(reason, ctx.user))
-            kick = Embed(title=f":boot: Member kicked from {ctx.guild.name}", color=0xFF0000)
-            kick.add_field(name=":bust_in_silhouette: Member", value=member, inline=True)
-            kick.add_field(name="<moderator:908227618439041044> Moderator", value=ctx.user, inline=True)
+            await ctx.guild.kick(
+                member, reason="{} | Kicked by {}".format(reason, ctx.user)
+            )
+            kick = Embed(
+                title=f":boot: Member kicked from {ctx.guild.name}", color=0xFF0000
+            )
+            kick.add_field(
+                name=":bust_in_silhouette: Member", value=member, inline=True
+            )
+            kick.add_field(
+                name="<moderator:908227618439041044> Moderator",
+                value=ctx.user,
+                inline=True,
+            )
             kick.add_field(name=":bell: Reason", value=reason, inline=True)
             kick.set_thumbnail(url=member.display_avatar)
 
