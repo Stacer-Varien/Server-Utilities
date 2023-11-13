@@ -8,6 +8,7 @@ from discord import (
     Guild,
     Interaction,
     Member,
+    Message,
     TextChannel,
     User,
     Forbidden,
@@ -118,7 +119,7 @@ class LOAWarn:
             db.commit()
 
         datav3 = db.execute(
-            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points, start, end) VALUES (?,?,?,?)",
+            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points) VALUES (?,?)",
             (
                 self.moderator.id,
                 1,
@@ -139,7 +140,7 @@ class LOAWarn:
     def get_points(self) -> int:
         warnpointdata = db.execute(
             "SELECT warn_point FROM loaAdwarnData_v2 WHERE user_id = ?",
-            (self.user.id,),
+            (self.moderator.id,),
         ).fetchone()
         db.commit()
         return warnpointdata[0] if warnpointdata else 0
@@ -782,3 +783,23 @@ class YouTube:
         ).fetchone()[0]
         db.commit()
         return str(data)
+
+class Verification:
+    def __init__(self) -> None:
+        pass
+
+    async def add_request(self, member:Member, message:Message):
+        data = db.execute("INSERT OR IGNORE INTO verificationLog (user, message_id) VALUES (?, ?)", (member.id, message.id,))
+        db.execute()
+
+        if data.rowcount == 0:
+            return
+    
+    def check(self, member:Member):
+        data=db.execute("SELECT * FROM verificationLog WHERE user = ?", (member.id,)).fetchone()
+        db.execute()
+
+        if int(data[0]) == member.id:
+            return True
+        return
+
