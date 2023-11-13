@@ -20,7 +20,7 @@ class SnippetMenu(ui.Select):
 
         options = [
             SelectOption(
-                lable="Ask", description="Ask the member if they need assistance"
+                label="Ask", description="Ask the member if they need assistance"
             ),
             SelectOption(
                 label="Affiliate",
@@ -79,7 +79,7 @@ Steps:
             snip = """
 Requirements:
 - More than **1,000** members.
-> Exceptions: If you are willing to enable ping on join, we can do it too. 
+- Exceptions: If you are willing to enable ping on join, we can do it too. 
 - **Safe** for work.
 
 Steps:
@@ -98,6 +98,7 @@ We will create the custom channel in the https://discord.com/channels/7048886995
         elif self.values[0] == "More Help":
             snip = "Is there anything else I can assist you with?"
 
+        await ctx.response.edit_message(content="Response sent", view=None)
         await self.message.reply(
             embed=Embed(description=snip, color=Color.random()), mention_author=True
         )
@@ -134,6 +135,7 @@ class SnippetPingMenu(ui.Select):
         elif self.values[0] == "Alert Core Team":
             snip = "Please wait while we transfer this ticket to the <@&919410986249756673>"
 
+        await ctx.response.edit_message(content="Response sent", view=None)
         await self.message.reply(
             snip,
             allowed_mentions=AllowedMentions(everyone=False, roles=True),
@@ -209,17 +211,6 @@ class SnippetsCog(Cog):
         await ctx.followup.send(
             "Please use these commands in the https://discord.com/channels/704888699590279221/1154685546136866878 channels"
         )
-
-    @snip_ping_callback.error
-    async def snip_ping_error(
-        self, ctx: Interaction, error: Serverutil.AppCommandError
-    ):
-        embed = Embed(color=Color.red())
-        if isinstance(error, Serverutil.CommandOnCooldown):
-            embed.description = f"You have already selected a ping snippet. Try again after `{round(error.retry_after)} seconds`"
-            await ctx.response.send_message(embed=embed)
-
-
 
 async def setup(bot: Bot):
     await bot.add_cog(SnippetsCog(bot), guild=Object(loa))
