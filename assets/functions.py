@@ -1,5 +1,6 @@
+import asyncio
 import os
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Literal, Optional
 
 from discord import (
@@ -55,11 +56,10 @@ class Appeal:
 
 
 class LOAWarn:
-    def __init__(
-        self, moderator: Optional[User] = None) -> None:
+    def __init__(self, moderator: Optional[User] = None) -> None:
         self.moderator = moderator
 
-    def check(self, user:Member,warn_id:int):
+    def check(self, user: Member, warn_id: int):
         data = db.execute(
             "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?",
             (
@@ -72,7 +72,7 @@ class LOAWarn:
         return data if data else None
 
     @staticmethod
-    def check_time(member: Member) ->(int|Literal[True]):
+    def check_time(member: Member) -> int | Literal[True]:
         data = db.execute(
             "SELECT time from loaAdwarnData_v2 WHERE user_id = ?", (member.id,)
         ).fetchone()
@@ -82,7 +82,9 @@ class LOAWarn:
             return True
         return int(data[0])
 
-    async def give(self, user:Member, channel: TextChannel, reason: str, warn_id:int) -> (Literal[False] | None):
+    async def give(
+        self, user: Member, channel: TextChannel, reason: str, warn_id: int
+    ) -> (Literal[False] | None):
         current_time = datetime.now()
         next_warn = current_time + timedelta(minutes=25)
 
@@ -145,7 +147,7 @@ class LOAWarn:
         db.commit()
         return warnpointdata[0] if warnpointdata else 0
 
-    def remove(self, user:Member, warn_id:int):
+    def remove(self, user: Member, warn_id: int):
         mod_id = int(self.check()[3])
         db.execute(
             "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
@@ -181,23 +183,21 @@ class LOAWarn:
             )
             db.commit()
 
-    def delete(self, user:Member):
+    def delete(self, user: Member):
         if self.get_points() == 10:
             db.execute("DELETE FROM loaAdwarnData WHERE user_id = ?;", (user.id,))
             db.commit()
-            db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (user.id,)
-            )
+            db.execute("DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (user.id,))
             db.commit()
 
 
 class LOAMod:
     def __init__(self, mod: Optional[User] = None) -> None:
         self.mod = mod
-    
+
     @staticmethod
     def _cooldowns():
-        data=db.execute("SELECT * FROM loaAdwarnData_v2 DESC").fetchall()
+        data = db.execute("SELECT * FROM loaAdwarnData_v2 DESC").fetchall()
         db.commit()
 
         return data if data else None
@@ -222,7 +222,7 @@ class LOAMod:
             (
                 self.mod.id,
                 1,
-            )
+            ),
         )
         db.commit()
 
@@ -232,10 +232,10 @@ class LOAMod:
                 (
                     1,
                     self.mod.id,
-                )
+                ),
             )
             db.commit()
-    
+
     @staticmethod
     def reset_week():
         db.execute("DELETE FROM loaWarndata_v3;")
@@ -256,7 +256,7 @@ class Warn:
             (
                 self.user.id,
                 self.warn_id,
-            )
+            ),
         ).fetchone()
         db.commit()
 
@@ -282,7 +282,7 @@ class Warn:
                     self.moderator.id,
                     reason,
                     self.warn_id,
-                )
+                ),
             )
 
             db.execute(
@@ -784,22 +784,61 @@ class YouTube:
         db.commit()
         return str(data)
 
+
 class Verification:
     def __init__(self) -> None:
         pass
 
-    async def add_request(self, member:Member, message:Message):
-        data = db.execute("INSERT OR IGNORE INTO verificationLog (user, message_id) VALUES (?, ?)", (member.id, message.id,))
-        db.execute()
+    async def add_request(self, member: Member, message: Message):
+        data = db.execute(
+            "INSERT OR IGNORE INTO verificationLog (user, message_id) VALUES (?, ?)",
+            (
+                member.id,
+                message.id,
+            ),
+        )
+        db.commit()
 
         if data.rowcount == 0:
             return
-    
-    def check(self, member:Member):
-        data=db.execute("SELECT * FROM verificationLog WHERE user = ?", (member.id,)).fetchone()
-        db.execute()
 
-        if int(data[0]) == member.id:
+    def check(self, member: Member, message: Optional[Message] = None):
+        data = db.execute(
+            "SELECT * FROM verificationLog WHERE user = ?", (member.id,)
+        ).fetchone()
+        db.commit()
+
+        verify_role = member.guild.get_role(974760640742825984)
+
+        if (int(data[0]) == member.id) and (int(data[1] == message.id)):
             return True
-        return
 
+        if verify_role in member.roles:
+            return False
+        
+        return None
+    
+
+    async def approve(self, member: Member):
+        db.execute("DELETE FROM verificationLog WHERE user= ?", (member.id,))
+        db.commit()
+
+        verify_role = member.guild.get_role(974760640742825984)
+        untrusted = member.guild.get_role(974760534102650950)
+
+        await member.add_roles(verify_role, "Successfully verified")
+
+        if untrusted in member.roles:
+            await member.remove_roles(untrusted, "Successful forced verification")
+            return
+
+    async def deny(self, member: Member):
+        db.execute("DELETE FROM verificationLog WHERE user= ?", (member.id,))
+        db.commit()
+
+    async def force(self, member: Member):
+        untrusted = member.guild.get_role(974760534102650950)
+        for role in member.roles:
+            await member.remove_roles(role, "Removed due to forced verification")
+            await asyncio.sleep(1)
+        await member.add_roles(untrusted, "Force verification")
