@@ -85,7 +85,7 @@ class LOAmodCog(GroupCog, name="moderation"):
         await ctx.followup.send("Moderator checks for last week have been reseted")
 
 
-class ModCog(Cog):
+class ModCog2(Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
@@ -122,7 +122,7 @@ class ModCog(Cog):
             )
             mute = Embed(title=":warning: You have been put on timeout", color=0xFF0000)
             mute.add_field(
-                name="<moderator:908227618439041044:> Moderator",
+                name=":shield: Moderator",
                 value=ctx.user,
                 inline=False,
             )
@@ -181,7 +181,7 @@ class ModCog(Cog):
             )
             unmute = Embed(title="Your timeout has been removed", color=0xFF0000)
             unmute.add_field(
-                name="<moderator:908227618439041044:> Moderator",
+                name=":shield: Moderator",
                 value=ctx.user,
                 inline=True,
             )
@@ -208,7 +208,6 @@ class ModCog(Cog):
     @Serverutil.describe(
         member="Which member are you banning?",
         reason="What did they do?",
-        time="How long should they be tempbanned? (1m, 1h30m, etc)",
     )
     @Serverutil.checks.has_permissions(ban_members=True)
     @Serverutil.checks.bot_has_permissions(ban_members=True)
@@ -255,7 +254,7 @@ class ModCog(Cog):
                 title=f"Member Banned from **{ctx.guild.name}**", color=0xFF0000
             )
             ban.add_field(
-                name="<moderator:908227618439041044> Moderator",
+                name=":shield: Moderator",
                 value=ctx.user,
                 inline=True,
             )
@@ -335,7 +334,7 @@ class ModCog(Cog):
                 name=":bust_in_silhouette: Member", value=member, inline=True
             )
             kick.add_field(
-                name="<moderator:908227618439041044> Moderator",
+                name=":shield: Moderator",
                 value=ctx.user,
                 inline=True,
             )
@@ -362,4 +361,4 @@ class ModCog(Cog):
 
 async def setup(bot: Bot):
     await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
-    await bot.add_cog(ModCog(bot), guild=Object(loa))
+    await bot.add_cog(ModCog2(bot), guild=Object(loa))
