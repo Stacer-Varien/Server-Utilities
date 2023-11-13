@@ -84,10 +84,6 @@ class AutomodCog(Cog):
                     await adwarn_channel.send(message.author.mention, embed=embed)
             return
 
-        if message.channel.id in not_allowed_nsfw:
-            await message.delete()
-            return
-
         if message.channel.id == 1041309643449827360:
             attachments = bool(message.attachments)
             content = bool(message.content)
@@ -97,18 +93,6 @@ class AutomodCog(Cog):
                 return
             if (content is True and attachments is True) or (attachments is True and content is False):
                 return
-
-        if message.channel.id == 985976000020111440:
-            attachments = bool(message.attachments)
-            if attachments == True:
-                if len(message.attachments) > 5:
-                    await message.delete()
-                    await message.channel.send(
-                        "HEY {}! You are sending too many attachments at once!".format(
-                            message.author.mention
-                        ),
-                        delete_after=5,
-                    )
 
 
 async def setup(bot: Bot):
