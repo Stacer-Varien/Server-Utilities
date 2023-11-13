@@ -1,0 +1,39 @@
+{
+    "content": null,
+    "embeds": [
+        {
+            "title": "ID Verification Process",
+            "description": "ID verification is optional but grants you trusted status in the server.",
+            "color": 16763981,
+            "fields": [
+                {
+                    "name": "Benefits of Being ID Verified",
+                    "value": "1. Trusted status in the server.\n2. Access to the <@&974760599487647815> (ID verified) role."
+                },
+                {
+                    "name": "Note",
+                    "value": "ID verification doesn't grant instant NSFW access; it's your choice."
+                },
+                {
+                    "name": "Requirements",
+                    "value": "Your ID book/card, driver's license, or passport\nA piece of paper\nPen"
+                },
+                {
+                    "name": "Verified in Another Server",
+                    "value": "If verified in a partnered server, skip by providing proof."
+                },
+                {
+                    "name": "What happens if verification fails?",
+                    "value": "In case of issues such as revealing all personal information, blurry images, etc, you'll be asked to re-verify."
+                },
+                {
+                    "name": "Data Handling",
+                    "value": "Pictures and documents are deleted after successful or denied verification."
+                }
+            ]
+        }
+    ],
+    "steps":[{
+    "paper": "Send an image of the piece of paper with your username and today's date written",
+    "id_pic": "Now send a picture of your ID, passport, or Learner's/Driver's license. A birth certificate is not valid for verification. Make sure you have covered all sensitive information except your date of birth.\n\nFor faster verification, you can include your face"}]
+}
