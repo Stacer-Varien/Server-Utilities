@@ -12,13 +12,303 @@ from discord import (
     TextChannel,
     app_commands as Serverutil,
     Forbidden,
+    ui,
+    SelectOption,
 )
 from discord.ext.commands import Cog, Bot
 from discord.utils import utcnow
-from assets.menus import HAdropdownView, LOAdropdownView
-from assets.buttons import MobileView
 from assets.functions import LOAWarn, Warn
 from config import hazead, loa
+
+
+class LOAdropdown(ui.Select):
+    def __init__(self, member: Member, channel: TextChannel):
+        self.member = member
+        self.channel = channel
+
+        options = [
+            SelectOption(label="Ad has an invalid invite"),
+            SelectOption(label="Back-to-Back advertising"),
+            SelectOption(label="Ad contains a public ping or mention"),
+            SelectOption(label="Ad is an invite reward server"),
+            SelectOption(label="NSFW ad, imagery or description"),
+            SelectOption(label="Advertising in wrong channel"),
+        ]
+
+        super().__init__(
+            placeholder="Which warning will the member recieve",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    async def loa_warn(
+        self,
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
+    ):
+        adwarn_channel = await ctx.guild.fetch_channel(745107170827305080)
+        if member == ctx.user:
+            failed_embed = Embed(description="You can't warn yourself")
+            await ctx.followup.send(embed=failed_embed)
+            return
+        if member.bot:
+            failed_embed = Embed(description="You can't warn a bot")
+            await ctx.followup.send(embed=failed_embed)
+            return
+
+        warn_id = randint(0, 100000)
+        embed = Embed(
+            title=f"{ctx.guild.name} - Advertising Warning", color=Color.red()
+        )
+        embed.description = ":warning: **You have recieved an ad violation warning**"
+        embed.add_field(
+            name=":shield: Moderator",
+            value=ctx.user.mention,
+            inline=False,
+        )
+        embed.add_field(
+            name=":arrow_forward: Ad deleted in:",
+            value=channel.mention,
+            inline=False,
+        )
+        embed.add_field(name=":bell: Reason:", value=reason, inline=False)
+        if notes:
+            embed.add_field(
+                name=":exclamation: Moderator's Notes:",
+                value=notes,
+                inline=False,
+            )
+
+        warn_data = LOAWarn(member)
+        if warn_data.check_time(member) == True:
+            await warn_data.give(member, channel, reason, warn_id)
+            warnpoints = warn_data.get_points()
+            embed.add_field(
+                name="Total Infractions:",
+                value=warnpoints,
+                inline=False,
+            )
+            embed.add_field(name="Warn ID", value=warn_id, inline=False)
+
+            if warnpoints == 10:
+                embed.add_field(
+                    name=":exclamation: Punishment:",
+                    value="Immediate Ban",
+                    inline=False,
+                )
+                warn_data.delete()
+                try:
+                    ban_msg = Embed(
+                        description=f"You have been banned from **{ctx.guild.name}** because you have reached the 10 warn point punishment."
+                    )
+                    await member.send(embed=ban_msg)
+                except:
+                    pass
+                await member.ban(reason="Banned for reaching 10 adwarns")
+            elif warnpoints == 9:
+                embed.add_field(
+                    name=":exclamation: Punishment:",
+                    value="Kick",
+                    inline=False,
+                )
+            elif warnpoints == 8:
+                embed.add_field(
+                    name=":exclamation: Punishment:",
+                    value="24 hour timeout",
+                    inline=False,
+                )
+            elif warnpoints == 7:
+                embed.add_field(
+                    name=":exclamation: Punishment:",
+                    value="12 hour timeout",
+                    inline=False,
+                )
+            elif warnpoints == 6:
+                embed.add_field(
+                    name=":exclamation: Punishment:",
+                    value="8 hour timeout",
+                    inline=False,
+                )
+            else:
+                embed.add_field(
+                    name=":exclamation: Punishment:",
+                    value="No Punishment",
+                    inline=False,
+                )
+            embed.set_footer(
+                text="If you feel this warn was a mistake, please open a ticket to appeal"
+            )
+            embed.set_thumbnail(url=member.display_avatar)
+            m = await adwarn_channel.send(member.mention, embed=embed)
+            msg = f"Warning sent. Check {m.jump_url}"
+            await ctx.response.edit_message(content=msg, view=None)
+            return
+
+        await ctx.channel.send(
+            f"The member was warned recently. Please wait <t:{warn_data.check_time(member)}:R>"
+        )
+
+    async def callback(self, ctx: Interaction):
+        await self.loa_warn(ctx, self.member, self.channel, self.values[0], None)
+
+
+class LOAdropdownView(ui.View):
+    def __init__(self, bot: Bot, member: Member, channel: TextChannel):
+        self.bot = bot
+        self.member = member
+        self.channel = channel
+        super().__init__()
+
+        self.add_item(LOAdropdown(self.member, self.channel))
+
+
+class HAdropdown(ui.Select):
+    def __init__(self, bot: Bot, member: Member, channel: TextChannel):
+        self.bot = bot
+        self.member = member
+        self.channel = channel
+
+        options = [
+            SelectOption(label="Ad has an invalid invite"),
+            SelectOption(label="Back-to-Back advertising"),
+            SelectOption(label="Ad contains a public ping or mention"),
+            SelectOption(label="Ad is an invite reward server"),
+            SelectOption(label="NSFW ad, imagery or description"),
+            SelectOption(label="Advertising in wrong channel"),
+            SelectOption(label="Ad has short or no description"),
+        ]
+
+        super().__init__(
+            placeholder="Which warning will the member recieve",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    @staticmethod
+    async def ha_warn(
+        ctx: Interaction,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
+    ):
+        adwarn_channel = ctx.guild.get_channel(925790260695281703)
+        if member == ctx.user:
+            failed_embed = Embed(description="You can't warn yourself")
+            await ctx.channel.send(embed=failed_embed)
+            return
+
+        if member.bot:
+            failed_embed = Embed(description="You can't warn a bot")
+            await ctx.channel.send(embed=failed_embed)
+            return
+
+        warn_id = randint(0, 100000)
+        embed = Embed(title="You were adwarned", color=0xFF0000)
+        embed.add_field(name="Ad deleted in", value=channel.mention, inline=False)
+        embed.add_field(name="Reason", value=reason, inline=False)
+        if notes:
+            embed.add_field(name="Notes", value=notes, inline=False)
+
+        warn_data = Warn(member, ctx.user, warn_id)
+        if warn_data.give(channel, reason):
+            warn_data.give(channel, reason)
+            warnpoints = warn_data.get_points()
+            embed.add_field(name="Warn ID", value=warn_id, inline=True)
+            embed.add_field(name="Warn Points", value=warnpoints, inline=True)
+
+            punishment_actions = {
+                3: (
+                    "2hr",
+                    "2 hour mute punishment applied",
+                    "Member has reached the 3 warn point punishment. A 2 hour mute punishment was applied",
+                ),
+                6: (
+                    None,
+                    "Member has reached the 6 warn point punishment. A kick punishment was applied",
+                ),
+                10: (
+                    None,
+                    "Member has reached the 10 warn point punishment. A ban punishment was applied",
+                ),
+            }
+
+            if warnpoints in punishment_actions:
+                action = punishment_actions[warnpoints]
+                if action[0] == "2hr":
+                    await member.edit(
+                        timed_out_until=(utcnow() + timedelta(hours=2)),
+                        reason="2 hour mute punishment applied",
+                    )
+                    result = action[2]
+                    try:
+                        timeout_msg = Embed(
+                            description=f"You have received a timeout of 3 hours from **{ctx.guild.name}**\nYou have reached the 3 warn point punishment"
+                        )
+                        await member.send(embed=timeout_msg)
+                    except:
+                        pass
+                elif action[0] is None:
+                    if warnpoints == 6:
+                        try:
+                            kick_msg = Embed(
+                                description=f"You are kicked from **{ctx.guild.name}**\nYou have reached the 6 warn point punishment"
+                            )
+                            await member.send(embed=kick_msg)
+                        except:
+                            pass
+                        await member.kick(reason="Kick punishment applied")
+                    elif warnpoints == 10:
+                        try:
+                            ban_msg = Embed(
+                                description=f"You are banned from **{ctx.guild.name}**\nYou have reached the 10 warn point punishment"
+                            )
+                            ban_msg.set_footer(
+                                text="To appeal for your ban, join with this invite code: qZFhxyhTQh"
+                            )
+                            await member.send(embed=ban_msg)
+                        except:
+                            pass
+                        await member.kick(reason="Kick punishment applied")
+                    result = action[1]
+                    embed.add_field(name="Result", value=result, inline=False)
+            else:
+                embed.add_field(
+                    name="Result",
+                    value="No warn point punishment applied",
+                    inline=False,
+                )
+
+            embed.set_footer(
+                text="If you feel this warn was a mistake, please use `/appeal WARN_ID`"
+            )
+            embed.set_thumbnail(url=member.display_avatar)
+            m = await adwarn_channel.send(member.mention, embed=embed)
+            msg = f"Warning sent. Check {m.jump_url}"
+            await ctx.response.edit_message(msg)
+            return
+
+        await ctx.channel.send(
+            f"Please wait <t:{warn_data.get_time()}:R> to adwarn the member"
+        )
+
+    async def callback(self, ctx: Interaction):
+        await self.ha_warn(ctx, self.member, self.channel, self.values[0], None)
+
+
+class HAdropdownView(ui.View):
+    def __init__(self, bot: Bot, member: Member, channel: TextChannel):
+        self.bot = bot
+        self.member = member
+        self.channel = channel
+        super().__init__()
+
+        self.add_item(HAdropdown(self.bot, self.member, self.channel))
 
 
 class WarnCog(Cog):
@@ -58,6 +348,7 @@ class WarnCog(Cog):
         await ctx.response.defer(ephemeral=True)
         await message.delete()
         await ctx.followup.send(view=view)
+        await view.wait()
 
     @Serverutil.guilds(925790259160166460)
     @Serverutil.checks.has_any_role(
@@ -72,6 +363,7 @@ class WarnCog(Cog):
         await ctx.response.defer(ephemeral=True)
         await message.delete()
         await ctx.followup.send(view=view)
+        await view.wait()
 
     @staticmethod
     async def ha_warn(
@@ -184,6 +476,7 @@ class WarnCog(Cog):
             f"Please wait <t:{warn_data.get_time()}:R> to adwarn the member"
         )
 
+    @staticmethod
     async def loa_warn(
         self,
         ctx: Interaction,
@@ -208,7 +501,7 @@ class WarnCog(Cog):
         )
         embed.description = ":warning: **You have recieved an ad violation warning**"
         embed.add_field(
-            name="<moderator:908227618439041044:> Moderator",
+            name=":shield: Moderator",
             value=ctx.user.mention,
             inline=False,
         )
@@ -255,7 +548,7 @@ class WarnCog(Cog):
                     warn_data.delete()
                     try:
                         ban_msg = Embed(
-                            description=f"You have been banned from **{ctx.guild.name}** because you have reached the 10 warn point punishment.\n\nTo appeal for your ban, please fill in this form https://forms.gle/kpjMC9RMV1QkBY9t6"
+                            description=f"You have been banned from **{ctx.guild.name}** because you have reached the 10 warn point punishment."
                         )
                         await member.send(embed=ban_msg)
                     except Forbidden:
