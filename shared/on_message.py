@@ -1,7 +1,7 @@
 from datetime import timedelta
 from random import randint
 
-from discord import Color, Embed, Message, Forbidden
+from discord import CategoryChannel, Color, Embed, Message, Forbidden
 from discord.ext.commands import Cog, Bot
 from discord.utils import utcnow
 
@@ -91,9 +91,17 @@ class AutomodCog(Cog):
             if content is True and attachments is False:
                 await message.delete()
                 return
-            if (content is True and attachments is True) or (attachments is True and content is False):
+            if (content is True and attachments is True) or (
+                attachments is True and content is False
+            ):
                 return
 
+        if message.guild.id == 974028573893595146:
+            category: CategoryChannel = await message.guild.get_channel(
+                1054090810800472154
+            )
+            if message.channel.id in [i.id for i in category.channels]:
+                await message.add_reaction("❤️")
 
 async def setup(bot: Bot):
     await bot.add_cog(AutomodCog(bot))
