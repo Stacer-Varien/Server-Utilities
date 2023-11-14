@@ -824,12 +824,14 @@ class Verification:
         db.commit()
 
         verify_role = member.guild.get_role(974760640742825984)
+        member_role=member.guild.get_role(974760599487647815)
         untrusted = member.guild.get_role(974760534102650950)
 
         await member.add_roles(verify_role, "Successfully verified")
 
         if untrusted in member.roles:
             await member.remove_roles(untrusted, "Successful forced verification")
+            await member.add_roles(member_role)
             return
 
     async def deny(self, member: Member):
