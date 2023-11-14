@@ -314,24 +314,17 @@ class HAdropdownView(ui.View):
 class WarnCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.loa_warn_context_menu = Serverutil.ContextMenu(
+        self.adwarn_context_menu = Serverutil.ContextMenu(
             name="Adwarn", callback=self.loa_adwarn_callback
         )
-        self.bot.tree.add_command(self.loa_warn_context_menu)
-        self.ha_warn_context_menu = Serverutil.ContextMenu(
-            name="Adwarn", callback=self.ha_adwarn_callback
-        )
-        self.bot.tree.add_command(self.ha_warn_context_menu)
+        self.bot.tree.add_command(self.adwarn_context_menu)
 
     async def cog_unload(self) -> None:
         self.bot.tree.remove_command(
-            self.loa_warn_context_menu.name, type=self.loa_warn_context_menu.type
-        )
-        self.bot.tree.remove_command(
-            self.ha_warn_context_menu.name, type=self.ha_warn_context_menu.type
+            self.adwarn_context_menu.name, type=self.adwarn_context_menu.type
         )
 
-    @Serverutil.guilds(704888699590279221)
+    @Serverutil.guilds(loa, hazead)
     @Serverutil.checks.has_any_role(
         919410986249756673,
         947109389855248504,
@@ -342,24 +335,17 @@ class WarnCog(Cog):
         972072908065218560,
         1154076194837373021,
         849778145087062046,
-    )
-    async def loa_adwarn_callback(self, ctx: Interaction, message: Message) -> None:
-        view = LOAdropdownView(self.bot, message.author, message.channel)
-        await ctx.response.defer(ephemeral=True)
-        await message.delete()
-        await ctx.followup.send(view=view)
-        await view.wait()
-
-    @Serverutil.guilds(925790259160166460)
-    @Serverutil.checks.has_any_role(
         925790259319558159,
         925790259319558158,
         925790259319558157,
         1011971782426767390,
         925790259294396455,
     )
-    async def ha_adwarn_callback(self, ctx: Interaction, message: Message) -> None:
-        view = HAdropdownView(self.bot, message.author, message.channel)
+    async def loa_adwarn_callback(self, ctx: Interaction, message: Message) -> None:
+        if ctx.guild.id == loa:
+            view = LOAdropdownView(self.bot, message.author, message.channel)
+        elif ctx.guild.id == hazead:
+            view = HAdropdownView(self.bot, message.author, message.channel)
         await ctx.response.defer(ephemeral=True)
         await message.delete()
         await ctx.followup.send(view=view)
@@ -478,7 +464,6 @@ class WarnCog(Cog):
 
     @staticmethod
     async def loa_warn(
-        self,
         ctx: Interaction,
         member: Member,
         channel: TextChannel,
