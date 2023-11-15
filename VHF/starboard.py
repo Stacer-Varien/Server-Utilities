@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Union
-from discord import Color, Embed, Member, Object, Reaction, User
+from discord import Color, Embed, Emoji, Member, Object, Reaction, User
 from discord.ext.commands import Bot, Cog
 
 
@@ -13,14 +13,13 @@ class StarboardCog(Cog):
         if user.guild.id == 974028573893595146:
             category = user.guild.get_channel(1054090810800472154)
             if reaction.message.channel.id in [i.id for i in category.channels]:
-                emoji = next(
-                    (
-                        i
-                        for i in reaction.message.reactions
-                        if str(i.emoji) == "❤️" and isinstance(i.emoji, str)
-                    ),
-                    None,
-                )
+                emoji = [
+                    i
+                    for i in reaction.message.reactions
+                    if isinstance(i.emoji, Emoji)
+                    and i.emoji.name == "mhxaLove"
+                    and i.emoji.id == 1174261737697050625
+                ][0]
                 if emoji and (emoji.count == 11):
                     starboard = await self.bot.fetch_channel(1173932523764600882)
                     embeds = []
