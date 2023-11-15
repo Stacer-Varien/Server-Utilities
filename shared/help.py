@@ -7,7 +7,6 @@ from discord import (
 )
 from discord.ext.commands import GroupCog, Bot
 
-
 class HelpGroup(GroupCog, name="help"):
     def __init__(self, bot: Bot):
         self.bot = bot
