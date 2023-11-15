@@ -101,7 +101,8 @@ class AutomodCog(Cog):
                 1054090810800472154
             )
             if message.channel.id in [i.id for i in category.channels]:
-                await message.add_reaction("❤️")
+                await message.add_reaction(":mhxaLove:1174261737697050625")
+
 
 async def setup(bot: Bot):
     await bot.add_cog(AutomodCog(bot))
