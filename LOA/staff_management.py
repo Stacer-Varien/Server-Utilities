@@ -211,7 +211,11 @@ class StrikeCog(GroupCog, name="strike"):
         description="Give a strike to a staff member for bad performance/unprofessionalism"
     )
     @Serverutil.checks.has_any_role(
-        841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
+        841671779394781225,
+        1095048263985549382,
+        1072103843569094796,
+        841671956999045141,
+        1160568155807154296,
     )
     async def give(
         self,
@@ -249,6 +253,7 @@ class StrikeCog(GroupCog, name="strike"):
         1095048263985549382,
         841671779394781225,
         949147509660483614,
+        1160568155807154296,
     )
     async def mod(self, ctx: Interaction, member: Member, reason: str):
         await ctx.response.defer(ephemeral=True)
@@ -268,7 +273,14 @@ class StrikeCog(GroupCog, name="strike"):
         description="Remove a strike if a staff member has shown improvement"
     )
     @Serverutil.checks.has_any_role(
-        core_team, chr, coo, team_leader, staff_supervisor, om, 1095048263985549382
+        core_team,
+        chr,
+        coo,
+        team_leader,
+        staff_supervisor,
+        om,
+        1095048263985549382,
+        1160568155807154296,
     )
     async def remove(
         self,
@@ -324,7 +336,11 @@ class StrikeCog(GroupCog, name="strike"):
 
     @group2.command(description="Approve a strike appeal")
     @Serverutil.checks.has_any_role(
-        841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
+        841671779394781225,
+        1095048263985549382,
+        1072103843569094796,
+        841671956999045141,
+        1160568155807154296,
     )
     async def approve(
         self,
@@ -364,7 +380,11 @@ class StrikeCog(GroupCog, name="strike"):
 
     @group2.command(description="Deny a strike appeal")
     @Serverutil.checks.has_any_role(
-        841671779394781225, 1095048263985549382, 1072103843569094796, 841671956999045141
+        841671779394781225,
+        1095048263985549382,
+        1072103843569094796,
+        841671956999045141,
+        1160568155807154296,
     )
     async def deny(
         self,
