@@ -25,7 +25,7 @@ class StarboardCog(Cog):
                     embeds = []
 
                     image_embeds = [
-                        Embed(color=Color.pink())
+                        Embed(description=reaction.message.channel.mention, color=Color.pink())
                         .set_image(url=attachment)
                         .set_footer(
                             text=str(
@@ -47,7 +47,7 @@ class StarboardCog(Cog):
                     ]
                     if video_urls:
                         video_embed = Embed(
-                            title="Videos", color=Color.pink()
+                            title=f"Videos from {reaction.message.channel.mention}", color=Color.pink()
                         ).set_footer(
                             text=str(
                                 reaction.message.created_at.strftime("%d/%m/%Y %H:%M")
