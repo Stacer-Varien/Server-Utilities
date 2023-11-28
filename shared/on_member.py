@@ -22,14 +22,13 @@ class MemberCog(Cog):
                 " Now please, enjoy your stay and start advertising yourself!\n\n"
                 " **__Special Servers:__**\n"
                 "1. Orleans https://discord.gg/Vfa796yvNq\n"
-                "2. Lead of Advertising: https://discord.gg/gpDcZfF\n"
-                "3. Gremory Castle https://discord.gg/8c9BCXa83S\n"
-                "4. Lead of Technology https://discord.gg/TaAwTzC4p7"
+                "2. Gremory Castle https://discord.gg/8c9BCXa83S\n"
+                "3. Lead of Technology https://discord.gg/TaAwTzC4p7"
             )
 
             embed = Embed(colour=Colour.blue())
-            if member.avatar:
-                embed.set_thumbnail(url=member.avatar.url)
+            
+            embed.set_thumbnail(url=member.display_avatar)
             embed.set_image(
                 url="https://media.discordapp.net/attachments/829041410556690452/951799345324376065/swim-ad.gif"
             )
