@@ -55,7 +55,9 @@ class LOAmodCog(GroupCog, name="moderation"):
         name="stats",
         description="Check who has done the most ad moderations for the week",
     )
-    @Serverutil.checks.has_role(1075400097615052900)
+    @Serverutil.checks.has_any_role(
+        1075400097615052900, 1160572350761279548, 1160568155807154296
+    )
     async def _stats(self, ctx: Interaction):
         await ctx.response.defer()
         embed = Embed(color=Color.blue())
@@ -72,6 +74,7 @@ class LOAmodCog(GroupCog, name="moderation"):
         1074770323293085716,
         1076650317392916591,
         949147509660483614,
+        1160568155807154296,
     )
     async def _reset(self, ctx: Interaction):
         await ctx.response.defer()
@@ -136,7 +139,7 @@ class ModCog2(Cog):
                 description=f"{member} has been put on timeout. Check {m.jump_url}",
                 color=0xFF0000,
             )
-            await ctx.followup.send(embed=muted)
+            await ctx.followup.send(member.mention, embed=muted)
             LOAMod(ctx.user).add_mod_point()
             return
 
@@ -194,7 +197,7 @@ class ModCog2(Cog):
                 color=0xFF0000,
             )
 
-            await ctx.followup.send(embed=unmuted)
+            await ctx.followup.send(member.mention, embed=unmuted)
             return
         await ctx.response.send_message(
             embed=Embed(
@@ -211,7 +214,7 @@ class ModCog2(Cog):
     )
     @Serverutil.checks.has_permissions(ban_members=True)
     @Serverutil.checks.bot_has_permissions(ban_members=True)
-    async def member(
+    async def ban(
         self,
         ctx: Interaction,
         member: Member,
@@ -360,5 +363,5 @@ class ModCog2(Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(LOAmodCog(bot), guild=Object(lss))
+    await bot.add_cog(LOAmodCog(bot), guilds=[Object(lss), Object(loa)])
     await bot.add_cog(ModCog2(bot), guild=Object(loa))
