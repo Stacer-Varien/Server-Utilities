@@ -17,8 +17,14 @@ class TimeRule(Cog):
     async def _1hr_rule(self):
         channel = await self.bot.fetch_channel(1134226399385890916)
         await channel.purge(limit=100)
-    
-    
+
+    @_5min_rule.before_loop
+    async def before_5min_rule(self):
+        await self.bot.wait_until_ready()
+
+    @_1hr_rule.before_loop
+    async def before_1hr_rule(self):
+        await self.bot.wait_until_ready()
 
 
 async def setup(bot: Bot):
