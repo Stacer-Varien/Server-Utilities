@@ -83,7 +83,7 @@ class LOAdropdown(ui.Select):
                 inline=False,
             )
 
-        warn_data = LOAWarn(member)
+        warn_data = LOAWarn(ctx.user)
         if warn_data.check_time(member) == True:
             await warn_data.give(member, channel, reason, warn_id)
             warnpoints = warn_data.get_points()
@@ -503,7 +503,7 @@ class WarnCog(Cog):
                 inline=False,
             )
 
-        warn_data = LOAWarn(member)
+        warn_data = LOAWarn(ctx.user)
         if warn_data.check_time(member) == True:
             await warn_data.give(member, channel, reason, warn_id)
             warnpoints = warn_data.get_points()
@@ -666,9 +666,9 @@ class WarnCog(Cog):
     )
     async def remove(self, ctx: Interaction, member: Member, warn_id: int, reason: str):
         await ctx.response.defer()
-        warn_data = LOAWarn(user=member, warn_id=warn_id)
+        warn_data = LOAWarn()
 
-        if warn_data.check() is None:
+        if warn_data.check(member, warn_id) is None:
             await ctx.followup.send(
                 "This user has not been warned or incorrect warn ID",
                 ephemeral=True,
