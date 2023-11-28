@@ -1,7 +1,7 @@
 from datetime import timedelta
 from random import randint
 
-from discord import CategoryChannel, Color, Embed, Message, Forbidden
+from discord import Color, Embed, Message, Forbidden
 from discord.ext.commands import Cog, Bot
 from discord.utils import utcnow
 
@@ -48,7 +48,7 @@ class AutomodCog(Cog):
                                 description=f"You have recieved a timeout of 3 hours from **{message.guild.name}**\nYou have reached the 3 warn point punishment"
                             )
                             await message.author.send(embed=timeoutmsg)
-                        except Forbidden:
+                        except:
                             pass
 
                     elif warn_points == 6:
@@ -95,13 +95,12 @@ class AutomodCog(Cog):
                 attachments is True and content is False
             ):
                 return
-
+            
         if message.guild.id == 974028573893595146:
-            category: CategoryChannel = await message.guild.get_channel(
-                1054090810800472154
-            )
+            category = message.guild.get_channel(1054090810800472154)
             if message.channel.id in [i.id for i in category.channels]:
                 await message.add_reaction(":mhxaLove:1174261737697050625")
+                return
 
 
 async def setup(bot: Bot):
