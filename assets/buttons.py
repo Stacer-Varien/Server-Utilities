@@ -25,8 +25,8 @@ class Confirmation(ui.View):
 
 
 class YesNoButtons(ui.View):
-    def __init__(self):
-        super().__init__(timeout=600)
+    def __init__(self, timeout:int):
+        super().__init__(timeout=timeout)
         self.value = None
 
     @ui.button(label="Yes", style=ButtonStyle.green)
@@ -35,6 +35,6 @@ class YesNoButtons(ui.View):
         self.stop()
 
     @ui.button(label="No", style=ButtonStyle.red)
-    async def yes(self, button: ui.Button, ctx: Interaction):
-        self.value = True
+    async def no(self, button: ui.Button, ctx: Interaction):
+        self.value = False
         self.stop()
