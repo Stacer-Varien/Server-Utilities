@@ -3,7 +3,7 @@ from os import listdir
 from discord import Intents, Object
 from discord.ext.commands import Bot, when_mentioned_or
 
-from config import TOKEN, lss, loa, orleans, hazead
+from config import TOKEN, lss, loa, orleans, hazead, vhf
 
 intents = Intents().all()
 intents.presences = False
@@ -36,6 +36,13 @@ class ServerUtilities(Bot):
             else:
                 print(f"Unable to load {filename[:-3]}")
 
+        for filename in listdir("./VHF"):
+            if filename.endswith(".py"):
+                await bot.load_extension(f"VHF.{filename[:-3]}")
+                print(f"{filename} loaded")
+            else:
+                print(f"Unable to load {filename[:-3]}")                
+
 
 bot = ServerUtilities(
     intents=intents,
@@ -53,6 +60,7 @@ async def on_ready():
         Object(id=loa),
         Object(id=orleans),
         Object(id=hazead),
+        Object(id=vhf),
     ]:
         await bot.tree.sync(guild=guild)
 

@@ -15,7 +15,6 @@ from discord import (
     Forbidden,
 )
 from discord.ext.commands import Bot
-from tabulate import tabulate
 
 from assets.not_allowed import no_invites, no_pings
 from config import db
@@ -802,40 +801,74 @@ class Verification:
         if data.rowcount == 0:
             return
 
-    def check(self, member: Member, message: Optional[Message] = None):
+    def check_user(self, message: Message, member: Optional[Member] = None):
+        try:
+            data = db.execute(
+                "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
+            ).fetchone()
+            return message.guild.get_member(data[0])
+        except:
+            data = db.execute(
+                "SELECT * FROM verificationLog WHERE user = ?", (member.id,)
+            ).fetchone()
+
+        if data == None:
+            return None
+
+    def check(self, message: Optional[Message] = None):
+        member = self.check_user(message)
         data = db.execute(
-            "SELECT * FROM verificationLog WHERE user = ?", (member.id,)
+            "SELECT * FROM verificationLog WHERE user = ? AND message_id = ?",
+            (
+                member.id,
+                message.id,
+            ),
         ).fetchone()
         db.commit()
 
         verify_role = member.guild.get_role(974760640742825984)
 
-        if (int(data[0]) == member.id) and (int(data[1] == message.id)):
-            return True
+        if data != None:
+            if (int(data[0]) == member.id) and (int(data[1]) == message.id):
+                return True
+
+            if int(data[0]) == member.id:
+                return True
 
         if verify_role in member.roles:
             return False
-        
-        return None
-    
 
-    async def approve(self, member: Member):
-        db.execute("DELETE FROM verificationLog WHERE user= ?", (member.id,))
+    async def approve(self, message: Message):
+        member = self.check_user(message)
+        db.execute(
+            "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
+            (
+                member.id,
+                message.id,
+            ),
+        )
         db.commit()
 
         verify_role = member.guild.get_role(974760640742825984)
-        member_role=member.guild.get_role(974760599487647815)
+        member_role = member.guild.get_role(974760599487647815)
         untrusted = member.guild.get_role(974760534102650950)
 
-        await member.add_roles(verify_role, "Successfully verified")
+        await member.add_roles(verify_role, reason="Successfully verified")
 
         if untrusted in member.roles:
             await member.remove_roles(untrusted, "Successful forced verification")
             await member.add_roles(member_role)
             return
 
-    async def deny(self, member: Member):
-        db.execute("DELETE FROM verificationLog WHERE user= ?", (member.id,))
+    async def deny(self, message: Message):
+        member = self.check_user(message)
+        db.execute(
+            "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
+            (
+                member.id,
+                message.id,
+            ),
+        )
         db.commit()
 
     async def force(self, member: Member):

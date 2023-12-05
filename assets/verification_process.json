@@ -33,7 +33,8 @@
             ]
         }
     ],
-    "steps":[{
-    "paper": "Send an image of the piece of paper with your username and today's date written",
-    "id_pic": "Now send a picture of your ID, passport, or Learner's/Driver's license. A birth certificate is not valid for verification. Make sure you have covered all sensitive information except your date of birth.\n\nFor faster verification, you can include your face"}]
+    "steps": [
+        "Send an image of the piece of paper with your username and today's date written",
+        "Now send a picture of your ID, passport, or Learner's/Driver's license. A birth certificate is not valid for verification. Make sure you have covered all sensitive information except your date of birth.\n\nFor faster verification, you can include your face"
+    ]
 }

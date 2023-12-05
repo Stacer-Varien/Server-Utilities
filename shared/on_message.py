@@ -98,10 +98,19 @@ class AutomodCog(Cog):
             
         if message.guild.id == 974028573893595146:
             category = message.guild.get_channel(1054090810800472154)
+            alt_hentai = message.guild.get_channel(1165684137735241840)
+            non_alt = message.guild.get_channel(985976523607650415)
             if message.channel.id in [i.id for i in category.channels]:
                 await message.add_reaction(":mhxaLove:1174261737697050625")
+                return
+            if message.channel.id in [i.id for i in alt_hentai.channels]:
+                await message.add_reaction("🎄")
+                return
+            if message.channel.id in [i.id for i in non_alt.channels]:
+                await message.add_reaction("🎄")
                 return
 
 
 async def setup(bot: Bot):
     await bot.add_cog(AutomodCog(bot))
+

@@ -21,7 +21,7 @@ class VerificationCog(GroupCog, name="verification"):
         self.approve_verification_context = Serverutil.ContextMenu(
             name="Approve Verification", callback=self.approve_verification
         )
-        self.bot.tree.add_command(self.deny_verification_context)
+        self.bot.tree.add_command(self.approve_verification_context)
 
         self.deny_verification_context = Serverutil.ContextMenu(
             name="Deny Verification", callback=self.deny_verification
