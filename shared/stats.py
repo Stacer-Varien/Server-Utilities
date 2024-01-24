@@ -8,7 +8,7 @@ from discord import app_commands as Serverutil, __version__ as discord_version
 from discord import Embed, Interaction, Color, Object
 from discord.ext.commands import Cog, Bot, GroupCog
 
-from config import lss, hazead, loa, orleans
+from config import hazead, orleans
 
 start_time = time()
 
@@ -178,11 +178,5 @@ Licensor: Stacer-Varien
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(
-        InfoCog(bot),
-        guilds=[Object(id=lss), Object(id=hazead), Object(id=orleans), Object(id=loa)],
-    )
-    await bot.add_cog(
-        BotTosCog(bot),
-        guilds=[Object(id=lss), Object(id=hazead), Object(id=orleans), Object(id=loa)],
-    )
+    await bot.add_cog(InfoCog(bot))
+    await bot.add_cog(BotTosCog(bot))

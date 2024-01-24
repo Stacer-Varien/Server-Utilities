@@ -104,10 +104,10 @@ class AutomodCog(Cog):
                 await message.add_reaction(":mhxaLove:1174261737697050625")
                 return
             if message.channel.id in [i.id for i in alt_hentai.channels]:
-                await message.add_reaction("🎄")
+                await message.add_reaction(":mhxaLove:1174261737697050625")
                 return
             if message.channel.id in [i.id for i in non_alt.channels]:
-                await message.add_reaction("🎄")
+                await message.add_reaction(":mhxaLove:1174261737697050625")
                 return
 
 

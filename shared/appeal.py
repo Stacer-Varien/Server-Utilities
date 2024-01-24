@@ -5,8 +5,8 @@ from discord import Interaction, Embed, Object
 from discord import Message
 from discord.ext.commands import GroupCog, Bot
 
-from assets.functions import LOAWarn, Warn, Appeal
-from config import hazead, loa
+from assets.functions import Warn, Appeal
+from config import hazead
 
 
 class AppealCog(GroupCog, name="appeal"):
@@ -88,75 +88,6 @@ class AppealCog(GroupCog, name="appeal"):
                 "Please open your DMs to start the appeal process", ephemeral=True
             )
 
-    async def loa_appeal(self, ctx: Interaction, warn_id: int):
-        warn_data = LOAWarn().check(ctx.user, warn_id)
-
-        if warn_data is None:
-            await ctx.followup.send(
-                "You do not have warning corresponding with this warn ID",
-                ephemeral=True,
-            )
-            return
-
-        try:
-            msg = await ctx.user.send(
-                "Please explain why your adwarn should be revoked? If applicable, please send media content to support your appeal. Please know that sending your ad ONLY would be considered as an instant DM advertising and your appeal will be denied.\n\nYou have 5 minutes to appeal"
-            )
-
-            await ctx.followup.send(
-                f"[Click here]({msg.jump_url}) to process your appeal"
-            )
-
-            def check(m: Message):
-                attachments = bool(m.attachments)
-                content = bool(m.content)
-                if attachments is True and content is True:
-                    return m.author == ctx.user and m.content and m.attachments
-                if content is True:
-                    return m.author == ctx.user and m.content
-                if attachments is True:
-                    return m.author == ctx.user and m.attachments
-                if attachments is True and content is False:
-                    return m.author == ctx.user and m.attachments
-
-            try:
-                appeal_log = await self.bot.fetch_channel(1107611200843427931)
-                msg: Message = await self.bot.wait_for(
-                    "message", check=check, timeout=600
-                )
-
-                await ctx.user.send(
-                    "Thank you for appealing for your warn. The appropriate staff member will review it and will notify you if your appeal was approved.\nIf your appeal was not approved after a week, it means that it was denied.\n\nPlease do not rush us or your appeal will be denied almost immediately."
-                )
-
-                embed = Embed(description="New Warn Appeal", color=Color.random())
-                embed.add_field(
-                    name="Person who is appealling it",
-                    value=f"{ctx.user} | `{ctx.user.id}`",
-                    inline=False,
-                )
-                embed.add_field(name="Warn ID", value=warn_id, inline=False)
-                embed.add_field(name="Reason of warn", value=warn_data[1], inline=False)
-                embed.set_footer(
-                    text="To approve this appeal, use `/appeal approve WARN_ID`"
-                )
-
-                try:
-                    image_urls = [x.url for x in msg.attachments]
-                    images = "\n".join(image_urls)
-                    await appeal_log.send(
-                        "{}\n{}".format(msg.content, images), embed=embed
-                    )
-                except Exception:
-                    await appeal_log.send(msg.content, embed=embed)
-
-                await ctx.user.send(
-                    "Your appeal has been submitted. Please wait patiently for the appropriate staff to decide.\nRushing us could increas your chance of your appeal being denied"
-                )
-            except TimeoutError:
-                await ctx.user.send("Times up! Please try again later")
-        except Forbidden:
-            await ctx.followup.send("Please open your DMs to do the appeal process")
 
     async def approve_ha_appeal(self, ctx: Interaction, member: Member, warn_id: int):
         if ctx.channel.id == 951783773006073906:
@@ -188,34 +119,7 @@ class AppealCog(GroupCog, name="appeal"):
                 "Please do the command in {}".format(ch.mention), ephemeral=True
             )
 
-    @staticmethod
-    async def approve_loa_appeal(ctx: Interaction, member: Member, warn_id: int):
-        warn_data = LOAWarn()
 
-        if warn_data.check(member, warn_id) is None:
-            await ctx.followup.send(
-                "This user has not been warned or incorrect warn ID",
-                ephemeral=True,
-            )
-            return
-
-        modchannel1 = await ctx.guild.fetch_channel(954594959074418738)
-        if (
-            ctx.channel.id == 954594959074418738
-            or ctx.channel.id == 1112136237034246205
-        ):
-            warn_data.remove(member, warn_id)
-            modchannel = await ctx.guild.fetch_channel(745107170827305080)
-            appealed = Embed(
-                description=f"Your appeal has been approved. You now have {warn_data.get_points()} adwarns",
-                color=Color.random(),
-            )
-            await ctx.followup.send("Appeal approved")
-            await modchannel.send(member.mention, embed=appealed)
-            return
-        await ctx.followup.send(
-            "Please do this command in {}".format(modchannel1.mention), ephemeral=True
-        )
 
     @serverutil.command(description="Apply for an adwarn appeal")
     @serverutil.describe(warn_id="Insert the warn ID that you wish to appeal your warn")
@@ -223,8 +127,7 @@ class AppealCog(GroupCog, name="appeal"):
         await ctx.response.defer()
         if ctx.guild.id == 925790259160166460:
             await self.ha_appeal(ctx, warn_id)
-        elif ctx.guild.id == 925790259160166460:
-            await self.loa_appeal(ctx, warn_id)
+
 
     @serverutil.command(description="Approve an appeal")
     @serverutil.checks.has_any_role(
@@ -244,9 +147,8 @@ class AppealCog(GroupCog, name="appeal"):
         await ctx.response.defer()
         if ctx.guild.id == 925790259160166460:
             await self.approve_ha_appeal(ctx, member, warn_id)
-        elif ctx.guild.id == 704888699590279221:
-            await self.approve_loa_appeal(ctx, member, warn_id)
+
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(AppealCog(bot), guilds=[Object(hazead), Object(loa)])
+    await bot.add_cog(AppealCog(bot), guild=Object(hazead))

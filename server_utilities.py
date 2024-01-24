@@ -22,13 +22,6 @@ class ServerUtilities(Bot):
             else:
                 print(f"Unable to load {filename[:-3]}")
 
-        for filename in listdir("./LOA"):
-            if filename.endswith(".py"):
-                await bot.load_extension(f"LOA.{filename[:-3]}")
-                print(f"{filename} loaded")
-            else:
-                print(f"Unable to load {filename[:-3]}")
-
         for filename in listdir("./shared"):
             if filename.endswith(".py"):
                 await bot.load_extension(f"shared.{filename[:-3]}")
@@ -56,8 +49,6 @@ async def on_ready():
     print("Connected to bot: {}".format(bot.user.name))
     print("Bot ID: {}".format(bot.user.id))
     for guild in [
-        Object(id=lss),
-        Object(id=loa),
         Object(id=orleans),
         Object(id=hazead),
         Object(id=vhf),

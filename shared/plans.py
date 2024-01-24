@@ -7,7 +7,7 @@ from discord.ext.commands import GroupCog, Bot
 from humanfriendly import parse_timespan
 
 from assets.functions import Plans
-from config import hazead, loa, lss
+from config import hazead
 
 planmanager = 956634941066739772
 operationmanager = 841671956999045141
@@ -30,9 +30,7 @@ class PlanCog(GroupCog, name="plan"):
         if ctx.guild.id == 925790259160166460:
             guild_id = 925790259160166460
             plan_log_channel_id = 956554797060866058
-        else:
-            guild_id = 704888699590279221
-            plan_log_channel_id = 990246941029990420
+
 
         Plans(guild_id).add(
             buyer, round(ending_time.timestamp()), plan, ctx.user, plan_id
@@ -61,8 +59,6 @@ class PlanCog(GroupCog, name="plan"):
         await ctx.response.defer(ephemeral=True)
         if ctx.guild.id == hazead:
             guild_id = hazead
-        else:
-            guild_id = loa
 
         plan = Plans(guild_id)
         result = plan.get(plan_id)
@@ -76,6 +72,4 @@ class PlanCog(GroupCog, name="plan"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(
-        PlanCog(bot), guilds=[Object(id=hazead), Object(id=loa), Object(id=lss)]
-    )
+    await bot.add_cog(PlanCog(bot), guild=Object(hazead))

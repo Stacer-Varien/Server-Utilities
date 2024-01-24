@@ -48,13 +48,6 @@ class MemberCog(Cog):
                     await channel.send(bye)
                 except Exception as e:
                     print(f"Failed to send goodbye message: {e}")
-
-            elif member.guild.id == 841671029066956831:
-                channel = self.bot.get_channel(841672222136991757)
-                try:
-                    await Resign(member).resigned(channel)
-                except Exception as e:
-                    print(f"Failed to send resign message: {e}")
         except Exception as e:
             print(f"Error: {e}")
 
