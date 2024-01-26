@@ -520,192 +520,6 @@ class Partner:
         await ctx.followup.send(msg)
 
 
-class Break:
-    def __init__(self, member: Optional[Member] = None) -> None:
-        self.member = member
-
-    @staticmethod
-    def check_breaks() -> list | None:
-        data = db.execute("SELECT * FROM breakData WHERE accepted = ?", (1,)).fetchall()
-        db.commit()
-        return data if data else None
-
-    async def remove(self):
-        db.execute("DELETE FROM breakData WHERE user_id = ?", (self.member.id,))
-        db.commit()
-
-    async def cancel(self, server: int):
-        approved = self.check(server)
-        if approved[4] == 0:
-            db.execute(
-                "DELETE FROM breakData WHERE user_id = ? AND approved = ?",
-                (
-                    self.member.id,
-                    0,
-                ),
-            )
-            db.commit()
-
-    async def add_request(
-        self,
-        server: int,
-        duration: str,
-        reason: str,
-        accepted: int,
-        start: int,
-        ends: int,
-    ):
-        data = db.execute(
-            "INSERT OR IGNORE INTO breakData (user_id, guild_id, duration, reason, accepted, start, ends) VALUES (?,?,?,?,?,?,?)",
-            (
-                self.member.id,
-                server,
-                duration,
-                reason,
-                accepted,
-                start,
-                ends,
-            ),
-        )
-        db.commit()
-
-        if data.rowcount == 0:
-            db.execute(
-                "UPDATE breakData SET duration = ?, reason = ?, accepted = ?, start = ?, ends = ? WHERE user_id = ? AND guild_id = ?",
-                (
-                    duration,
-                    reason,
-                    accepted,
-                    start,
-                    ends,
-                    self.member.id,
-                    server,
-                ),
-            )
-            db.commit()
-
-    def check(self, server: int):
-        data = db.execute(
-            "SELECT * FROM breakData WHERE user_id = ? AND guild_id = ?",
-            (
-                self.member.id,
-                server,
-            ),
-        ).fetchone()
-        return data if data else None
-
-    async def approve(self, server: int, start: int, ends: int):
-        db.execute(
-            "UPDATE breakData SET accepted = ?, start = ?, ends = ? WHERE user_id = ? AND guild_id = ?",
-            (
-                1,
-                start,
-                ends,
-                self.member.id,
-                server,
-            ),
-        )
-        db.commit()
-
-    async def deny(self, server: int):
-        db.execute(
-            "DELETE FROM breakData WHERE user_id = ? AND guild_id = ?",
-            (
-                self.member.id,
-                server,
-            ),
-        )
-        db.commit()
-
-    async def end(self, server: int):
-        db.execute(
-            "DELETE FROM breakData WHERE user_id = ? AND guild_id = ?",
-            (
-                self.member.id,
-                server,
-            ),
-        )
-        db.commit()
-
-
-class Resign:
-    def __init__(self, member: Member):
-        self.member = member
-
-    def apply(self, leaving: bool = None):
-        leave = 1 if (leaving is True) else 0
-
-        db.execute(
-            "INSERT OR IGNORE INTO resignData (user_id, accepted, leaving) VALUES (?, ?, ?)",
-            (
-                self.member.id,
-                0,
-                leave,
-            ),
-        )
-        db.commit()
-
-    def check(self, leaving: Optional[int]):
-        data = db.execute(
-            "SELECT * FROM resignData WHERE user_id = ? AND leaving = ?",
-            (
-                self.member.id,
-                leaving,
-            ),
-        ).fetchone()
-        db.commit()
-
-        return data if data else None
-
-    async def approve(self):
-        db.execute(
-            "UPDATE resignData SET accepted = ? WHERE user_id = ?",
-            (
-                1,
-                self.member.id,
-            ),
-        )
-        db.commit()
-
-    async def deny(self):
-        db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
-        db.commit()
-
-    async def resigned(self, channel: TextChannel):
-        check_accepted = db.execute(
-            "SELECT accepted FROM resignData WHERE user_id = ? AND leaving = ?",
-            (
-                self.member.id,
-                1,
-            ),
-        ).fetchone()
-
-        if check_accepted is None:  # if they just left without requesting for resigning
-            no_resign = Embed(
-                title=f"{self.member} ({self.member.id}) left the server",
-                color=Color.red(),
-            )
-            await channel.send(embed=no_resign)
-
-        elif (
-            int(check_accepted[0]) == 0
-        ):  # if they left without an accepted resignation
-            not_accepted = Embed(
-                title=f"{self.member} ({self.member.id}) left the server without an approved resignation",
-                color=Color.red(),
-            )
-            await channel.send(embed=not_accepted)
-
-        elif int(check_accepted[0]) == 1:  # if their resignation has been accepted
-            db.execute("DELETE FROM resignData WHERE user_id = ?", (self.member.id,))
-            db.commit()
-            accepted = Embed(
-                title=f"{self.member} ({self.member.id}) has resigned.",
-                color=Color.green(),
-            )
-            await channel.send(embed=accepted)
-
-
 class Plans:
     def __init__(self, server: int):
         self.server = server
@@ -728,10 +542,7 @@ class Plans:
     def get(self, plan_id: int):
         data = db.execute(
             "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?",
-            (
-                plan_id,
-                self.server,
-            ),
+            (plan_id, self.server),
         ).fetchone()
 
         return data if data else None
@@ -746,11 +557,7 @@ class Plans:
     def remove(self, buyer: User, plan_id: int):
         db.execute(
             "DELETE FROM planData WHERE user_id = ? AND plan_id= ? AND server_id= ?",
-            (
-                buyer.id,
-                plan_id,
-                self.server,
-            ),
+            (buyer.id, plan_id, self.server),
         )
         db.commit()
 
@@ -760,28 +567,27 @@ class YouTube:
         self.channel = channel
 
     def get_latest_vid(self):
-        data = db.execute(
-            "SELECT latest_video FROM youtube WHERE channel_id = ?", (self.channel,)
-        ).fetchone()
-        db.commit()
-        return str(data[0]) if data else None
+        return (
+            db.execute(
+                "SELECT latest_video FROM youtube WHERE channel_id = ?", (self.channel,)
+            ).fetchone()[0]
+            or None
+        )
 
     def update_video(self, new_video: str):
         db.execute(
             "UPDATE youtube SET latest_video = ? WHERE channel_id = ?",
-            (
-                new_video,
-                self.channel,
-            ),
+            (new_video, self.channel),
         )
         db.commit()
 
     def get_channel(self):
-        data = db.execute(
-            "SELECT channel_name FROM youtube WHERE channel_id = ?", (self.channel,)
-        ).fetchone()[0]
-        db.commit()
-        return str(data)
+        return (
+            db.execute(
+                "SELECT channel_name FROM youtube WHERE channel_id = ?", (self.channel,)
+            ).fetchone()[0]
+            or None
+        )
 
 
 class Verification:
@@ -789,63 +595,41 @@ class Verification:
         pass
 
     async def add_request(self, member: Member, message: Message):
-        data = db.execute(
+        db.execute(
             "INSERT OR IGNORE INTO verificationLog (user, message_id) VALUES (?, ?)",
-            (
-                member.id,
-                message.id,
-            ),
+            (member.id, message.id),
         )
         db.commit()
 
-        if data.rowcount == 0:
-            return
-
     def check_user(self, message: Message, member: Optional[Member] = None):
-        try:
-            data = db.execute(
-                "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
-            ).fetchone()
-            return message.guild.get_member(data[0])
-        except:
-            data = db.execute(
-                "SELECT * FROM verificationLog WHERE user = ?", (member.id,)
-            ).fetchone()
-
-        if data == None:
-            return None
+        data = db.execute(
+            "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
+        ).fetchone()
+        return message.guild.get_member(data[0]) if data else None
 
     def check(self, message: Optional[Message] = None):
         member = self.check_user(message)
         data = db.execute(
             "SELECT * FROM verificationLog WHERE user = ? AND message_id = ?",
-            (
-                member.id,
-                message.id,
-            ),
+            (member.id, message.id),
         ).fetchone()
         db.commit()
 
         verify_role = member.guild.get_role(974760640742825984)
 
-        if data != None:
-            if (int(data[0]) == member.id) and (int(data[1]) == message.id):
-                return True
+        if data and (
+            (int(data[0]) == member.id and int(data[1]) == message.id)
+            or int(data[0]) == member.id
+        ):
+            return True
 
-            if int(data[0]) == member.id:
-                return True
-
-        if verify_role in member.roles:
-            return False
+        return verify_role in member.roles
 
     async def approve(self, message: Message):
         member = self.check_user(message)
         db.execute(
             "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
-            (
-                member.id,
-                message.id,
-            ),
+            (member.id, message.id),
         )
         db.commit()
 
@@ -858,16 +642,12 @@ class Verification:
         if untrusted in member.roles:
             await member.remove_roles(untrusted, "Successful forced verification")
             await member.add_roles(member_role)
-            return
 
     async def deny(self, message: Message):
         member = self.check_user(message)
         db.execute(
             "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
-            (
-                member.id,
-                message.id,
-            ),
+            (member.id, message.id),
         )
         db.commit()
 
