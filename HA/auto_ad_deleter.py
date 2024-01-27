@@ -19,7 +19,5 @@ class TimeRule(Cog):
         await channel.purge(limit=100)
     
     
-
-
 async def setup(bot: Bot):
     await bot.add_cog(TimeRule(bot))

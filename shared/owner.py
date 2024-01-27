@@ -3,20 +3,10 @@ from sys import executable, argv
 from typing import Literal, Optional
 
 from discord import Embed, File, Game, Activity, Object, ActivityType, HTTPException
-from discord.ext.commands import (
-    Cog,
-    Bot,
-    group,
-    is_owner,
-    guild_only,
-    Context,
-    Greedy,
-    command,
-)
+from discord.ext.commands import Cog, Bot, group, is_owner, guild_only, Context, Greedy, command
 
 def restart_bot():
     execv(executable, ["python"] + argv)
-
 
 class OwnerCog(Cog):
     def __init__(self, bot: Bot):
@@ -31,19 +21,19 @@ class OwnerCog(Cog):
         )
         await ctx.send(embed=embed)
 
+    async def set_activity(self, ctx: Context, activity_type: ActivityType, activity: str):
+        await self.bot.change_presence(activity=Activity(type=activity_type, name=activity))
+        await ctx.send(f"I am now {activity_type.name.lower()} `{activity}`")
+
     @activity.command(aliases=["playing"])
     @is_owner()
     async def play(self, ctx: Context, *, activity: str):
-        await self.bot.change_presence(activity=Game(name=activity))
-        await ctx.send(f"I am now playing `{activity}`")
+        await self.set_activity(ctx, ActivityType.playing, activity)
 
     @activity.command(aliases=["listening"])
     @is_owner()
     async def listen(self, ctx: Context, *, activity: str):
-        await self.bot.change_presence(
-            activity=Activity(type=ActivityType.listening, name=activity)
-        )
-        await ctx.send(f"I am now listening to `{activity}`")
+        await self.set_activity(ctx, ActivityType.listening, activity)
 
     @activity.command(aliases=["remove", "clean", "stop"])
     @is_owner()
@@ -105,10 +95,8 @@ class OwnerCog(Cog):
                 content = """
 # ERROR!
 ## Failed to send database! 
-        
 Make sure private messages between **me and you are opened** or check the server if the database exists"""
-                await ctx.send(content)
-
+                await ctx.send(content, delete_after=10)
 
 async def setup(bot: Bot):
     await bot.add_cog(OwnerCog(bot))
