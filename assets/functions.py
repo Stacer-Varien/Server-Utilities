@@ -1,7 +1,9 @@
 import asyncio
 import os
 from datetime import datetime, timedelta
+from sqlite3 import Cursor
 from typing import Literal, Optional
+from random import randint
 
 from discord import (
     Color,
@@ -20,447 +22,122 @@ from assets.not_allowed import no_invites, no_pings
 from config import db
 
 
-class Appeal:
-    def __init__(self, user: Member, warn_id: int):
-        self.user = user
-        self.warn_id = warn_id
-
-    def check(self):
-        data = db.execute(
-            "SELECT * FROM warnData WHERE user_id = ? AND warn_id = ?",
-            (
-                self.user.id,
-                self.warn_id,
-            ),
-        ).fetchone()
-        return data if data else None
-
-    def remove(self):
-        db.execute(
-            "DELETE FROM warnData WHERE warn_id = ? AND user_id = ?",
-            (
-                self.warn_id,
-                self.user.id,
-            ),
-        )
-        db.commit()
-        db.execute(
-            "UPDATE warnDATA_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
-            (
-                1,
-                self.user.id,
-            ),
-        )
-        db.commit()
-
-
-class LOAWarn:
-    def __init__(self, moderator: Optional[User] = None) -> None:
+class Adwarn:
+    def __init__(self, moderator: Optional[Member]=None) -> None:
         self.moderator = moderator
 
-    def check(self, user: Member, warn_id: int):
+    @staticmethod
+    def check_time(member: Member) -> int | None:
         data = db.execute(
-            "SELECT * FROM loaAdwarnData WHERE user_id = ? AND warn_id = ?",
+            "SELECT time FROM warnData_v2 WHERE user_id = ?", (member.id,)
+        ).fetchone()
+        db.commit()
+        return int(data[0]) if data else None
+
+    @staticmethod
+    def check_id(member: Member, moderator: Member):
+        data = db.execute(
+            "SELECT warn_id FROM warnData WHERE user_id = ? AND moderator_id = ?",
             (
-                user.id,
-                warn_id,
+                member.id,
+                moderator.id,
             ),
         ).fetchone()
         db.commit()
-
-        return data if data else None
+        return data
 
     @staticmethod
-    def check_time(member: Member) -> int | Literal[True]:
-        data = db.execute(
-            "SELECT time from loaAdwarnData_v2 WHERE user_id = ?", (member.id,)
-        ).fetchone()
-        db.commit()
+    def make_id() -> int:
+        return randint(1, 999999)
 
-        if (data == None) or (int(data[0]) <= round(datetime.now().timestamp())):
-            return True
-        return int(data[0])
-
-    async def give(
-        self, user: Member, channel: TextChannel, reason: str, warn_id: int
-    ) -> (Literal[False] | None):
+    @staticmethod
+    def make_new_time() -> datetime:
         current_time = datetime.now()
-        next_warn = current_time + timedelta(minutes=25)
-
-        db.execute(
-            "INSERT OR IGNORE INTO loaAdwarnData (user_id, reason, warn_id, mod_id) VALUES (?,?,?,?)",
-            (
-                user.id,
-                "{} - {}".format(channel.mention, reason),
-                warn_id,
-                self.moderator.id,
-            ),
-        )
-        db.commit()
-
-        datav2 = db.execute(
-            "INSERT OR IGNORE INTO loaAdwarnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-            (
-                user.id,
-                1,
-                round(next_warn.timestamp()),
-            ),
-        )
-        db.commit()
-
-        if datav2.rowcount == 0:
-            db.execute(
-                "UPDATE loaAdwarnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
-                (
-                    1,
-                    round(next_warn.timestamp()),
-                    user.id,
-                ),
-            )
-            db.commit()
-
-        datav3 = db.execute(
-            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points) VALUES (?,?)",
-            (
-                self.moderator.id,
-                1,
-            ),
-        )
-        db.commit()
-
-        if datav3.rowcount == 0:
-            db.execute(
-                "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
-                (
-                    1,
-                    self.moderator.id,
-                ),
-            )
-            db.commit()
-
-    def get_points(self) -> int:
-        warnpointdata = db.execute(
-            "SELECT warn_point FROM loaAdwarnData_v2 WHERE user_id = ?",
-            (self.moderator.id,),
-        ).fetchone()
-        db.commit()
-        return warnpointdata[0] if warnpointdata else 0
-
-    def remove(self, user: Member, warn_id: int):
-        mod_id = int(self.check()[3])
-        db.execute(
-            "DELETE FROM loaAdwarnData WHERE warn_id = ? AND user_id = ?",
-            (
-                warn_id,
-                user.id,
-            ),
-        )
-        db.commit()
-
-        db.execute(
-            "UPDATE loaAdwarnData_v2 SET warn_point = warn_point - ? WHERE user_id = ?",
-            (
-                1,
-                user.id,
-            ),
-        )
-        db.commit()
-
-        db.execute(
-            "UPDATE LOAwarnData_v3 SET points = points - ? WHERE mod_id = ?",
-            (
-                1,
-                mod_id,
-            ),
-        )
-        db.commit()
-
-        if self.get_points() == 0:
-            db.execute(
-                "DELETE FROM loaAdwarnData_v2 WHERE user_id = ?",
-                (user.id,),
-            )
-            db.commit()
-
-    def delete(self, user: Member):
-        if self.get_points() == 10:
-            db.execute("DELETE FROM loaAdwarnData WHERE user_id = ?;", (user.id,))
-            db.commit()
-            db.execute("DELETE FROM loaAdwarnData_v2 WHERE user_id = ?", (user.id,))
-            db.commit()
-
-
-class LOAMod:
-    def __init__(self, mod: Optional[User] = None) -> None:
-        self.mod = mod
+        return current_time + timedelta(minutes=30)
 
     @staticmethod
-    def _cooldowns():
-        data = db.execute("SELECT * FROM loaAdwarnData_v2 DESC").fetchall()
-        db.commit()
-
-        return data if data else None
-
-    @staticmethod
-    async def checks(bot: Bot):
-        data = db.execute("SELECT * FROM LOAwarnData_v3 DESC").fetchall()
-        db.commit()
-        mods = []
-        r = 0
-        for i in data:
-            mod = await bot.fetch_user(int(i[0]))
-            points = i[1]
-            r += 1
-            mods.append(f"`{r}.` {mod.mention} - {points}\n")
-
-        return "".join(mods)
-
-    def add_mod_point(self):
+    def points(member: Member) -> int | None:
         data = db.execute(
-            "INSERT OR IGNORE INTO LOAwarnData_v3 (mod_id, points) VALUES (?,?)",
-            (
-                self.mod.id,
-                1,
-            ),
-        )
-        db.commit()
-
-        if data.rowcount == 0:
-            db.execute(
-                "UPDATE LOAwarnData_v3 SET points = points + ? WHERE mod_id = ?",
-                (
-                    1,
-                    self.mod.id,
-                ),
-            )
-            db.commit()
-
-    @staticmethod
-    def reset_week():
-        db.execute("DELETE FROM loaWarndata_v3;")
-        db.commit()
-
-
-class Warn:
-    def __init__(
-        self, user: Member, moderator: User = None, warn_id: int = None
-    ) -> None:
-        self.user = user
-        self.moderator = moderator
-        self.warn_id = warn_id
-
-    def check(self):
-        data = db.execute(
-            "SELECT * FROM warnDATA WHERE user_id = ? AND warn_id = ?",
-            (
-                self.user.id,
-                self.warn_id,
-            ),
+            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (member.id,)
         ).fetchone()
         db.commit()
+        return int(data[0]) if data else None
 
-        return data if data else None
+    async def add(self, member: Member, reason: str) -> Literal[False] | None:
+        current_time = round(datetime.now().timestamp())
+        time = self.check_time(member)
 
-    def auto_give(self, channel: TextChannel):
-        data = db.execute(
-            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        data2 = db.execute(
-            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)
-        ).fetchone()
-        db.commit()
-        current_time = datetime.now()
-        next_warn = current_time + timedelta(hours=1)
-
-        reason = f"Incorrectly advertising in {channel.mention}"
-        if data == None:
+        if current_time >= time:
             db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
                 (
-                    self.user.id,
+                    member.id,
                     self.moderator.id,
                     reason,
-                    self.warn_id,
+                    self.make_id(),
                 ),
             )
-
             db.execute(
-                "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
+                "INSERT OR IGNORE INTO warnData_2 (user_id, warn_point, time) VALUES (?,?,?)",
                 (
-                    self.user.id,
+                    member.id,
                     1,
-                    round(next_warn.timestamp()),
+                    self.make_new_time(),
                 ),
             )
             db.commit()
 
-        elif int(data2[2]) < round(current_time.timestamp()):
-            db.execute(
-                "UPDATE warnData_v2 SET warn_point = warn_point + ? WHERE user_id= ?",
-                (
-                    1,
-                    self.user.id,
-                ),
-            )
-            db.commit()
+            if (
+                db.execute(
+                    "UPDATE warnData_v2 SET warn_point = warn_point + 1, time = ? WHERE user_id = ?",
+                    (self.make_new_time(), member.id),
+                ).rowcount
+                == 0
+            ):
+                db.commit()
+            return
 
-            db.execute(
-                "UPDATE warnData_v2 SET time = ? WHERE user_id = ?",
-                (
-                    round(next_warn.timestamp()),
-                    self.user.id,
-                ),
-            )
-            db.commit()
+        return False
 
-        elif int(data2[2]) > round(current_time.timestamp()):
-            return False
+    async def remove(self, member: Member, moderator: Member) -> Literal[False] | None:
+        data = self.check_id(member, moderator)
+        if not data:
+            return
 
-    def give(self, channel: TextChannel, reason: str):
-        data = db.execute(
-            "SELECT * FROM warnData WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        data2 = db.execute(
-            "SELECT * FROM warnData_v2 WHERE user_id= ?", (self.user.id,)
-        ).fetchone()
-        db.commit()
-        current_time = datetime.now()
-        next_warn = current_time + timedelta(hours=1)
-        if data is None:
-            db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
-                (
-                    self.user.id,
-                    self.moderator.id,
-                    "{} - {}".format(channel.mention, reason),
-                    self.warn_id,
-                ),
-            )
-
-            db.execute(
-                "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (
-                    self.user.id,
-                    1,
-                    round(next_warn.timestamp()),
-                ),
-            )
-            db.commit()
-
-        elif int(data2[2]) < round(current_time.timestamp()):
-            db.execute(
-                "UPDATE warnData_v2 SET warn_point = warn_point + ?, time = ? WHERE user_id = ?",
-                (
-                    1,
-                    round(next_warn.timestamp()),
-                    self.user.id,
-                ),
-            )
-            db.commit()
-        elif int(data2[2]) > round(current_time.timestamp()):
-            return False
-
-    def get_points(self) -> int:
-        warnpointdata = db.execute(
-            "SELECT warn_point FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        db.commit()
-        return warnpointdata[0] if warnpointdata else 0
-
-    def get_time(self) -> int:
-        timedata = db.execute(
-            "SELECT time FROM warnData_v2 WHERE user_id = ?", (self.user.id,)
-        ).fetchone()
-        db.commit()
-        return timedata[0]
-
-
-def check_illegal_invites(message, channel: int):
-    if "discord.gg" in message:
-        if channel in no_invites:
-            return True
-        else:
-            return False
-
-
-def check_illegal_mentions(message, channel: int):
-    pings = ["@everyone", "@here"]
-    if any(word in message for word in pings):
-        if channel in no_pings:
-            return True
-        else:
-            return False
-
-
-class Strike:
-    def __init__(
-        self, department: Optional[str] = None, member: Optional[Member] = None
-    ) -> None:
-        self.department = department
-        self.member = member
-
-    async def give(self):
-        data = db.execute(
-            "INSERT OR IGNORE INTO strikeData (department, user_id, count) VALUES (?, ?, 1)",
-            (
-                self.department,
-                self.member.id,
-            ),
-        )
-        db.commit()
-        if data.rowcount == 0:
-            db.execute(
-                "UPDATE strikeData SET count = count + ? WHERE department = ? AND user_id = ?",
-                (
-                    1,
-                    self.department,
-                    self.member.id,
-                ),
-            )
-            db.commit()
-
-    def counts(self) -> int:
-        data = db.execute(
-            "SELECT count FROM strikeData WHERE department = ? AND user_id = ?",
-            (
-                self.department,
-                self.member.id,
-            ),
-        ).fetchone()
-        db.commit()
-
-        return int(data[0]) if data else 0
-
-    def check(self):
-        data = db.execute(
-            "SELECT * FROM strikeData WHERE department = ? AND user_id = ?",
-            (
-                self.department,
-                self.member.id,
-            ),
-        ).fetchone()
-
-        return data if data else None
-
-    async def revoke(self):
         db.execute(
-            "UPDATE strikeData SET count = count - 1 WHERE department = ? AND user_id = ?",
+            "DELETE FROM warnData WHERE user_id = ? AND moderator_id = ? AND warn_id = ?",
             (
-                self.department,
-                self.member.id,
+                member.id,
+                moderator.id,
+                int(data[1]),
             ),
+        )
+        db.execute(
+            "UPDATE warnData_v2 SET warn_point = warn_point - 1 WHERE user_id = ?",
+            (member.id,),
         )
         db.commit()
 
-        if self.counts() == 0:
-            db.execute(
-                "DELETE FROM strikeData WHERE department = ? AND user_id = ?",
-                (
-                    self.department,
-                    self.member.id,
-                ),
-            )
+        if self.points(member) == 0:
+            db.execute("DELETE FROM warnData_v2 WHERE user_id = ?", (member.id,))
             db.commit()
+
+class AutoMod:
+    def __init__(self, bot:Bot) -> None:
+        self.bot=bot
+
+    with open("assets/not_allowed.json", "r") as f:
+        jsondata=f.readlines()
+
+    async def adwarn(self, member:Member, message:Message):
+        not_allowed_channels=[int(i) for i in self.jsondata["no_invites_allowed"]]
+
+
+        if "https://discord.gg/" in message.content:
+                if message.channel.id in not_allowed_channels:
+                    await message.delete()
+                    if member.guild.id == 925790259160166460:
+                        await Adwarn(self.bot).add(member, "Incorrectly advertising in non-Discord advertising channels")
 
 
 class Partner:
