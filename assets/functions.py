@@ -1,6 +1,7 @@
 import asyncio
 import os
 from datetime import datetime, timedelta
+import re
 from sqlite3 import Cursor
 from typing import Literal, Optional
 from random import randint
@@ -17,13 +18,11 @@ from discord import (
     Forbidden,
 )
 from discord.ext.commands import Bot
-
-from assets.not_allowed import no_invites, no_pings
 from config import db
 
 
 class Adwarn:
-    def __init__(self, moderator: Optional[Member]=None) -> None:
+    def __init__(self, moderator: Optional[Member] = None) -> None:
         self.moderator = moderator
 
     @staticmethod
@@ -63,18 +62,70 @@ class Adwarn:
         db.commit()
         return int(data[0]) if data else None
 
+    async def punishment_rules(self, member: Member) -> str | None:
+        points = self.points(member)
+        embed = Embed(color=Color.red())
+
+        if points <= 5:
+            return "No punishment applied"
+
+        if points == 6:
+            duration = datetime.now() + timedelta(hours=1)
+            await member.edit(timed_out_until=duration)
+            result = "Put on timeout until <t:{}:f>".format(round(duration.timestamp()))
+            embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
+                result.lower(), str(self.points(member))
+            )
+            return result
+
+        if points == 7:
+            duration = datetime.now() + timedelta(hours=12)
+            await member.edit(timed_out_until=duration)
+            result = "Put on timeout until <t:{}:f>".format(round(duration.timestamp()))
+            embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
+                result.lower(), str(self.points(member))
+            )
+            return result
+
+        if points == 8:
+            duration = datetime.now() + timedelta(days=1)
+            await member.edit(timed_out_until=duration)
+            result = "Put on timeout until <t:{}:f>".format(round(duration.timestamp()))
+            embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
+                result.lower(), str(self.points(member))
+            )
+            return result
+
+        if points == 9:
+            await member.kick(reason="Reached 9 points")
+            result = "Kick"
+            embed.description = "You have been **{}** from HAZE Advertising for reaching {} points".format(
+                result.lower(), str(self.points(member))
+            )
+            return result
+
+        if points == 10:
+            await member.ban(reason="Reached 10 points")
+            result = "Permanent Ban"
+            embed.description = "You have been **{}** from HAZE Advertising for reaching {} points".format(
+                result.lower(), str(self.points(member))
+            )
+            return result
+
     async def add(self, member: Member, reason: str) -> Literal[False] | None:
         current_time = round(datetime.now().timestamp())
         time = self.check_time(member)
 
-        if current_time >= time:
+        if (current_time >= time) or (time == None):
+            warn_id = self.make_id()
+            adwarn_channel = await member.guild.fetch_channel(925790260695281703)
             db.execute(
                 "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
                 (
                     member.id,
                     self.moderator.id,
                     reason,
-                    self.make_id(),
+                    warn_id,
                 ),
             )
             db.execute(
@@ -95,6 +146,17 @@ class Adwarn:
                 == 0
             ):
                 db.commit()
+            embed = Embed()
+            embed.title = "You have been adwarned"
+            embed.add_field(name="Reason", value=reason, inline=True)
+            embed.add_field(name="Warn ID", value=warn_id, inline=True)
+            embed.add_field(name="Warn Points", value=self.points(member), inline=True)
+            punishment = await self.punishment_rules(member)
+            embed.add_field(name="Punishment", value=punishment, inline=True)
+            embed.set_footer(
+                text="If you feel this warn was a mistake, please use `/appeal WARN_ID` or open a ticket"
+            )
+            await adwarn_channel.send(member.mention, embed=embed)
             return
 
         return False
@@ -122,22 +184,77 @@ class Adwarn:
             db.execute("DELETE FROM warnData_v2 WHERE user_id = ?", (member.id,))
             db.commit()
 
+
 class AutoMod:
-    def __init__(self, bot:Bot) -> None:
-        self.bot=bot
+    def __init__(self, bot: Bot, message: Message) -> None:
+        self.bot = bot
+        self.message = message
 
     with open("assets/not_allowed.json", "r") as f:
-        jsondata=f.readlines()
+        jsondata = f.readlines()
 
-    async def adwarn(self, member:Member, message:Message):
-        not_allowed_channels=[int(i) for i in self.jsondata["no_invites_allowed"]]
+    async def adwarn(self):
+        global invite_url
+        not_allowed_channels = [int(i) for i in self.jsondata["no_invites_allowed"]]
+        advertising_cat = await self.message.guild.fetch_channel(925790260695281702)
+        if not self.message.author:
+            if "https://discord.gg/" in self.message.content:
+                if self.message.channel.id in not_allowed_channels:
+                    await self.message.delete()
+                    if self.message.guild.id == 925790259160166460:
+                        await Adwarn(self.bot.user).add(
+                            self.message.author,
+                            "Incorrectly advertising in non-Discord advertising channels",
+                        )
+                        return
 
+            if self.message.id in [
+                i.id
+                for i in advertising_cat.channels
+                if not (i.id == 951385958924828713)
+            ]:
+                if len(self.message.content) <= 40:
+                    await self.message.delete()
+                    await Adwarn(self.bot.user).add(
+                        self.message.author,
+                        "Discord server ad contains less than 40 characters (too short)",
+                    )
+                    return
 
-        if "https://discord.gg/" in message.content:
-                if message.channel.id in not_allowed_channels:
-                    await message.delete()
-                    if member.guild.id == 925790259160166460:
-                        await Adwarn(self.bot).add(member, "Incorrectly advertising in non-Discord advertising channels")
+    async def check_expired(self):
+        invite_pattern = re.compile(
+            r"(discord\.gg/|discord\.com/invite/)([a-zA-Z0-9]+)"
+        )
+        match = invite_pattern.search(self.message.content)
+        if match:
+            invite_url = f"https://discord.gg/{match.group(2)}"
+
+        try:
+            invite = await self.bot.fetch_invite(invite_url)
+        except:
+            await message.delete()
+            await Adwarn(self.bot.user).add(
+                self.message.author,
+                "Discord server invite is expired",
+            )
+            return
+
+    async def remove_non_attachments(self):
+        if self.message.guild.id == 925790259160166460:
+            attachments = bool(self.message.attachments)
+            content = bool(self.message.content)
+            stickers = bool(self.message.stickers)
+
+            if (content and not attachments) or (not content and stickers):
+                await self.message.delete()
+                return
+            if (
+                (content and attachments)
+                or (attachments and not content)
+                or (stickers and attachments)
+                or (stickers and attachments and content)
+            ):
+                return
 
 
 class Partner:
