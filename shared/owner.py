@@ -98,5 +98,21 @@ class OwnerCog(Cog):
 Make sure private messages between **me and you are opened** or check the server if the database exists"""
                 await ctx.send(content, delete_after=10)
 
+    @group(aliases=["guild", "server"], invoke_without_command=True)
+    @is_owner()
+    async def server(self, ctx: Context):
+        ...
+
+    @server.command()
+    @is_owner()
+    async def blacklist(self, cttx:Context, server_id:int):
+        ...
+
+    @server.command()
+    @is_owner()
+    async def unblacklist(self, cttx: Context, server_id: int):
+        ...
+
+
 async def setup(bot: Bot):
     await bot.add_cog(OwnerCog(bot))

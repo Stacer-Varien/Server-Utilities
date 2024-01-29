@@ -11,8 +11,10 @@ from discord import (
     Embed,
     Guild,
     Interaction,
+    Invite,
     Member,
     Message,
+    PartialInviteGuild,
     TextChannel,
     User,
     Forbidden,
@@ -34,12 +36,12 @@ class Adwarn:
         return int(data[0]) if data else None
 
     @staticmethod
-    def check_id(member: Member, moderator: Member):
+    def check_id(member: Member, warn_id:int):
         data = db.execute(
-            "SELECT warn_id FROM warnData WHERE user_id = ? AND moderator_id = ?",
+            "SELECT * FROM warnData WHERE user_id = ? AND warn_id = ?",
             (
                 member.id,
-                moderator.id,
+                warn_id,
             ),
         ).fetchone()
         db.commit()
@@ -76,6 +78,10 @@ class Adwarn:
             embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
                 result.lower(), str(self.points(member))
             )
+            try:
+                await member.send(embed=embed)
+            except:
+                pass
             return result
 
         if points == 7:
@@ -85,6 +91,10 @@ class Adwarn:
             embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
                 result.lower(), str(self.points(member))
             )
+            try:
+                await member.send(embed=embed)
+            except:
+                pass
             return result
 
         if points == 8:
@@ -94,6 +104,10 @@ class Adwarn:
             embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
                 result.lower(), str(self.points(member))
             )
+            try:
+                await member.send(embed=embed)
+            except:
+                pass
             return result
 
         if points == 9:
@@ -102,6 +116,10 @@ class Adwarn:
             embed.description = "You have been **{}** from HAZE Advertising for reaching {} points".format(
                 result.lower(), str(self.points(member))
             )
+            try:
+                await member.send(embed=embed)
+            except:
+                pass
             return result
 
         if points == 10:
@@ -110,9 +128,15 @@ class Adwarn:
             embed.description = "You have been **{}** from HAZE Advertising for reaching {} points".format(
                 result.lower(), str(self.points(member))
             )
+            try:
+                await member.send(embed=embed)
+            except:
+                pass
             return result
 
-    async def add(self, member: Member, reason: str) -> Literal[False] | None:
+    async def add(
+        self, member: Member, channel: TextChannel, reason: str
+    ) -> Literal[False] | None:
         current_time = round(datetime.now().timestamp())
         time = self.check_time(member)
 
@@ -148,6 +172,11 @@ class Adwarn:
                 db.commit()
             embed = Embed()
             embed.title = "You have been adwarned"
+            embed.add_field(
+                name="Channel where the incident happened",
+                value=channel.mention,
+                inline=True,
+            )
             embed.add_field(name="Reason", value=reason, inline=True)
             embed.add_field(name="Warn ID", value=warn_id, inline=True)
             embed.add_field(name="Warn Points", value=self.points(member), inline=True)
@@ -156,22 +185,31 @@ class Adwarn:
             embed.set_footer(
                 text="If you feel this warn was a mistake, please use `/appeal WARN_ID` or open a ticket"
             )
+            embed.set_thumbnail(url=member.display_avatar)
             await adwarn_channel.send(member.mention, embed=embed)
+
+            def is_member(m: Message):
+                return m.author == member
+
+            for i in member.guild.text_channels:
+                try:
+                    await i.channel.purge(limit=3, check=is_member)
+                except:
+                    continue
             return
 
         return False
 
-    async def remove(self, member: Member, moderator: Member) -> Literal[False] | None:
-        data = self.check_id(member, moderator)
+    async def remove(self, member: Member, warn_id:int) -> Literal[False] | None:
+        data = self.check_id(member, warn_id)
         if not data:
             return
 
         db.execute(
-            "DELETE FROM warnData WHERE user_id = ? AND moderator_id = ? AND warn_id = ?",
+            "DELETE FROM warnData WHERE user_id = ? AND warn_id = ?",
             (
                 member.id,
-                moderator.id,
-                int(data[1]),
+                warn_id,
             ),
         )
         db.execute(
@@ -184,77 +222,124 @@ class Adwarn:
             db.execute("DELETE FROM warnData_v2 WHERE user_id = ?", (member.id,))
             db.commit()
 
+class Appeal:
+    def __init__(self) -> None:
+        pass
+
+
 
 class AutoMod:
-    def __init__(self, bot: Bot, message: Message) -> None:
+    def __init__(self, bot: Bot, message: Message):
         self.bot = bot
         self.message = message
+        self.advertising_cat_id = 925790260695281702
+        self.blacklist_channel_id = 951385958924828713
 
     with open("assets/not_allowed.json", "r") as f:
         jsondata = f.readlines()
 
-    async def adwarn(self):
-        global invite_url
+    async def process_automod(self):
         not_allowed_channels = [int(i) for i in self.jsondata["no_invites_allowed"]]
-        advertising_cat = await self.message.guild.fetch_channel(925790260695281702)
-        if not self.message.author:
-            if "https://discord.gg/" in self.message.content:
-                if self.message.channel.id in not_allowed_channels:
-                    await self.message.delete()
-                    if self.message.guild.id == 925790259160166460:
-                        await Adwarn(self.bot.user).add(
-                            self.message.author,
-                            "Incorrectly advertising in non-Discord advertising channels",
-                        )
-                        return
-
-            if self.message.id in [
-                i.id
-                for i in advertising_cat.channels
-                if not (i.id == 951385958924828713)
-            ]:
-                if len(self.message.content) <= 40:
-                    await self.message.delete()
-                    await Adwarn(self.bot.user).add(
-                        self.message.author,
-                        "Discord server ad contains less than 40 characters (too short)",
-                    )
-                    return
-
-    async def check_expired(self):
-        invite_pattern = re.compile(
-            r"(discord\.gg/|discord\.com/invite/)([a-zA-Z0-9]+)"
+        advertising_cat = await self.message.guild.fetch_channel(
+            self.advertising_cat_id
         )
-        match = invite_pattern.search(self.message.content)
-        if match:
-            invite_url = f"https://discord.gg/{match.group(2)}"
 
-        try:
-            invite = await self.bot.fetch_invite(invite_url)
-        except:
-            await message.delete()
-            await Adwarn(self.bot.user).add(
-                self.message.author,
-                "Discord server invite is expired",
-            )
-            return
+        if not self.message.author.bot:
+            content = self.message.content
+            channel_id = self.message.channel.id
 
-    async def remove_non_attachments(self):
-        if self.message.guild.id == 925790259160166460:
+            if "https://discord.gg/" in content and channel_id in not_allowed_channels:
+                await self.handle_advertising()
+
+            if (
+                channel_id == advertising_cat.id
+                and self.message.id
+                in [
+                    i.id
+                    for i in advertising_cat.channels
+                    if i.id != self.blacklist_channel_id
+                ]
+                and len(content) <= 40
+            ):
+                await self.handle_short_ad()
+
+            if self.message.id in [i.id for i in advertising_cat.channels] and (
+                match := re.search(
+                    r"(discord\.gg/|discord\.com/invite/)([a-zA-Z0-9]+)", content
+                )
+            ):
+                invite_url = f"https://discord.gg/{match.group(2)}"
+                await self.check_invite(invite_url)
+                await self.check_invite(invite_url, check_blacklist=True)
+
+        if self.message.channel.id == 1041309643449827360:
             attachments = bool(self.message.attachments)
             content = bool(self.message.content)
             stickers = bool(self.message.stickers)
 
             if (content and not attachments) or (not content and stickers):
                 await self.message.delete()
-                return
-            if (
-                (content and attachments)
-                or (attachments and not content)
-                or (stickers and attachments)
-                or (stickers and attachments and content)
-            ):
-                return
+
+    async def handle_advertising(self):
+        await self.message.delete()
+        await Adwarn(self.bot.user).add(
+            self.message.author,
+            self.message.channel.mention,
+            "**Incorrectly advertising** in non-Discord advertising channels",
+        )
+
+    async def handle_short_ad(self):
+        await self.message.delete()
+        await Adwarn(self.bot.user).add(
+            self.message.author,
+            self.message.channel.mention,
+            "Discord server ad contains less than **40 characters** (too short)",
+        )
+
+    async def check_invite(self, invite_url: str, check_blacklist=False):
+        try:
+            invite = await self.bot.fetch_invite(invite_url)
+
+            if check_blacklist and invite.id in self.get_blacklisted_servers():
+                await self.handle_blacklisted_server()
+
+            await self.check_invite_expiration(invite)
+
+        except:
+            await self.message.delete()
+            await Adwarn(self.bot.user).add(
+                self.message.author,
+                self.message.channel.mention,
+                "Discord server invite is **invalid**",
+            )
+
+    async def check_invite_expiration(self, invite: Invite | PartialInviteGuild):
+        after_7_days = invite.created_at + timedelta(days=7)
+        invite_expiration = invite.expires_at
+
+        if round(invite_expiration.timestamp()) < round(after_7_days.timestamp()):
+            await self.message.delete()
+            await Adwarn(self.bot.user).add(
+                self.message.author,
+                self.message.channel.mention,
+                "Discord server invite should not be valid for less than **7 days**",
+            )
+
+    async def handle_blacklisted_server(self):
+        await self.message.delete()
+        await Adwarn(self.bot.user).add(
+            self.message.author,
+            self.message.channel.mention,
+            "Advertising a **blacklisted server**",
+        )
+
+    def get_blacklisted_servers(self):
+        return [
+            record[0]
+            for record in db.execute(
+                "SELECT server_id FROM blacklistedServersData"
+            ).fetchall()
+        ]
 
 
 class Partner:

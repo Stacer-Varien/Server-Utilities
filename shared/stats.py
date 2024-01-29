@@ -52,13 +52,13 @@ class InfoCog(Cog):
 
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         embed.set_footer(
-            text="I am the legacy version of the cousin bot, [HazeBot](https://github.com/Stacer-Varien/HazeBot) developed by {}. If you wish to have a bot made by him, please DM him or email to **zane544yt@protonmail.com**. By the way, its not for free...".format(
+            text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him or email to **zane544yt@protonmail.com**. By the way, its not for free...".format(
                 botowner
             )
         )
         await ctx.followup.send(embed=embed)
 
-    @Serverutil.command(description="Check if a bot is made by Varien")
+    @Serverutil.command(description="Check if a bot is made by Stacer Varien")
     async def validate_bot(self, ctx: Interaction, botid: str):
         await ctx.response.defer()
         with open("assets/mybots.json", "r") as f:
@@ -107,45 +107,28 @@ Spreading rumours and false reports about Server Utilities (such as calling it a
 Under no circumstances, Server Utilities (including its token) is not for sale.
 
 **Adding Server Utilities**
-Server Utilities is not up for grabs or free to have. The bot is ONLY for my servers including LOA and LSS. Add my bot, [Jeanne](https://top.gg/bot/831993597166747679) instead
+Server Utilities is not up for grabs or free to have. The bot is ONLY for **my** servers. Add my bot, [Jeanne](https://top.gg/bot/831993597166747679) instead
 
 **Copyright**
-Even though Server Utilities's repository is public and free to use for educational and/or experimental purposes, you are not allowed to impersonate it and/or sell the source code as it is under a Conditioned MIT License and Common Clause License. (To learn more about the Licenses, please use `/bot license`)
+Even though Server Utilities's repository is public and free to use for educational and/or experimental purposes, you are not allowed to impersonate it and/or sell the source code as it is under a MIT License and Common Clause License. (To learn more about the Licenses, please use `/bot license`)
         """
         await ctx.response.send_message(embed=embed, delete_after=180)
 
     @Serverutil.command(name="license", description="View the licenses of the bot")
     async def license(self, ctx: Interaction):
         content = """
-Conditioned MIT License
 
-Copyright (c) 2022 Stacer-Varien
+# MIT License
+Copyright 2022 Stacer-Varien
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of Server Utilities and associated documentation files, to deal
-in the bot without restriction, including without limitation the rights
-to use, modify, merge, and to permit persons to whom the bot is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-1. The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of Server Utilities.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-2. The bot and/or source code should not be copied and claimed by its own by the 3rd party.
-
-3. The bot should not be the same as the original bot.
-
-4. The bot and/or it's source code should not be sold to anyone in any way or form.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-“Commons Clause” License Condition v1.0
+# “Commons Clause” License Condition v1.0
 
 The Software is provided to you by the Licensor under the License, as defined 
 below, subject to the following condition.
@@ -164,7 +147,7 @@ Condition notice.
 
 Software: Server Utilities
 
-License: Conditioned MIT License
+License: MIT License
 
 Licensor: Stacer-Varien
 """
