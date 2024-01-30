@@ -36,7 +36,7 @@ class Adwarn:
         return int(data[0]) if data else None
 
     @staticmethod
-    def check_id(member: Member, warn_id:int):
+    def check_id(member: Member, warn_id: int):
         data = db.execute(
             "SELECT * FROM warnData WHERE user_id = ? AND warn_id = ?",
             (
@@ -134,73 +134,65 @@ class Adwarn:
                 pass
             return result
 
-    async def add(
-        self, member: Member, channel: TextChannel, reason: str
-    ) -> Literal[False] | None:
-        current_time = round(datetime.now().timestamp())
-        time = self.check_time(member)
+    async def add(self, member: Member, channel: TextChannel, reason: str):
+        warn_id = self.make_id()
+        adwarn_channel = await member.guild.fetch_channel(925790260695281703)
+        db.execute(
+            "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
+            (
+                member.id,
+                self.moderator.id,
+                reason,
+                warn_id,
+            ),
+        )
+        db.execute(
+            "INSERT OR IGNORE INTO warnData_2 (user_id, warn_point, time) VALUES (?,?,?)",
+            (
+                member.id,
+                1,
+                self.make_new_time(),
+            ),
+        )
+        db.commit()
 
-        if (current_time >= time) or (time == None):
-            warn_id = self.make_id()
-            adwarn_channel = await member.guild.fetch_channel(925790260695281703)
+        if (
             db.execute(
-                "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
-                (
-                    member.id,
-                    self.moderator.id,
-                    reason,
-                    warn_id,
-                ),
-            )
-            db.execute(
-                "INSERT OR IGNORE INTO warnData_2 (user_id, warn_point, time) VALUES (?,?,?)",
-                (
-                    member.id,
-                    1,
-                    self.make_new_time(),
-                ),
-            )
+                "UPDATE warnData_v2 SET warn_point = warn_point + 1, time = ? WHERE user_id = ?",
+                (self.make_new_time(), member.id),
+            ).rowcount
+            == 0
+        ):
             db.commit()
+        embed = Embed(color=Color.red())
+        embed.title = "You have been adwarned"
+        embed.add_field(
+            name="Channel where the incident happened",
+            value=channel.mention,
+            inline=True,
+        )
+        embed.add_field(name="Reason", value=reason, inline=True)
+        embed.add_field(name="Warn ID", value=warn_id, inline=True)
+        embed.add_field(name="Warn Points", value=self.points(member), inline=True)
+        punishment = await self.punishment_rules(member)
+        embed.add_field(name="Punishment", value=punishment, inline=True)
+        embed.set_footer(
+            text="If you feel this warn was a mistake, please use `/appeal WARN_ID` or open a ticket"
+        )
+        embed.set_thumbnail(url=member.display_avatar)
+        await adwarn_channel.send(member.mention, embed=embed)
 
-            if (
-                db.execute(
-                    "UPDATE warnData_v2 SET warn_point = warn_point + 1, time = ? WHERE user_id = ?",
-                    (self.make_new_time(), member.id),
-                ).rowcount
-                == 0
-            ):
-                db.commit()
-            embed = Embed()
-            embed.title = "You have been adwarned"
-            embed.add_field(
-                name="Channel where the incident happened",
-                value=channel.mention,
-                inline=True,
-            )
-            embed.add_field(name="Reason", value=reason, inline=True)
-            embed.add_field(name="Warn ID", value=warn_id, inline=True)
-            embed.add_field(name="Warn Points", value=self.points(member), inline=True)
-            punishment = await self.punishment_rules(member)
-            embed.add_field(name="Punishment", value=punishment, inline=True)
-            embed.set_footer(
-                text="If you feel this warn was a mistake, please use `/appeal WARN_ID` or open a ticket"
-            )
-            embed.set_thumbnail(url=member.display_avatar)
-            await adwarn_channel.send(member.mention, embed=embed)
+        def is_member(m: Message):
+            return m.author == member
 
-            def is_member(m: Message):
-                return m.author == member
+        for i in member.guild.text_channels:
+            try:
+                await i.purge(limit=3, check=is_member)
+            except:
+                continue
+        return
 
-            for i in member.guild.text_channels:
-                try:
-                    await i.channel.purge(limit=3, check=is_member)
-                except:
-                    continue
-            return
-
-        return False
-
-    async def remove(self, member: Member, warn_id:int) -> Literal[False] | None:
+    async def remove(self, member: Member, warn_id: int):
         data = self.check_id(member, warn_id)
         if not data:
             return
@@ -221,11 +213,6 @@ class Adwarn:
         if self.points(member) == 0:
             db.execute("DELETE FROM warnData_v2 WHERE user_id = ?", (member.id,))
             db.commit()
-
-class Appeal:
-    def __init__(self) -> None:
-        pass
-
 
 
 class AutoMod:
@@ -343,11 +330,10 @@ class AutoMod:
 
 
 class Partner:
-    def __init__(self, user: Member, server: Guild):
-        self.user = user
+    def __init__(self, server: Guild):
         self.server = server
 
-    def check(self) -> bool | None:
+    def check(self, member:Member) -> bool | None:
         if self.server.id == 740584420645535775:
             path = "/partnerships/orleans/{}.txt".format(self.user.id)
             check = os.path.exists(path)

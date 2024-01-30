@@ -25,19 +25,18 @@ class PartnerCog(GroupCog, name="partner"):
         await ctx.response.defer()
 
         dm_link = await ctx.user.send(
-            "Please send your ad. Make sure the invite is permanent and is not a vanity URL or custom URL, not in a code block, and does not have custom emojis. If not, your partnership will be revoked due to an expired invite."
+            "Please send your ad. Make sure the invite is permanent and is not a vanity URL or custom URL, not in a code block, and does not have custom emojis. If not, your partnership will be revoked due to an expired invite or use of custom emojis."
         )
 
         await ctx.followup.send(
             f"Please go to your [DMs]({dm_link.jump_url}) to proceed with the partnership"
         )
 
-        def wait_for_message(author, timeout=180):
-            check = lambda m: m.author == author and m.content
-            return self.bot.wait_for("message", check=check, timeout=timeout)
+        def check(m: Message):
+            return m.author == ctx.user and (m.attachments or m.content)
 
         try:
-            ad = await wait_for_message(ctx.user)
+            ad: Message = await self.bot.wait_for("message", check=check, timeout=180)
 
             content_file = (
                 "HA/orleans.txt"
@@ -52,12 +51,13 @@ class PartnerCog(GroupCog, name="partner"):
                 "We have given you our ad. Now, you have 3 minutes to post our ad to your server and send a FULL screenshot with date and time showing as proof. This is just to avoid partnership scams."
             )
 
-            def wait_for_image(author, timeout=180):
-                check = lambda m: m.author == author and m.attachments
-                return self.bot.wait_for("message", check=check, timeout=timeout)
+            def check(m: Message):
+                return m.author == ctx.user and (m.attachments or m.content)
 
             try:
-                proof = await wait_for_image(ctx.user)
+                proof = Message = await self.bot.wait_for(
+                    "message", check=check, timeout=180
+                )
 
                 image_urls = [x.url for x in proof.attachments]
                 images = "\n".join(image_urls)
