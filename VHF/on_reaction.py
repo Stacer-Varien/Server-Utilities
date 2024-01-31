@@ -1,5 +1,6 @@
-from discord import Color, Embed, Emoji, Message, Object, RawReactionActionEvent
+from discord import Color, Embed, Emoji, Object, RawReactionActionEvent
 from discord.ext.commands import Bot, Cog
+from config import vhf
 
 
 class ReactionCog(Cog):
@@ -16,14 +17,14 @@ class ReactionCog(Cog):
                 if role:
                     if payload.event_type == "REACTION_ADD":
                         await payload.member.add_roles(
-                            role, reason=f"{emoji_roles[payload.emoji]} Event"
+                            role
                         )
                     elif payload.event_type == "REACTION_REMOVE":
                         await payload.member.remove_roles(role)
 
     async def handle_starboard_reaction(self, payload: RawReactionActionEvent):
         starboard_channel_id = 1173932523764600882
-        if payload.channel_id != starboard_channel_id:
+        if (payload.channel_id != starboard_channel_id) or (payload.channel_id!=1115725010649235608):
             message_ids_file = "message_ids.txt"
             with open(message_ids_file, "r") as f:
                 message_ids = f.read().split("\n")
@@ -81,9 +82,9 @@ class ReactionCog(Cog):
             payload,
             {
                 "🌈": 1115726474318729257,
-                "🎃": 1199718222518296616,
-                "🧝": 119971953556614360,
-                "🖐️" : 120044322839514729,
+                "🎃": 1153989722327228486,
+                "🧝": None,
+                "🖐️": 1200443228395147295,
             },
         )
         await self.handle_starboard_reaction(payload)
@@ -94,12 +95,12 @@ class ReactionCog(Cog):
             payload,
             {
                 "🌈": 1115726474318729257,
-                "🎃": 1199718222518296616,
-                "🧝": 1199719535566143608,
-                "🖐️" : 120044322839514729,
+                "🎃": 1153989722327228486,
+                "🧝": None,
+                "🖐️": 1200443228395147295,
             },
         )
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(ReactionCog(bot), guild=Object(974028573893595146))
+    await bot.add_cog(ReactionCog(bot), guild=Object(vhf))

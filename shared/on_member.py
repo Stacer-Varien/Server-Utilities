@@ -1,8 +1,6 @@
 from discord import Embed, Colour, Member
 from discord.ext.commands import Cog, Bot
 
-from assets.functions import Resign
-
 WELCOME_CHANNEL_ID = 925790259877412877
 HAZE_ADS = 925790259160166460
 

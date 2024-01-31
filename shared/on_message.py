@@ -1,8 +1,6 @@
 from datetime import timedelta
-from random import randint
-from discord import Color, Embed, Message, Forbidden
+from discord import Message, Forbidden
 from discord.ext.commands import Cog, Bot
-from discord.utils import utcnow
 from assets.buttons import Confirmation
 from assets.functions import AutoMod
 
@@ -20,7 +18,9 @@ class AutomodCog(Cog):
         ):
             await message.add_reaction(":mhxaLove:1174261737697050625")
             return
+
         await AutoMod(self.bot, message).process_automod()
+            
 
 
 async def setup(bot: Bot):
