@@ -1,10 +1,12 @@
 import asyncio
+from json import loads
 import os
 from datetime import datetime, timedelta
 import re
 from sqlite3 import Cursor
 from typing import Literal, Optional
 from random import randint
+from click import Context
 
 from discord import (
     Color,
@@ -223,41 +225,50 @@ class AutoMod:
         self.blacklist_channel_id = 951385958924828713
 
     with open("assets/not_allowed.json", "r") as f:
-        jsondata = f.readlines()
+        jsondata: dict = loads("".join(f.readlines()))
 
     async def process_automod(self):
-        not_allowed_channels = [int(i) for i in self.jsondata["no_invites_allowed"]]
-        advertising_cat = await self.message.guild.fetch_channel(
-            self.advertising_cat_id
-        )
-
         if not self.message.author.bot:
             content = self.message.content
             channel_id = self.message.channel.id
+            not_allowed_channels = [int(i) for i in self.jsondata["no_invites_allowed"]]
 
-            if "https://discord.gg/" in content and channel_id in not_allowed_channels:
-                await self.handle_advertising()
-
-            if (
-                channel_id == advertising_cat.id
-                and self.message.id
-                in [
-                    i.id
-                    for i in advertising_cat.channels
-                    if i.id != self.blacklist_channel_id
-                ]
-                and len(content) <= 40
-            ):
-                await self.handle_short_ad()
-
-            if self.message.id in [i.id for i in advertising_cat.channels] and (
-                match := re.search(
-                    r"(discord\.gg/|discord\.com/invite/)([a-zA-Z0-9]+)", content
+            if self.message.guild.id == 925790259160166460:
+                advertising_cat = await self.message.guild.fetch_channel(
+                    self.advertising_cat_id
                 )
-            ):
-                invite_url = f"https://discord.gg/{match.group(2)}"
-                await self.check_invite(invite_url)
-                await self.check_invite(invite_url, check_blacklist=True)
+                if (
+                    channel_id == advertising_cat.id
+                    and self.message.id
+                    in [
+                        i.id
+                        for i in advertising_cat.channels
+                        if i.id != self.blacklist_channel_id
+                    ]
+                    and len(content) <= 40
+                ):
+                    await self.handle_short_ad()
+                    return
+
+                if self.message.id in [i.id for i in advertising_cat.channels] and (
+                    match := re.search(
+                        r"(discord\.gg/|discord\.com/invite/)([a-zA-Z0-9]+)", content
+                    )
+                ):
+                    invite_url = (
+                        f"https://discord.gg/{match.group(2)}"
+                        or f"https://discord.com/invite/{match.group(2)}"
+                    )
+                    await self.check_invite(invite_url)
+                    await self.check_invite(invite_url, check_blacklist=True)
+                    return
+            
+            if (
+                "https://discord.gg/" or "https://discord.com/invite/"
+            ) in content and channel_id in not_allowed_channels:
+                if not self.message.channel.id == 1055055791469645845:
+                    await self.handle_advertising()
+                    return
 
         if self.message.channel.id == 1041309643449827360:
             attachments = bool(self.message.attachments)
@@ -269,11 +280,12 @@ class AutoMod:
 
     async def handle_advertising(self):
         await self.message.delete()
-        await Adwarn(self.bot.user).add(
-            self.message.author,
-            self.message.channel.mention,
-            "**Incorrectly advertising** in non-Discord advertising channels",
-        )
+        if self.message.guild.id == 925790259160166460:
+            await Adwarn(self.bot.user).add(
+                self.message.author,
+                self.message.channel.mention,
+                "**Incorrectly advertising** in non-Discord advertising channels",
+            )
 
     async def handle_short_ad(self):
         await self.message.delete()
@@ -287,8 +299,9 @@ class AutoMod:
         try:
             invite = await self.bot.fetch_invite(invite_url)
 
-            if check_blacklist and invite.id in self.get_blacklisted_servers():
+            if check_blacklist and invite.id in self.get_blacklisted_servers:
                 await self.handle_blacklisted_server()
+                return
 
             await self.check_invite_expiration(invite)
 
@@ -320,6 +333,7 @@ class AutoMod:
             "Advertising a **blacklisted server**",
         )
 
+    @property
     def get_blacklisted_servers(self):
         return [
             record[0]
@@ -333,7 +347,7 @@ class Partner:
     def __init__(self, server: Guild):
         self.server = server
 
-    def check(self, member:Member) -> bool | None:
+    def check(self, member: Member) -> bool | None:
         if self.server.id == 740584420645535775:
             path = "/partnerships/orleans/{}.txt".format(self.user.id)
             check = os.path.exists(path)
@@ -522,3 +536,63 @@ class Verification:
             await member.remove_roles(role, "Removed due to forced verification")
             await asyncio.sleep(1)
         await member.add_roles(untrusted, "Force verification")
+
+
+class Blacklist:
+    def __init__(self, bot:Bot) -> None:
+        self.bot=bot
+
+    
+    def get_blacklisted_servers(self):
+        data=db.execute("SELECT server_id FROM blacklistedServersData").fetchall()
+        return data
+
+    @staticmethod
+    async def add(server_id: str, reason: str):
+        db.execute(
+            "INSERT OR IGNORE INTO blacklistedServersData (server_id, reason) VALUES (?, ?)",
+            (server_id, reason),
+        )
+        db.commit()
+
+    @staticmethod
+    async def remove(server_id: int):
+        db.execute(
+            "DELETE FROM blacklistedServersData WHERE server_id = ?", (server_id,)
+        )
+        db.commit()
+
+    async def _handle_blacklist_action(
+        self,
+        ctx: Context,
+        invite_url: str,
+        reason: str,
+        action_message: str,
+        unblacklist=False,
+    ):
+        try:
+            invite = await self.bot.fetch_invite(invite_url)
+            channel = await ctx.guild.fetch_channel(1201991756950806538)
+            embed = Embed(color=Color.red())
+            embed.title = action_message
+            embed.add_field(name="Name", value=invite.guild.name, inline=True)
+            embed.add_field(name="ID", value=invite.guild.id, inline=True)
+            embed.set_thumbnail(url=invite.guild.icon)
+            description_prefix = "# Reason of"
+            action_description = "Un" if unblacklist else ""
+            embed.description = (
+                f"{description_prefix} {action_description}blacklist:\n\n{reason}"
+            )
+            if unblacklist:
+                await self.remove(invite.guild.id)
+                await channel.send(embed=embed)
+            else:
+                await self.add(invite.guild.id, reason)
+                await channel.send(embed=embed)
+        except:
+            await self._handle_invalid_invite(ctx)
+
+    async def _handle_invalid_invite(self, ctx: Context):
+        invalid_invite_message = "Invalid or expired invite"
+        await ctx.reply(invalid_invite_message, delete_after=5)
+        await ctx.message.delete()

@@ -2,8 +2,10 @@ from os import execv
 from sys import executable, argv
 from typing import Literal, Optional
 
-from discord import Embed, File, Game, Activity, Object, ActivityType, HTTPException
+from discord import Color, Embed, File, Activity, Object, ActivityType, HTTPException
 from discord.ext.commands import Cog, Bot, group, is_owner, guild_only, Context, Greedy, command
+
+from assets.functions import Blacklist
 
 def restart_bot():
     execv(executable, ["python"] + argv)
@@ -98,20 +100,45 @@ class OwnerCog(Cog):
 Make sure private messages between **me and you are opened** or check the server if the database exists"""
                 await ctx.send(content, delete_after=10)
 
-    @group(aliases=["guild", "server"], invoke_without_command=True)
+
+
+
+    @group(aliases=["guild"], invoke_without_command=True)
     @is_owner()
-    async def server(self, ctx: Context):
+    async def server(self, ctx: Context): 
         ...
+
 
     @server.command()
     @is_owner()
-    async def blacklist(self, cttx:Context, server_id:int):
-        ...
+    async def blacklist(self, ctx: Context, invite_url: str, *, reason):
+        try:
+            blacklist_message = "This server has been blacklisted"
+            action_message = "Server Blacklisted"
+            await Blacklist(self.bot)._handle_blacklist_action(
+                ctx, invite_url, reason, action_message)            
+            await ctx.reply(blacklist_message, delete_after=5)
+            await ctx.message.delete()
+        except:
+            await Blacklist(self.bot)._handle_invalid_invite(ctx)
+
 
     @server.command()
     @is_owner()
-    async def unblacklist(self, cttx: Context, server_id: int):
-        ...
+    async def unblacklist(self, ctx: Context, invite_url: str, reason):
+        try:
+            unblacklist_message = "This server has not been blacklisted"
+            action_message = "Server Unblacklisted"
+            await ctx.reply(unblacklist_message, delete_after=5)
+            await ctx.message.delete()
+
+            await Blacklist(self.bot)._handle_blacklist_action(
+                    ctx, invite_url, reason, action_message, unblacklist=True
+                    )
+        except:
+            await Blacklist(self.bot)._handle_invalid_invite(ctx)
+
+
 
 
 async def setup(bot: Bot):

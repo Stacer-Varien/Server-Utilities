@@ -3,7 +3,7 @@ from discord import (
     Embed,
     Interaction,
     Member,
-    Message,
+    Object,
     app_commands as Serverutil,
 )
 from discord.ext.commands import GroupCog, Bot
@@ -121,4 +121,4 @@ class PartnerCog(GroupCog, name="partner"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(PartnerCog(bot), guilds=[hazead, orleans])
+    await bot.add_cog(PartnerCog(bot), guilds=[Object(hazead), Object(orleans)])
