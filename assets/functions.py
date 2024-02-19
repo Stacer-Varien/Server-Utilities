@@ -262,11 +262,17 @@ class AutoMod:
                     await self.check_invite(invite_url)
                     await self.check_invite(invite_url, check_blacklist=True)
                     return
-            
+
             if (
                 "https://discord.gg/" or "https://discord.com/invite/"
             ) in content and channel_id in not_allowed_channels:
-                if not self.message.channel.id == 1055055791469645845:
+                allowed_channels = [
+                    1048509171496144926,
+                    1055055791469645845,
+                    1045341985654964334,
+                    1040380792406298645,
+                ]
+                if self.message.channel.id not in allowed_channels:
                     await self.handle_advertising()
                     return
 
@@ -349,48 +355,48 @@ class Partner:
 
     def check(self, member: Member) -> bool | None:
         if self.server.id == 740584420645535775:
-            path = "/partnerships/orleans/{}.txt".format(self.user.id)
+            path = "/partnerships/orleans/{}.txt".format(member.id)
             check = os.path.exists(path)
             return True if check else None
 
         elif self.server.id == 925790259160166460:
-            path = "/partnerships/hazeads/{}.txt".format(self.user.id)
+            path = "/partnerships/hazeads/{}.txt".format(member.id)
             check = os.path.exists(path)
             return True if check else None
 
-    async def approve(self, ctx: Interaction):
+    async def approve(self, ctx: Interaction, member:Member):
         if self.server.id == 740584420645535775:
-            with open("partnerships/orleans/{}.txt".format(self.user.id), "r") as f:
+            with open("partnerships/orleans/{}.txt".format(member.id), "r") as f:
                 content = "".join(f.readlines())
-            os.remove("partnerships/orleans/{}.txt".format(self.user.id))
+            os.remove("partnerships/orleans/{}.txt".format(member.id))
             partner_role = self.server.get_role(1051047558224543844)
-            if partner_role in self.user.roles:
+            if partner_role in member.roles:
                 pass
             else:
-                await self.user.add_roles(partner_role, reason="New Partner")
+                await member.add_roles(partner_role, reason="New Partner")
             partner_channnel = await self.server.fetch_channel(1040380792406298645)
             await partner_channnel.send(content=content)
         elif self.server.id == 925790259160166460:
-            with open("partnerships/hazeads/{}.txt".format(self.user.id), "r") as f:
+            with open("partnerships/hazeads/{}.txt".format(member.id), "r") as f:
                 content = "".join(f.readlines())
-            os.remove("partnerships/hazeads/{}.txt".format(self.user.id))
+            os.remove("partnerships/hazeads/{}.txt".format(member.id))
             partner_role = self.server.get_role(950354444669841428)
-            if partner_role in self.user.roles:
+            if partner_role in member.roles:
                 pass
             else:
-                await self.user.add_roles(partner_role, reason="New Partner")
+                await member.add_roles(partner_role, reason="New Partner")
             partner_channnel = await self.server.fetch_channel(1040380792406298645)
             await partner_channnel.send(content=content)
         return await ctx.followup.send("Partnership approved")
 
-    async def deny(self, ctx: Interaction, reason: str):
+    async def deny(self, ctx: Interaction, member:Member, reason: str):
         if self.server.id == 740584420645535775:
-            os.remove("partnerships/orleans/{}.txt".format(self.user.id))
+            os.remove("partnerships/orleans/{}.txt".format(member.id))
         elif self.server.id == 925790259160166460:
-            os.remove("partnerships/hazeads/{}.txt".format(self.user.id))
+            os.remove("partnerships/hazeads/{}.txt".format(member.id))
 
         try:
-            await self.user.send(
+            await member.send(
                 f"Your partnership request was denied because:\n{reason}"
             )
             msg = "Partnership denied AND reason sent"
