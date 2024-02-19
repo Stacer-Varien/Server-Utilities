@@ -271,6 +271,7 @@ class AutoMod:
                     1055055791469645845,
                     1045341985654964334,
                     1040380792406298645,
+                    1003576509858058290,
                 ]
                 if self.message.channel.id not in allowed_channels:
                     await self.handle_advertising()

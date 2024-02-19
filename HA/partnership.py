@@ -4,7 +4,7 @@ from discord import (
     Interaction,
     Member,
     Object,
-    app_commands as Serverutil,
+    app_commands as Serverutil, Message
 )
 from discord.ext.commands import GroupCog, Bot
 from assets.functions import Partner
@@ -55,7 +55,7 @@ class PartnerCog(GroupCog, name="partner"):
                 return m.author == ctx.user and (m.attachments or m.content)
 
             try:
-                proof = Message = await self.bot.wait_for(
+                proof:Message  = await self.bot.wait_for(
                     "message", check=check, timeout=180
                 )
 
@@ -104,9 +104,9 @@ class PartnerCog(GroupCog, name="partner"):
     @Serverutil.checks.has_any_role(partner_manager, admins, owner, management)
     async def approve(self, ctx: Interaction, member: Member):
         await ctx.response.defer()
-        partner = Partner(member, ctx.guild)
-        if partner.check():
-            await partner.approve(ctx)
+        partner = Partner(ctx.guild)
+        if partner.check(member):
+            await partner.approve(ctx, member)
 
     @Serverutil.command(description="Deny a partnership")
     @Serverutil.describe(
@@ -115,9 +115,9 @@ class PartnerCog(GroupCog, name="partner"):
     @Serverutil.checks.has_any_role(partner_manager, admins, owner)
     async def deny(self, ctx: Interaction, member: Member, reason: str):
         await ctx.response.defer()
-        partner = Partner(member, ctx.guild)
-        if partner.check():
-            await partner.deny(ctx, reason)
+        partner = Partner(ctx.guild)
+        if partner.check(member):
+            await partner.deny(ctx, member, reason)
 
 
 async def setup(bot: Bot):

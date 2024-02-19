@@ -9,7 +9,7 @@ class ApplicationCog(Cog):
         self.bot = bot
         self.reload_apps.start()
 
-    @tasks.loop(minutes=3)
+    @tasks.loop(hours=24)
     async def reload_apps(self):
         embed = Embed()
         embed.description = (

@@ -26,13 +26,7 @@ class AppButtons(ui.View):
                 url="https://forms.gle/Dc3V9DmMCTszi3T89",
             )
         )
-        self.add_item(
-            ui.Button(
-                style=ButtonStyle.url,
-                label="Security Manager",
-                url="https://forms.gle/g6Pa9uFBEEz12a6z8",
-            )
-        )
+
         self.add_item(
             ui.Button(
                 style=ButtonStyle.url,

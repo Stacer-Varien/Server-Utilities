@@ -12,12 +12,9 @@ WEBHOOK_URL_2 = getenv("vanilla")  # Hazeads
 TOKEN = getenv("token")
 ORLEANS = getenv("orleans")
 HAZEADS = getenv("hazeads")
-LOA = getenv("loa_webhook")
 
-db = connect("database.db")
+db = connect("database.db", check_same_thread=True)
 
 hazead = 925790259160166460
-loa = 704888699590279221
-lss = 841671029066956831
 orleans = 740584420645535775
 vhf = 974028573893595146
