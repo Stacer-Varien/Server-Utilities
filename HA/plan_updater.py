@@ -15,7 +15,7 @@ class PlanUpdaterCog(commands.Cog):
     async def update_plans_ha(self):
         ha_planlog = await self.bot.fetch_channel(956554797060866058)
 
-        plans = Plans(925790259160166460)
+        plans = Plans()
 
         if plans.check() is None:
             return

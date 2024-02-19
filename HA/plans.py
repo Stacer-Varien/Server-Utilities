@@ -15,8 +15,6 @@ from assets.functions import Plans
 from config import hazead
 
 planmanager = 956634941066739772
-operationmanager = 841671956999045141
-loa_staff_team = 706750926320566345
 
 
 class PlanCog(GroupCog, name="plan"):
@@ -25,7 +23,7 @@ class PlanCog(GroupCog, name="plan"):
 
     @Serverutil.command(description="Add a plan a member claimed")
     @Serverutil.describe(ends="Example: 1m (1 minute), 3w (3 weeks), 2y (2 years)")
-    @Serverutil.checks.has_any_role(planmanager, operationmanager, loa_staff_team)
+    @Serverutil.checks.has_any_role(planmanager)
     async def add(self, ctx: Interaction, buyer: Member, ends: str, plan: str):
         await ctx.response.defer(ephemeral=True)
         today = datetime.now()
@@ -58,20 +56,18 @@ class PlanCog(GroupCog, name="plan"):
         )
 
     @Serverutil.command(description="End a plan if cancelled early")
-    @Serverutil.checks.has_any_role(planmanager, operationmanager, loa_staff_team)
-    async def end(self, ctx: Interaction, plan_id: int):
+    @Serverutil.checks.has_any_role(planmanager)
+    async def end(self, ctx: Interaction, buyer:Member, plan_id: int):
         await ctx.response.defer(ephemeral=True)
-        if ctx.guild.id == hazead:
-            guild_id = hazead
 
-        plan = Plans(guild_id)
-        result = plan.get(plan_id)
+        plan = Plans()
+        result = plan.get(buyer, plan_id)
 
         if result is None:
             await ctx.followup.send("Invalid Plan ID.")
 
         else:
-            plan.remove(plan_id=plan_id)
+            plan.remove(buyer, plan_id)
             await ctx.followup.send("Plan removed")
 
 

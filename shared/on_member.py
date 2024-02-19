@@ -1,5 +1,8 @@
 from discord import Embed, Colour, Member
 from discord.ext.commands import Cog, Bot
+import asyncio
+
+asyncio.sleep(1)
 
 WELCOME_CHANNEL_ID = 925790259877412877
 HAZE_ADS = 925790259160166460
@@ -20,16 +23,13 @@ class MemberCog(Cog):
                 " Now please, enjoy your stay and start advertising yourself!\n\n"
                 " **__Special Servers:__**\n"
                 "1. Orleans https://discord.gg/Vfa796yvNq\n"
-                "2. Gremory Castle https://discord.gg/8c9BCXa83S\n"
-                "3. Lead of Technology https://discord.gg/TaAwTzC4p7"
+                "2. Gremory Castle https://rias.gg/discord\n"
+                "3. jeanne https://discord.gg/jeanne"
             )
 
             embed = Embed(colour=Colour.blue())
-            
+
             embed.set_thumbnail(url=member.display_avatar)
-            embed.set_image(
-                url="https://media.discordapp.net/attachments/829041410556690452/951799345324376065/swim-ad.gif"
-            )
 
             try:
                 await channel.send(welcome, embed=embed)

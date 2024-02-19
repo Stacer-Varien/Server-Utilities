@@ -3,10 +3,9 @@ from json import loads
 import os
 from datetime import datetime, timedelta
 import re
-from sqlite3 import Cursor
 from typing import Literal, Optional
 from random import randint
-from click import Context
+from discord.ext.commands import Context
 
 from discord import (
     Color,
@@ -272,6 +271,33 @@ class AutoMod:
                     1045341985654964334,
                     1040380792406298645,
                     1003576509858058290,
+                    1037336353593114754,
+                    1040883460547559474,
+                    770263931334950912,
+                    1045342152726683748,
+                    925790259877412875,
+                    925790259877412877,
+                    925790259877412876,
+                    925790259877412878,
+                    925790259877412879,
+                    947936542561804348,
+                    949656142001348628,
+                    954696784263905290,
+                    1003970769036001330,
+                    980732864884781106,
+                    1055055791469645845,
+                    974028573893595149,
+                    974753944792358923,
+                    974760508240576553,
+                    991644325492568084,
+                    1003576509858058290,
+                    1055046171929878541,
+                    1058385832827949066,
+                    1059903781552267294,
+                    1086761697420783778,
+                    1153987641264586836,
+                    1181585427837227058,
+                    1059931943917076570,
                 ]
                 if self.message.channel.id not in allowed_channels:
                     await self.handle_advertising()
@@ -321,7 +347,7 @@ class AutoMod:
             )
 
     async def check_invite_expiration(self, invite: Invite | PartialInviteGuild):
-        after_7_days = invite.created_at + timedelta(days=7)
+        after_7_days = invite.created_at.now() + timedelta(days=7)
         invite_expiration = invite.expires_at
 
         if round(invite_expiration.timestamp()) < round(after_7_days.timestamp()):
@@ -365,7 +391,7 @@ class Partner:
             check = os.path.exists(path)
             return True if check else None
 
-    async def approve(self, ctx: Interaction, member:Member):
+    async def approve(self, ctx: Interaction, member: Member):
         if self.server.id == 740584420645535775:
             with open("partnerships/orleans/{}.txt".format(member.id), "r") as f:
                 content = "".join(f.readlines())
@@ -388,18 +414,16 @@ class Partner:
                 await member.add_roles(partner_role, reason="New Partner")
             partner_channnel = await self.server.fetch_channel(1040380792406298645)
             await partner_channnel.send(content=content)
-        return await ctx.followup.send("Partnership approved")
+        await ctx.followup.send("Partnership approved")
 
-    async def deny(self, ctx: Interaction, member:Member, reason: str):
+    async def deny(self, ctx: Interaction, member: Member, reason: str):
         if self.server.id == 740584420645535775:
             os.remove("partnerships/orleans/{}.txt".format(member.id))
         elif self.server.id == 925790259160166460:
             os.remove("partnerships/hazeads/{}.txt".format(member.id))
 
         try:
-            await member.send(
-                f"Your partnership request was denied because:\n{reason}"
-            )
+            await member.send(f"Your partnership request was denied because:\n{reason}")
             msg = "Partnership denied AND reason sent"
         except Forbidden:
             msg = "Partnership denied"
@@ -407,12 +431,12 @@ class Partner:
 
 
 class Plans:
-    def __init__(self, server: int):
-        self.server = server
+    def __init__(self):
+        pass
 
     def add(self, user: Member, until: int, plan: str, claimee: User, plan_id: int):
         db.execute(
-            "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id, server_id) VALUES (?,?,?,?,?,?,?)",
+            "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id) VALUES (?,?,?,?,?,?)",
             (
                 user.id,
                 round(datetime.now().timestamp()),
@@ -420,30 +444,33 @@ class Plans:
                 plan,
                 claimee.id,
                 plan_id,
-                self.server,
             ),
         )
         db.commit()
 
-    def get(self, plan_id: int):
+    def get(self, buyer: Member, plan_id: int):
         data = db.execute(
-            "SELECT * FROM planData WHERE plan_id = ? AND server_id = ?",
-            (plan_id, self.server),
+            "SELECT * FROM planData WHERE plan_id = ? AND user_id = ?",
+            (
+                plan_id,
+                buyer.id,
+            ),
         ).fetchone()
 
         return data if data else None
 
     def check(self) -> list | None:
-        data = db.execute(
-            "SELECT * FROM planData WHERE server_id = ?", (self.server,)
-        ).fetchall()
+        data = db.execute("SELECT * FROM planData").fetchall()
         db.commit()
         return data if data else None
 
     def remove(self, buyer: User, plan_id: int):
         db.execute(
-            "DELETE FROM planData WHERE user_id = ? AND plan_id= ? AND server_id= ?",
-            (buyer.id, plan_id, self.server),
+            "DELETE FROM planData WHERE user_id = ? AND plan_id= ?",
+            (
+                buyer.id,
+                plan_id,
+            ),
         )
         db.commit()
 
@@ -546,12 +573,11 @@ class Verification:
 
 
 class Blacklist:
-    def __init__(self, bot:Bot) -> None:
-        self.bot=bot
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot
 
-    
     def get_blacklisted_servers(self):
-        data=db.execute("SELECT server_id FROM blacklistedServersData").fetchall()
+        data = db.execute("SELECT server_id FROM blacklistedServersData").fetchall()
         return data
 
     @staticmethod
@@ -603,3 +629,85 @@ class Blacklist:
         invalid_invite_message = "Invalid or expired invite"
         await ctx.reply(invalid_invite_message, delete_after=5)
         await ctx.message.delete()
+
+
+class Currency:
+    def __init__(self, user: User):
+        self.user = user
+
+    @property
+    def get_balance(self) -> int:
+        data = db.execute(
+            "SELECT amount FROM bankData WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
+
+        return int(data[0]) if data else 0
+
+    async def add_credits(self, amount: int):
+        current_time=datetime.now()
+        cur = db.execute(
+            "INSERT OR IGNORE INTO bankData (user_id, amount, claimed_date) VALUES (?,?,?)",
+            (
+                self.user.id,
+                amount,
+                (current_time - timedelta(days=1)),
+            ),
+        )
+        db.commit()
+
+        if cur.rowcount == 0:
+            db.execute(
+                "UPDATE bankData SET amount = amount + ? WHERE user_id = ?",
+                (
+                    amount,
+                    self.user.id,
+                ),
+            )
+
+            db.commit()
+
+    async def remove_credits(self, amount: int):
+        db.execute(
+            "UPDATE bankData SET amount = amount - ? WHERE user_id = ?",
+            (
+                amount,
+                self.user.id,
+            ),
+        )
+
+        db.commit()
+
+    async def give_daily(self):
+        next_claim = round((datetime.now() + timedelta(days=1)).timestamp())
+
+        credits = 200 if (datetime.today().weekday() >= 5) else 100
+
+        cur = db.execute(
+            "INSERT OR IGNORE INTO bankData (user_id, amount, claimed_date) VALUES (?,?,?)",
+            (
+                self.user.id,
+                credits,
+                next_claim,
+            ),
+        )
+        db.commit()
+        if cur.rowcount == 0:
+            db.execute(
+                "UPDATE bankData SET claimed_date = ?, amount = amount + ? WHERE user_id = ?",
+                (
+                    next_claim,
+                    credits,
+                    self.user.id,
+                ),
+            )
+            db.commit()
+
+    @property
+    def check_daily(self) -> int | Literal[True]:
+        data = db.execute(
+            "SELECT claimed_date FROM bankData WHERE user_id = ?", (self.user.id,)
+        ).fetchone()
+        db.commit()
+        if (data == None) or (int(data[0]) < round(datetime.now().timestamp())):
+            return True
+        return int(data[0])
