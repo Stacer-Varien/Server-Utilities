@@ -1,3 +1,4 @@
+from json import loads
 from random import choice, randint
 from typing import Optional
 from discord import (
@@ -13,9 +14,10 @@ from datetime import datetime, timedelta
 from discord.ext.commands import Cog, Bot, GroupCog
 from assets.functions import Currency
 
+
 class currencyCog(Cog):
-    def __init__(self, bot:Bot) -> None:
-        self.bot=bot
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot
 
     async def get_balance(self, ctx: Interaction, member: Member):
         await ctx.response.defer()
@@ -39,24 +41,24 @@ class currencyCog(Cog):
             await bank.give_daily()
 
             daily = Embed(
-                    title="Daily",
-                    description=f"**{ctx.user}**, you claimed your daily reward.",
-                    color=Color.random(),
-                )
+                title="Daily",
+                description=f"**{ctx.user}**, you claimed your daily reward.",
+                color=Color.random(),
+            )
 
             is_weekend = datetime.today().weekday() >= 5
             rewards_text = "Rewards (weekend):" if is_weekend else "Rewards:"
             rewards_value = "You received 200 <:HAZEcoin:1209238914041118721>" if is_weekend else "You received 100 <:HAZEcoin:1209238914041118721>"
 
             daily.add_field(
-                    name=rewards_text,
-                    value=rewards_value,
-                )
+                name=rewards_text,
+                value=rewards_value,
+            )
 
             daily.add_field(
-                    name="Balance",
-                    value=f"{bank.get_balance} <:HAZEcoin:1209238914041118721>",
-                )
+                name="Balance",
+                value=f"{bank.get_balance} <:HAZEcoin:1209238914041118721>",
+            )
             daily.add_field(name="Next Daily:", value=f"<t:{tomorrow}:f>")
 
             await ctx.followup.send(embed=daily)
@@ -85,3 +87,12 @@ class currencyCog(Cog):
                 color=Color.red(),
             )
             await ctx.response.send_message(embed=cooldown)
+
+class ShopCog(GroupCog, name="shop"):
+    def __init__(self, bot:Bot) -> None:
+        self.bot=bot
+        super().__init__()
+    
+    @Serverutils.command(description="Buy a plan with HAZE Coins")
+    async def buy(self, ctx:Interaction):
+        ...

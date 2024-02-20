@@ -1,11 +1,10 @@
-from datetime import timedelta
-from discord import Message, Forbidden
+from datetime import datetime
+from discord import Message
 from discord.ext.commands import Cog, Bot
-from assets.buttons import Confirmation
-from assets.functions import AutoMod
+from assets.functions import AutoMod, Currency
 
 
-class AutomodCog(Cog):
+class OnMessageCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -78,6 +77,56 @@ class AutomodCog(Cog):
             1194634102360522912,
             1194634486860763226,
         ]
+        advertising_channels = [
+            926453405726175232,
+            926453476408590387,
+            949733907392253952,
+            950138528459784334,
+            950355247530922034,
+            1081955153336336435,
+            1081955114933309490,
+            925790260695281698,
+            925790260695281699,
+            925790260695281700,
+            925790260695281701,
+            1134222661753503775,
+            1134226399385890916,
+            950137900178210826,
+            925790260997283851,
+            925790260997283853,
+            977114568142762035,
+            925790260997283855,
+            950137942322610206,
+            925790260997283857,
+            925790260997283859,
+            925790261240561714,
+            925790261240561716,
+            925790261240561717,
+            950356056456986624,
+            925790261240561718,
+            925790261240561719,
+            925790261240561720,
+            925790261240561722,
+            1081955520094687272,
+            1081955734146777138,
+            952139192505344021,
+            925790261240561723,
+            925790261437669387,
+            925790261437669390,
+            926187175282868254,
+            951385958924828713,
+            925790261437669392,
+            955830407285338203,
+            930029339137933332,
+            930029354052894740,
+            930029368972042261,
+            930029393156386836,
+            930029405529575434,
+            930029415465877545,
+            925790261727068247,
+            925790262104580096,
+            1081951938624618506,
+        ]
         if (
             message.guild.id == 974028573893595146
             and message.channel.id in starboarda_channels
@@ -86,8 +135,17 @@ class AutomodCog(Cog):
             await message.add_reaction(":mhxaLove:1174261737697050625")
             return
 
+        if (
+            message.guild.id == 925790259160166460
+            and message.channel.id in advertising_channels
+        ):
+            credits = 10 if (datetime.weekday() >= 5) else 5
+            await Currency(message.author).add_credits(credits)
+            await message.add_reaction("<:HAZEcoin:1209238914041118721>")
+            return
+
         await AutoMod(self.bot, message).process_automod()
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(AutomodCog(bot))
+    await bot.add_cog(OnMessageCog(bot))
