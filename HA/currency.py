@@ -1,11 +1,12 @@
 from json import loads
 from random import choice, randint
-from typing import Optional
+from typing import Literal, Optional
 from discord import (
     ButtonStyle,
     Color,
     Embed,
     Member,
+    TextChannel,
     app_commands as Serverutils,
     Interaction,
     ui,
@@ -48,7 +49,11 @@ class currencyCog(Cog):
 
             is_weekend = datetime.today().weekday() >= 5
             rewards_text = "Rewards (weekend):" if is_weekend else "Rewards:"
-            rewards_value = "You received 200 <:HAZEcoin:1209238914041118721>" if is_weekend else "You received 100 <:HAZEcoin:1209238914041118721>"
+            rewards_value = (
+                "You received 200 <:HAZEcoin:1209238914041118721>"
+                if is_weekend
+                else "You received 100 <:HAZEcoin:1209238914041118721>"
+            )
 
             daily.add_field(
                 name=rewards_text,
@@ -88,11 +93,13 @@ class currencyCog(Cog):
             )
             await ctx.response.send_message(embed=cooldown)
 
+
 class ShopCog(GroupCog, name="shop"):
-    def __init__(self, bot:Bot) -> None:
-        self.bot=bot
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot
         super().__init__()
-    
-    @Serverutils.command(description="Buy a plan with HAZE Coins")
-    async def buy(self, ctx:Interaction):
-        ...
+
+    @Serverutils.command(name="buy-autoad",description="Buy an autoad plan with HAZE Coins")
+    async def buy(self, ctx: Interaction, tier:Literal["Tier 1", "Tier 2", "Tier 3", "Tier 4"], custom_webook:Optional[bool]=False, channels:Optional[TextChannel]=None, days:Optional[Serverutils.Range[int, 1, 40]]=None):
+        await ctx.response.defer()
+        

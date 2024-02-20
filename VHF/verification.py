@@ -9,7 +9,7 @@ from discord import (
     app_commands as Serverutil,
 )
 from discord.ext.commands import Bot, GroupCog, Cog
-from assets.buttons import YesNoButtons
+from assets.components import YesNoButtons
 from assets.functions import Verification
 from datetime import datetime, timedelta
 
