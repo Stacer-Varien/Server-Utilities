@@ -72,7 +72,7 @@ class AutoadChannelMenu(ui.Select):
         super().__init__(placeholder="Select the channels", min_values=1, max_values=6, options=options)
 
     async def callback(self, ctx: Interaction):
-        channels = "\n".join([i for i in self.values])
+        channels = [i for i in self.values]
         generator().generate_receipt(
             ctx.user, "Autoad", self.tier, self.custom_webhook, channels, self.days
         )

@@ -5,6 +5,7 @@ from discord import (
     ButtonStyle,
     Color,
     Embed,
+    File,
     Member,
     TextChannel,
     app_commands as Serverutils,
@@ -108,17 +109,18 @@ class ShopCog(GroupCog, name="shop"):
         self,
         ctx: Interaction,
         tier: Literal["Tier 1", "Tier 2", "Tier 3", "Tier 4"],
-        custom_webook: Optional[bool] = False,
+        custom_webhook: Optional[bool] = False,
         days: Optional[Serverutils.Range[int, 1, 40]] = 7,
         channels: Optional[bool] = False,
     ):
         await ctx.response.defer()
-        duration = 200 * (days - 7)
-        customwebook = 200 if custom_webook == True else 0
         if channels == True:
-            view = AutoAdChannelSelect(self.bot, tier, days,custom_webook)
+            view = AutoAdChannelSelect(self.bot, tier, days,custom_webhook)
             embed = Embed(color=Color.random())
             embed.description = "Which channels do you want your ad to be posted in?"
             await ctx.followup.send(embed=embed, view=view)
             return
-        generator().generate_receipt()
+        receipt=generator().generate_receipt(
+            ctx.user, "Autoad", tier, custom_webhook, "♾🔄-unlimited🔄♾",days
+        )
+        file = File(fp=receipt, filename=f"autoad_receipt.png")
