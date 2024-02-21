@@ -14,6 +14,8 @@ from discord import (
 from datetime import datetime, timedelta
 from discord.ext.commands import Cog, Bot, GroupCog
 from assets.functions import Currency
+from assets.receipt_generator.generator import generator
+from assets.components import AutoAdChannelSelect
 
 
 class currencyCog(Cog):
@@ -99,7 +101,24 @@ class ShopCog(GroupCog, name="shop"):
         self.bot = bot
         super().__init__()
 
-    @Serverutils.command(name="buy-autoad",description="Buy an autoad plan with HAZE Coins")
-    async def buy(self, ctx: Interaction, tier:Literal["Tier 1", "Tier 2", "Tier 3", "Tier 4"], custom_webook:Optional[bool]=False, channels:Optional[TextChannel]=None, days:Optional[Serverutils.Range[int, 1, 40]]=None):
+    @Serverutils.command(
+        name="buy-autoad", description="Buy an autoad plan with HAZE Coins"
+    )
+    async def buy(
+        self,
+        ctx: Interaction,
+        tier: Literal["Tier 1", "Tier 2", "Tier 3", "Tier 4"],
+        custom_webook: Optional[bool] = False,
+        days: Optional[Serverutils.Range[int, 1, 40]] = 7,
+        channels: Optional[bool] = False,
+    ):
         await ctx.response.defer()
-        
+        duration = 200 * (days - 7)
+        customwebook = 200 if custom_webook == True else 0
+        if channels == True:
+            view = AutoAdChannelSelect(self.bot, tier, days,custom_webook)
+            embed = Embed(color=Color.random())
+            embed.description = "Which channels do you want your ad to be posted in?"
+            await ctx.followup.send(embed=embed, view=view)
+            return
+        generator().generate_receipt()
