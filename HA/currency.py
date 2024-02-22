@@ -7,6 +7,7 @@ from discord import (
     Embed,
     File,
     Member,
+    Object,
     TextChannel,
     app_commands as Serverutils,
     Interaction,
@@ -17,7 +18,7 @@ from discord.ext.commands import Cog, Bot, GroupCog
 from assets.functions import Currency
 from assets.receipt_generator.generator import generator
 from assets.components import AutoAdChannelSelect
-
+from config import hazead
 
 class currencyCog(Cog):
     def __init__(self, bot: Bot) -> None:
@@ -105,7 +106,7 @@ class ShopCog(GroupCog, name="shop"):
     @Serverutils.command(
         name="buy-autoad", description="Buy an autoad plan with HAZE Coins"
     )
-    async def buy(
+    async def buy_autoad(
         self,
         ctx: Interaction,
         tier: Literal["Tier 1", "Tier 2", "Tier 3", "Tier 4"],
@@ -121,6 +122,11 @@ class ShopCog(GroupCog, name="shop"):
             await ctx.followup.send(embed=embed, view=view)
             return
         receipt=generator().generate_receipt(
-            ctx.user, "Autoad", tier, custom_webhook, "♾🔄-unlimited🔄♾",days
+            ctx.user, "Autoad", tier, custom_webhook, ["♾🔄-unlimited🔄♾"],days
         )
         file = File(fp=receipt, filename=f"autoad_receipt.png")
+        await ctx.followup.send(file=file)
+
+async def setup(bot:Bot):
+    await bot.add_cog(currencyCog(bot), guild=Object(hazead))
+    await bot.add_cog(ShopCog(bot), guild=Object(hazead))

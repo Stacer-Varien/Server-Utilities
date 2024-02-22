@@ -3,7 +3,7 @@ from os import listdir
 from discord import Intents, Object
 from discord.ext.commands import Bot, when_mentioned_or
 
-from config import TOKEN, lss, loa, orleans, hazead, vhf
+from config import TOKEN, orleans, hazead, vhf
 
 intents = Intents().all()
 intents.presences = False

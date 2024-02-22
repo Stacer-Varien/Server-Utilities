@@ -1,7 +1,9 @@
+from io import BytesIO
 from typing import Optional
 from discord.ext.commands import Bot
-from discord import SelectOption, User, ui, ButtonStyle, TextStyle
+from discord import File, SelectOption, User, ui, ButtonStyle, TextStyle
 from discord.interactions import Interaction
+from discord.utils import MISSING
 
 from assets.receipt_generator.generator import generator
 
@@ -42,6 +44,23 @@ class YesNoButtons(ui.View):
         self.stop()
 
 
+class AdModal(ui.Modal, title="Ad Modal"):
+    def __init__(self) -> None:
+        super().__init__()
+
+    advalue = ui.TextInput(
+        label="Ad",
+        style=TextStyle.paragraph,
+        placeholder="Insert your ad here. Make sure theres a permanent invite and no custom emojis",
+        required=True,
+        min_length=1,
+        max_length=2000,
+    )
+
+    async def on_submit(self, ctx: Interaction) -> None:
+        file=BytesIO(self.advalue.value.encode("utf-8"))
+        file=File(file, filename=f"{ctx.user}'s_ad.txt")
+
 class AutoadChannelMenu(ui.Select):
     def __init__(self, bot:Bot, tier:str, days:int, custom_webhook:bool=False) -> None:
         self.tier=tier
@@ -73,10 +92,13 @@ class AutoadChannelMenu(ui.Select):
 
     async def callback(self, ctx: Interaction):
         channels = [i for i in self.values]
-        generator().generate_receipt(
+        await ctx.response.edit_message(content="Please wait for your reciept to be generated", embed=None, view=None)
+
+        receipt=generator().generate_receipt(
             ctx.user, "Autoad", self.tier, self.custom_webhook, channels, self.days
         )
-        return 
+        file = File(fp=receipt, filename=f"autoad_receipt.png")
+        await ctx.edit_original_response(content=None, attachments=[file])
 
 
 class AutoAdChannelSelect(ui.View):
@@ -86,4 +108,4 @@ class AutoAdChannelSelect(ui.View):
         self.custom_webhook = custom_webhook
         self.days = days
         super().__init__(timeout=180)
-        self.add_item(AutoadChannelMenu(self.bot))
+        self.add_item(AutoadChannelMenu(self.bot, self.tier, self.days, self.custom_webhook))

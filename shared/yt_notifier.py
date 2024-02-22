@@ -5,7 +5,7 @@ from discord import SyncWebhook
 from discord.ext import tasks, commands
 
 from assets.functions import YouTube
-from config import HAZEADS, LOA, ORLEANS, WEBHOOK_URL_1, WEBHOOK_URL_2
+from config import HAZEADS, ORLEANS, WEBHOOK_URL_1, WEBHOOK_URL_2
 
 CHANNEL_ID_1 = "UChzTbosoH1cba3fyA1H_fRQ"
 CHANNEL_ID_2 = "UCpocUkY2iwmDAWRboPTRy3Q"
@@ -68,7 +68,6 @@ class YTNotifier(commands.Cog):
                 msg = f"{channel_name} just uploaded a new video!\nCheck it out: {latest_video_url}"
                 SyncWebhook.from_url(ORLEANS).send(f"<@&1045345555485823036>\n{msg}")
                 SyncWebhook.from_url(HAZEADS).send(msg)
-                SyncWebhook.from_url(LOA).send(msg)
                 print(f"{latest_video_url} found and posted")
         except:
             return

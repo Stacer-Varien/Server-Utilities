@@ -22,17 +22,13 @@ class ErrorsCog(Cog):
     async def on_app_command_error(
         self, ctx: Interaction, error: Serverutil.AppCommandError
     ):
-        global embed
-        try:
-            await ctx.response.defer(ephemeral=True)
-        except:
-            pass
-
         if isinstance(error, Serverutil.MissingPermissions):
             embed = Embed(description=str(error), color=Color.red())
+            await ctx.channel.send(embed=embed)
 
         elif isinstance(error, Serverutil.BotMissingPermissions):
             embed = Embed(description=str(error), color=Color.red())
+            await ctx.channel.send(embed=embed)
 
         elif isinstance(error, Serverutil.errors.CommandInvokeError):
             traceback_error = traceback.format_exception(
@@ -51,14 +47,13 @@ class ErrorsCog(Cog):
             await channel.send(file=file)
         elif isinstance(error, Serverutil.errors.NoPrivateMessage):
             embed = Embed(description=str(error), color=Color.red())
+            await ctx.channel.send(embed=embed)
+
 
         elif isinstance(error, Serverutil.CommandOnCooldown):
             pass
 
-        try:
-            await ctx.response.send_message(embed=embed, ephemeral=True)
-        except:
-            await ctx.followup.send(embed=embed)
+
 
     @Cog.listener()
     async def on_command_error(self, ctx: Context, error):
