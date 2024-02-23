@@ -2,16 +2,19 @@ from io import BytesIO
 import os
 from random import randint
 from PIL import Image, ImageDraw, ImageFont, ImageColor, ImageEnhance
-from discord import Member
+from discord import Interaction, Member
 from datetime import datetime
+
+from assets.functions import Currency
 
 
 class generator:
     def __init__(self) -> None:
         self.font = os.path.join(os.path.dirname(__file__), "absender1.ttf")
 
-    def generate_receipt(
+    async def generate_receipt(
         self,
+        ctx:Interaction,
         member: Member,
         type: str,
         product: str,
@@ -19,6 +22,7 @@ class generator:
         channels: list[str] = None,  # ("♾🔄-unlimited🔄♾")
         days: int = 7,
     ):
+        bank_instance=Currency(member)
         if type == "Autoad":
             receipt_template = os.path.join(os.path.dirname(__file__), "autoad.png")
             rt_open = Image.open(receipt_template).convert("RGBA")
@@ -98,6 +102,10 @@ class generator:
             )
 
             total_cost = prdt + duration + customwebook + chnls
+            if bank_instance.get_balance < total_cost:
+                await ctx.edit_original_response("Your balance is too low. Please try again when you have sufficient funds")
+                return
+
             draw.text(
                 (870, 2030),
                 text=str(total_cost),
@@ -108,6 +116,7 @@ class generator:
             final_bytes = BytesIO()
             rt_open.save(final_bytes, "png")
             final_bytes.seek(0)
+            await bank_instance.remove_credits(total_cost)
             return final_bytes
 
         if type == "Giveaway":

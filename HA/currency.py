@@ -121,6 +121,7 @@ class ShopCog(GroupCog, name="shop"):
             embed.description = "Which channels do you want your ad to be posted in?"
             await ctx.followup.send(embed=embed, view=view)
             return
+        await ctx.followup.send("Please wait for your receipt to be generated")
         receipt=generator().generate_receipt(
             ctx.user, "Autoad", tier, custom_webhook, ["♾🔄-unlimited🔄♾"],days
         )

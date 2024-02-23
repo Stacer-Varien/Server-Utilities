@@ -109,3 +109,14 @@ class AutoAdChannelSelect(ui.View):
         self.days = days
         super().__init__(timeout=180)
         self.add_item(AutoadChannelMenu(self.bot, self.tier, self.days, self.custom_webhook))
+
+class AdInsertModal(ui.Modal):
+    def __init__(self, title="Ad Insert Modal") -> None:
+        super().__init__(title=title)
+
+    ad=ui.TextInput(label="Insert Ad", style=TextStyle.paragraph, placeholder="Place your ad here. Make sure to use permanent invites", required=True, min_length=40, max_length=2000)
+
+    async def on_submit(self, ctx: Interaction) -> None:
+        file=BytesIO(self.ad.value.encode("utf-8"))
+        file=File(file, filename="advert.txt")
+        
