@@ -111,7 +111,7 @@ class ShopCog(GroupCog, name="shop"):
         ctx: Interaction,
         tier: Literal["Tier 1", "Tier 2", "Tier 3", "Tier 4"],
         custom_webhook: Optional[bool] = False,
-        days: Optional[Serverutils.Range[int, 1, 40]] = 7,
+        days: Optional[Serverutils.Range[int, 7, 40]] = 7,
         channels: Optional[bool] = False,
     ):
         await ctx.response.defer()
@@ -127,6 +127,28 @@ class ShopCog(GroupCog, name="shop"):
         )
         file = File(fp=receipt, filename=f"autoad_receipt.png")
         await ctx.followup.send(file=file)
+
+    @Serverutils.command(
+        name="buy-giveaway", description="Buy a giveaway plan with HAZE Coins"
+    )
+    async def buy_giveaway(
+        self,
+        ctx: Interaction,
+        tier: Literal["Tier 1", "Tier 2", "Tier 3"],
+        days: Optional[Serverutils.Range[int, 3, 10]] = 3,
+        winners:Optional[Serverutils.Range[int, 1, 5]]=1,
+        prizes:Optional[str]=None,
+        use_of_pings:Optional[Literal["Everyone", "Here"]]=None,
+        use_of_alt_link:Optional[bool]=False,
+    ):
+        await ctx.response.defer()
+        await ctx.followup.send("Please wait for your receipt to be generated")
+        receipt = generator().generate_receipt(
+            ctx.user, "Giveaway", tier, days=days, winners=winners,prizes=prizes.split(","), use_of_pings=use_of_pings, use_of_alt_link=use_of_alt_link
+        )
+        file = File(fp=receipt, filename=f"autoad_receipt.png")
+        await ctx.followup.send(file=file)
+
 
 async def setup(bot:Bot):
     await bot.add_cog(currencyCog(bot), guild=Object(hazead))
