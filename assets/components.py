@@ -1,9 +1,8 @@
 from io import BytesIO
 from typing import Optional
 from discord.ext.commands import Bot
-from discord import File, SelectOption, User, ui, ButtonStyle, TextStyle
+from discord import Color, Embed, File, SelectOption, User, ui, ButtonStyle, TextStyle
 from discord.interactions import Interaction
-from discord.utils import MISSING
 
 from assets.receipt_generator.generator import generator
 
@@ -110,13 +109,55 @@ class AutoAdChannelSelect(ui.View):
         super().__init__(timeout=180)
         self.add_item(AutoadChannelMenu(self.bot, self.tier, self.days, self.custom_webhook))
 
-class AdInsertModal(ui.Modal):
-    def __init__(self, title="Ad Insert Modal") -> None:
-        super().__init__(title=title)
+
+class AdInsertModal(
+    ui.Modal,
+    title="Ad Insert Modal"
+):
+
+    def __init__(
+        self,
+        bot:Bot,
+        type: str,
+        product: str,
+        tier:str,
+        custom_webhook: Optional[bool] = False,
+        channels: Optional[list[str]] = None,
+        days: Optional[int] = 7,
+        winners: Optional[int] = 1,
+        prizes: Optional[list[str]] = None,
+        use_of_pings: Optional[str] = None,
+        use_of_alt_link: Optional[bool] = False,
+    ) -> None:
+        self.bot=bot
+        self.type=type
+        self.tier=tier
+        self.product=product
+        self.custom_webhook=custom_webhook
+        self.channels=channels
+        self.days=days
+        self.winners=winners
+        self.prizes=prizes
+        self.use_of_pings=use_of_pings
+        self.use_of_alt_link=use_of_alt_link
+        super().__init__()
 
     ad=ui.TextInput(label="Insert Ad", style=TextStyle.paragraph, placeholder="Place your ad here. Make sure to use permanent invites", required=True, min_length=40, max_length=2000)
 
     async def on_submit(self, ctx: Interaction) -> None:
-        file=BytesIO(self.ad.value.encode("utf-8"))
-        file=File(file, filename="advert.txt")
-        
+        advert=BytesIO(self.ad.value.encode("utf-8"))
+        advert=File(advert, filename="advert.txt")
+        if self.type=="Autoad":
+            if self.channels == True:
+                view = AutoAdChannelSelect(self.bot, self.tier, self.days, self.custom_webhook)
+                embed = Embed(color=Color.random())
+                embed.description = "Which channels do you want your ad to be posted in?"
+                await ctx.response.edit_message(embed=embed, view=view)
+                return
+            await ctx.response.edit_message(content="Please wait for your receipt to be generated", embed=None, view=None)
+            receipt = generator().generate_receipt(
+                ctx.user, self.type, self.tier, self.custom_webhook, ["♾🔄-unlimited🔄♾"], self.days
+            )
+            receipt = File(fp=receipt, filename=f"autoad_receipt.png")
+            await ctx.edit_original_response(content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered", attachments=[receipt, advert])
+            

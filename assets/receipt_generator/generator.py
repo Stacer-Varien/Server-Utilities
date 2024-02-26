@@ -27,7 +27,7 @@ class generator:
         use_of_pings: Optional[str] = None,
         use_of_alt_link: Optional[bool] = False,
     ):
-        bank_instance=Currency(member)
+        bank_instance = Currency(member)
         if type == "Autoad":
             receipt_template = os.path.join(os.path.dirname(__file__), "autoad.png")
             rt_open = Image.open(receipt_template).convert("RGBA")
@@ -108,7 +108,9 @@ class generator:
 
             total_cost = prdt + duration + customwebook + chnls
             if bank_instance.get_balance < total_cost:
-                await ctx.edit_original_response("Your balance is too low. Please try again when you have sufficient funds")
+                await ctx.edit_original_response(
+                    "Your balance is too low. Please try again when you have sufficient funds"
+                )
                 return
 
             draw.text(
@@ -124,13 +126,6 @@ class generator:
             )
             rt_open = Image.open(receipt_template).convert("RGBA")
             draw = ImageDraw.Draw(rt_open)
-            #costs
-            if product == "Tier 1":
-                prdt = 1000
-            if product == "Tier 2":
-                prdt = 1250
-            if product == "Tier 3":
-                prdt = 1500
             # transaction ID
             draw.text(
                 (1260, 290),
@@ -187,15 +182,48 @@ class generator:
                 fill=(0, 0, 0),
                 font=ImageFont.truetype(self.font, 60),
             )
+            # ping
+            draw.text(
+                (640, 1370),
+                text=use_of_pings,
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
             # prizes
-            if prizes==None:
-                prizes=f"As required in {product}"
+            if prizes == None:
+                prizes = f"As required in {product}"
+
             draw.text(
                 (640, 1460),
                 text="\n".join(prizes),
                 fill=(0, 0, 0),
                 font=ImageFont.truetype(self.font, 60),
             )
+            # costs
+            if product == "Tier 1":
+                prdt = 1000
+            if product == "Tier 2":
+                prdt = 1250
+            if product == "Tier 3":
+                prdt = 1500
+            wnrs = (winners - 1) * 50
+            dys = (days - 3) * 50
+            przes = 0 if not prizes or prizes == prizes[0] else (len(prizes) * 150)
+            altlink = 100 if use_of_alt_link == True else 0
+            pngs = (
+                150
+                if use_of_pings == "Here"
+                else 200 if use_of_pings == "Everyone" else 0
+            )
+            total_cost = prdt + wnrs + dys + przes + altlink + pngs
+            # total costs
+            draw.text(
+                (1040, 1850),
+                text=total_cost,
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+
         if type == "Premium":
             receipt_template = os.path.join(
                 os.path.dirname(__file__), "assets", "receipt_generator", "premium.png"
@@ -214,7 +242,12 @@ class generator:
                 "receipt_generator",
                 "youtubenotifier.png",
             )
-
+        draw.text(
+            (1210, 2290),
+            "© 2024 HAZE Advertising",
+            font=("Arial", 30),
+            fill=(0, 0, 0),
+        )
         final_bytes = BytesIO()
         rt_open.save(final_bytes, "png")
         final_bytes.seek(0)

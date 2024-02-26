@@ -1,24 +1,13 @@
-from json import loads
-from random import choice, randint
-from typing import Literal, Optional
-from discord import (
-    ButtonStyle,
-    Color,
-    Embed,
-    File,
-    Member,
-    Object,
-    TextChannel,
-    app_commands as Serverutils,
-    Interaction,
-    ui,
-)
 from datetime import datetime, timedelta
+from email import generator
+from typing import Optional, Literal
+from discord import Color, Embed, File, Interaction, Member, Object
 from discord.ext.commands import Cog, Bot, GroupCog
-from assets.functions import Currency
-from assets.receipt_generator.generator import generator
-from assets.components import AutoAdChannelSelect
+from discord.ext import commands as Serverutils
 from config import hazead
+from assets.functions import Currency
+from assets.components import AdInsertModal
+
 
 class currencyCog(Cog):
     def __init__(self, bot: Bot) -> None:
@@ -32,7 +21,7 @@ class currencyCog(Cog):
             description=f"{'You' if (member == ctx.user) else member} have {bal} <:HAZEcoin:1209238914041118721>",
             color=Color.blue(),
         )
-
+    
         await ctx.followup.send(embed=balance)
 
     @Serverutils.command(description="Claim your daily")
@@ -115,18 +104,8 @@ class ShopCog(GroupCog, name="shop"):
         channels: Optional[bool] = False,
     ):
         await ctx.response.defer()
-        if channels == True:
-            view = AutoAdChannelSelect(self.bot, tier, days,custom_webhook)
-            embed = Embed(color=Color.random())
-            embed.description = "Which channels do you want your ad to be posted in?"
-            await ctx.followup.send(embed=embed, view=view)
-            return
-        await ctx.followup.send("Please wait for your receipt to be generated")
-        receipt=generator().generate_receipt(
-            ctx.user, "Autoad", tier, custom_webhook, ["♾🔄-unlimited🔄♾"],days
-        )
-        file = File(fp=receipt, filename=f"autoad_receipt.png")
-        await ctx.followup.send(file=file)
+        modal=AdInsertModal(self.bot, type="Autoad", product=tier, tier=tier, custom_webhook=custom_webhook, channels=channels, days=days)
+        await ctx.followup.send(modal)
 
     @Serverutils.command(
         name="buy-giveaway", description="Buy a giveaway plan with HAZE Coins"
@@ -138,7 +117,7 @@ class ShopCog(GroupCog, name="shop"):
         days: Optional[Serverutils.Range[int, 3, 10]] = 3,
         winners:Optional[Serverutils.Range[int, 1, 5]]=1,
         prizes:Optional[str]=None,
-        use_of_pings:Optional[Literal["Everyone", "Here"]]=None,
+        use_of_pings:Optional[Literal["Everyone", "Here"]]="Giveaway Ping",
         use_of_alt_link:Optional[bool]=False,
     ):
         await ctx.response.defer()
