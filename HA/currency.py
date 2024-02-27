@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
-from email import generator
+
 from typing import Optional, Literal
 from discord import Color, Embed, File, Interaction, Member, Object
 from discord.ext.commands import Cog, Bot, GroupCog
 from discord.ext import commands as Serverutils
+from assets.receipt_generator.generator import generator
 from config import hazead
 from assets.functions import Currency
 from assets.components import AdInsertModal
@@ -104,7 +105,7 @@ class ShopCog(GroupCog, name="shop"):
         channels: Optional[bool] = False,
     ):
         await ctx.response.defer()
-        modal=AdInsertModal(self.bot, type="Autoad", product=tier, tier=tier, custom_webhook=custom_webhook, channels=channels, days=days)
+        modal=AdInsertModal(self.bot, type="Autoad", product=tier, custom_webhook=custom_webhook, channels=channels, days=days)
         await ctx.followup.send(modal)
 
     @Serverutils.command(
@@ -122,10 +123,40 @@ class ShopCog(GroupCog, name="shop"):
     ):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
-        receipt = generator().generate_receipt(
+        receipt = await generator().generate_receipt(ctx,
             ctx.user, "Giveaway", tier, days=days, winners=winners,prizes=prizes.split(","), use_of_pings=use_of_pings, use_of_alt_link=use_of_alt_link
         )
-        file = File(fp=receipt, filename=f"autoad_receipt.png")
+        file = File(fp=receipt, filename=f"giveaway_receipt.png")
+        await ctx.followup.send(file=file)
+
+    @Serverutils.command(
+        name="buy-premium", description="Buy a permanent Premium role with HAZE Coins"
+    )
+    async def buy_premium(
+        self,
+        ctx: Interaction
+    ):
+        await ctx.response.defer()
+        await ctx.followup.send("Please wait for your receipt to be generated")
+        receipt = await generator().generate_receipt(ctx,
+            ctx.user,
+            "Premium for life",
+        )
+        file = File(fp=receipt, filename=f"premium_receipt.png")
+        await ctx.followup.send(file=file)
+
+    @Serverutils.command(
+        name="buy-special_servers", description="Buy a special servers plan with HAZE Coins"
+    )
+    async def buy_special_servers(self, ctx: Interaction, servers:str):
+        await ctx.response.defer()
+        await ctx.followup.send("Please wait for your receipt to be generated")
+        receipt = await generator().generate_receipt(
+            ctx,
+            ctx.user,
+            "Special Servers",servers=servers
+        )
+        file = File(fp=receipt, filename=f"premium_receipt.png")
         await ctx.followup.send(file=file)
 
 

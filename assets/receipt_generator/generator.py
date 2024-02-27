@@ -21,11 +21,12 @@ class generator:
         product: str,
         custom_webhook: Optional[bool] = False,
         channels: Optional[list[str]] = None,
-        days: Optional[int] = 7,
+        days: Optional[int] = None,
         winners: Optional[int] = 1,
         prizes: Optional[list[str]] = None,
         use_of_pings: Optional[str] = None,
         use_of_alt_link: Optional[bool] = False,
+        servers:Optional[list[str]]=None
     ):
         bank_instance = Currency(member)
         if type == "Autoad":
@@ -228,12 +229,98 @@ class generator:
             receipt_template = os.path.join(
                 os.path.dirname(__file__), "assets", "receipt_generator", "premium.png"
             )
+            rt_open = Image.open(receipt_template).convert("RGBA")
+            draw = ImageDraw.Draw(rt_open)
+            # transaction ID
+            draw.text(
+                (1260, 290),
+                text=str(randint(0, 99999)),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # name
+            draw.text(
+                (640, 540),
+                text=member.name,
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # id
+            draw.text(
+                (640, 700),
+                text=str(member.id),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # date
+            draw.text(
+                (640, 820),
+                text=datetime.now().strftime("%d/%m%Y"),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # cost
+            total_cost=1500
+            if bank_instance.get_balance < total_cost:
+                await ctx.edit_original_response(
+                    "Your balance is too low. Please try again when you have sufficient funds"
+                )
+                return
+
+            draw.text(
+                (1080, 1000),
+                text=str(total_cost),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
         if type == "SpecialServers":
             receipt_template = os.path.join(
                 os.path.dirname(__file__),
                 "assets",
                 "receipt_generator",
                 "specialservers.png",
+            )
+            # transaction ID
+            draw.text(
+                (1260, 290),
+                text=str(randint(0, 99999)),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # name
+            draw.text(
+                (640, 540),
+                text=member.name,
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # id
+            draw.text(
+                (640, 700),
+                text=str(member.id),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # date
+            draw.text(
+                (640, 820),
+                text=datetime.now().strftime("%d/%m%Y"),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # days
+            draw.text(
+                (640, 1000),
+                text=str(days),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
+            )
+            # servers
+            draw.text(
+                (640, 1130),
+                text=str(len(servers)),
+                fill=(0, 0, 0),
+                font=ImageFont.truetype(self.font, 60),
             )
         if type == "YTNotifier":
             receipt_template = os.path.join(
@@ -242,14 +329,8 @@ class generator:
                 "receipt_generator",
                 "youtubenotifier.png",
             )
-        draw.text(
-            (1210, 2290),
-            "© 2024 HAZE Advertising",
-            font=("Arial", 30),
-            fill=(0, 0, 0),
-        )
         final_bytes = BytesIO()
         rt_open.save(final_bytes, "png")
         final_bytes.seek(0)
-        await bank_instance.remove_credits(total_cost)
+        await bank_instance.remove_credits(int(total_cost))
         return final_bytes
