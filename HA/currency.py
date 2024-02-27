@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from io import BytesIO
 
 from typing import Optional, Literal
 from discord import Color, Embed, File, Interaction, Member, Object
@@ -7,7 +8,7 @@ from discord.ext import commands as Serverutils
 from assets.receipt_generator.generator import generator
 from config import hazead
 from assets.functions import Currency
-from assets.components import AdInsertModal
+from assets.components import AdInsertModal, AutoAdChannelSelect
 
 
 class currencyCog(Cog):
@@ -105,7 +106,21 @@ class ShopCog(GroupCog, name="shop"):
         channels: Optional[bool] = False,
     ):
         await ctx.response.defer()
-        modal=AdInsertModal(self.bot, type="Autoad", product=tier, custom_webhook=custom_webhook, channels=channels, days=days)
+        modal = AdInsertModal(
+            self.bot,
+            type="Autoad",
+            product=tier,
+            custom_webhook=custom_webhook,
+            channels=channels,
+            days=days,
+        )
+        if channels:
+            view=AutoAdChannelSelect(self.bot, tier, days, custom_webhook)
+            embed = Embed(color=Color.random())
+            embed.description = "Which channels do you want your ad to be posted in?"
+            await ctx.followup.send(view=view)
+            return
+
         await ctx.followup.send(modal)
 
     @Serverutils.command(
@@ -143,7 +158,9 @@ class ShopCog(GroupCog, name="shop"):
             "Premium for life",
         )
         file = File(fp=receipt, filename=f"premium_receipt.png")
-        await ctx.followup.send(file=file)
+        await ctx.edit_original_response(content="Here is your receipt. Thank you for buyin",attachments=[file])
+        receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
+        await receiptchannel.send(file=file)
 
     @Serverutils.command(
         name="buy-special_servers", description="Buy a special servers plan with HAZE Coins"
@@ -156,8 +173,12 @@ class ShopCog(GroupCog, name="shop"):
             ctx.user,
             "Special Servers",servers=servers
         )
+        servers = BytesIO(servers.encode("utf-8"))
+        servers = File(servers, filename="servers.txt")
         file = File(fp=receipt, filename=f"premium_receipt.png")
         await ctx.followup.send(file=file)
+        receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
+        await receiptchannel.send(files=[file, receipt])
 
 
 async def setup(bot:Bot):

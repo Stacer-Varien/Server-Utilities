@@ -106,18 +106,7 @@ class AutoadChannelMenu(ui.Select):
         modal = AdInsertModal(self.bot,
             "Autoad", self.tier, self.custom_webhook, channels, self.days
         )
-        await ctx.response.send_modal()
-        await ctx.response.edit_message(
-            content="Please wait for your reciept to be generated",
-            embed=None,
-            view=None,
-        )
-
-        receipt = generator().generate_receipt(
-            ctx.user, "Autoad", self.tier, self.custom_webhook, channels, self.days
-        )
-        file = File(fp=receipt, filename=f"autoad_receipt.png")
-        await ctx.edit_original_response(content=None, attachments=[file])
+        await ctx.response.send_modal(modal)
 
 
 class AutoAdChannelSelect(ui.View):
@@ -173,14 +162,22 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
         advert = File(advert, filename="advert.txt")
         if self.type == "Autoad":
             if self.channels == True:
-                view = AutoAdChannelSelect(
-                    self.bot, self.tier, self.days, self.custom_webhook
+                await ctx.response.edit_message(
+                content="Please wait for your reciept to be generated",
+                embed=None,
+                view=None,
+            )
+
+                receipt = await generator().generate_receipt(
+                ctx.user, "Autoad", self.tier, self.custom_webhook, self.channels, self.days
+            )
+                receipt = File(fp=receipt, filename=f"autoad_receipt.png")
+                receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
+                await receiptchannel.send(files=[receipt, advert])
+                await ctx.edit_original_response(
+                    content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered",
+                    attachments=[receipt]
                 )
-                embed = Embed(color=Color.random())
-                embed.description = (
-                    "Which channels do you want your ad to be posted in?"
-                )
-                await ctx.response.edit_message(embed=embed, view=view)
                 return
             await ctx.response.edit_message(
                 content="Please wait for your receipt to be generated",
@@ -196,7 +193,9 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
                 self.days,
             )
             receipt = File(fp=receipt, filename=f"autoad_receipt.png")
+            receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
+            await receiptchannel.send(files=[receipt, advert])
             await ctx.edit_original_response(
                 content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered",
-                attachments=[receipt, advert],
+                attachments=[receipt],
             )

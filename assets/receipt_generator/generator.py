@@ -26,7 +26,7 @@ class generator:
         prizes: Optional[list[str]] = None,
         use_of_pings: Optional[str] = None,
         use_of_alt_link: Optional[bool] = False,
-        servers:Optional[list[str]]=None
+        servers:Optional[str]=None
     ):
         bank_instance = Currency(member)
         if type == "Autoad":
@@ -318,7 +318,7 @@ class generator:
             # servers
             draw.text(
                 (640, 1130),
-                text=str(len(servers)),
+                text=str(len(servers.split(","))),
                 fill=(0, 0, 0),
                 font=ImageFont.truetype(self.font, 60),
             )
