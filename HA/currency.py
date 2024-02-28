@@ -165,7 +165,7 @@ class ShopCog(GroupCog, name="shop"):
     @Serverutils.command(
         name="buy-special_servers", description="Buy a special servers plan with HAZE Coins"
     )
-    async def buy_special_servers(self, ctx: Interaction, servers:str):
+    async def buy_special_servers(self, ctx: Interaction, servers:str, days:Optional[Serverutils.Range[int, 30, 60]]=30):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
         receipt = await generator().generate_receipt(
