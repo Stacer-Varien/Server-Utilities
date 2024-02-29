@@ -5,7 +5,7 @@ from typing import Optional, Literal
 from discord import Color, Embed, File, Interaction, Member, Object
 from discord.ext.commands import Cog, Bot, GroupCog
 from discord.ext import commands as Serverutils
-from assets.receipt_generator.generator import generator
+from assets.receipt_generator.generator import ReceiptGenerator
 from config import hazead
 from assets.functions import Currency
 from assets.components import AdInsertModal, AutoAdChannelSelect
@@ -138,7 +138,7 @@ class ShopCog(GroupCog, name="shop"):
     ):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
-        receipt = await generator().generate_receipt(ctx,
+        receipt = await ReceiptGenerator().generate_receipt(ctx,
             ctx.user, "Giveaway", tier, days=days, winners=winners,prizes=prizes.split(","), use_of_pings=use_of_pings, use_of_alt_link=use_of_alt_link
         )
         file = File(fp=receipt, filename=f"giveaway_receipt.png")
@@ -153,7 +153,7 @@ class ShopCog(GroupCog, name="shop"):
     ):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
-        receipt = await generator().generate_receipt(ctx,
+        receipt = await ReceiptGenerator().generate_receipt(ctx,
             ctx.user,
             "Premium for life",
         )
@@ -168,7 +168,7 @@ class ShopCog(GroupCog, name="shop"):
     async def buy_special_servers(self, ctx: Interaction, servers:str, days:Optional[Serverutils.Range[int, 30, 60]]=30):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
-        receipt = await generator().generate_receipt(
+        receipt = await ReceiptGenerator().generate_receipt(
             ctx,
             ctx.user,
             "Special Servers",servers=servers

@@ -13,9 +13,9 @@ class ReceiptGenerator:
         self.font = os.path.join(os.path.dirname(__file__), "absender1.ttf")
 
     async def generate_receipt(
-        self, ctx: Interaction, member: Member, type: str, **kwargs
+        self, ctx: Interaction, type: str, **kwargs
     ) -> BytesIO:
-        bank_instance = Currency(member)
+        bank_instance = Currency(ctx.user)
         receipt_template = os.path.join(os.path.dirname(__file__), "autoad.png")
         if type == "Giveaway":
             receipt_template = os.path.join(
@@ -39,13 +39,13 @@ class ReceiptGenerator:
 
         draw.text(
             (640, 540),
-            text=member.name,
+            text=ctx.user.name,
             fill=(0, 0, 0),
             font=ImageFont.truetype(self.font, 60),
         )
         draw.text(
             (640, 700),
-            text=str(member.id),
+            text=str(ctx.user.id),
             fill=(0, 0, 0),
             font=ImageFont.truetype(self.font, 60),
         )
