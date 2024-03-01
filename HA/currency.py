@@ -157,10 +157,12 @@ class ShopCog(GroupCog, name="shop"):
             ctx.user,
             "Premium for life",
         )
-        file = File(fp=receipt, filename=f"premium_receipt.png")
-        await ctx.edit_original_response(content="Here is your receipt. Thank you for buyin",attachments=[file])
+        if receipt == None:
+            return
+
+        await ctx.edit_original_response(file=receipt)
         receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
-        await receiptchannel.send(file=file)
+        await receiptchannel.send(file=receipt)
 
     @Serverutils.command(
         name="buy-special_servers", description="Buy a special servers plan with HAZE Coins"
@@ -169,16 +171,16 @@ class ShopCog(GroupCog, name="shop"):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
         receipt = await ReceiptGenerator().generate_receipt(
-            ctx,
             ctx.user,
-            "Special Servers",servers=servers
+            "Special Servers",days=days, servers=servers
         )
+        if receipt==None:
+            return        
         servers = BytesIO(servers.encode("utf-8"))
         servers = File(servers, filename="servers.txt")
-        file = File(fp=receipt, filename=f"premium_receipt.png")
-        await ctx.followup.send(file=file)
+        await ctx.edit_original_response(file=receipt)
         receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
-        await receiptchannel.send(files=[file, receipt])
+        await receiptchannel.send(files=[receipt, receipt])
 
 
 async def setup(bot:Bot):

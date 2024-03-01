@@ -2,7 +2,7 @@ from io import BytesIO
 from discord.ext.commands import Bot
 from discord import ui, ButtonStyle, Interaction, File, SelectOption
 
-from assets.receipt_generator.generator import generator
+from assets.receipt_generator.generator import ReceiptGenerator, generator
 
 
 class Confirmation(ui.View):
@@ -153,7 +153,7 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
                 embed=None,
                 view=None,
             )
-            receipt = await generator().generate_receipt(
+            receipt = await ReceiptGenerator().generate_receipt(
                 ctx.user,
                 self.type,
                 self.tier,
