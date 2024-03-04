@@ -2,7 +2,7 @@ from io import BytesIO
 import os
 from random import randint
 from typing import Optional, List
-from discord import File, Interaction, Member
+from discord import File, Interaction
 from datetime import datetime
 from assets.functions import Currency
 
@@ -121,17 +121,18 @@ Thank you for buying from HAZE Advertising with your coins. Please wait up to 24
 
         © 2024 HAZE Advertising
 """
+
         elif type == "Special Servers":
             cost = 1000
-            if servers and len(servers.split()) > 1:
-                cost += (len(servers.split()) - 1) * 50
+            if servers and len(servers.split(',')) >= 1:
+                cost += (len(servers.split(',')) - 1) * 50
             days = days if days is not None else 30
             cost += (days - 30) * 50
 
             products_template = f"""
 Product description:
 ⁠• Server's invite will be posted in 👋👤joins-and-leaves👤👋 when someone joins
-• Servers: {servers}
+• Server(s): {servers}
 • Days: {days} days
 
 TOTAL COST = {cost} HAZE Coins

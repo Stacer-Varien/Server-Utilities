@@ -97,6 +97,7 @@ class ShopCog(GroupCog, name="shop"):
     @Serverutils.command(
         name="buy-autoad", description="Buy an autoad plan with HAZE Coins"
     )
+    @Serverutils.describe(custom_webhook="Should your ad be posted by a webhook?", days="How many days?")
     async def buy_autoad(
         self,
         ctx: Interaction,
@@ -105,7 +106,12 @@ class ShopCog(GroupCog, name="shop"):
         days: Optional[Serverutils.Range[int, 7, 40]] = 7,
         channels: Optional[bool] = False,
     ):
-        await ctx.response.defer()
+        if channels:
+            view=AutoAdChannelSelect(self.bot, tier, days, custom_webhook)
+            embed = Embed(color=Color.random())
+            embed.description = "Which channels do you want your ad to be posted in?"
+            await ctx.followup.send(view=view)
+            return
         modal = AdInsertModal(
             self.bot,
             type="Autoad",
@@ -114,18 +120,12 @@ class ShopCog(GroupCog, name="shop"):
             channels=channels,
             days=days,
         )
-        if channels:
-            view=AutoAdChannelSelect(self.bot, tier, days, custom_webhook)
-            embed = Embed(color=Color.random())
-            embed.description = "Which channels do you want your ad to be posted in?"
-            await ctx.followup.send(view=view)
-            return
-
-        await ctx.followup.send(modal)
+        await ctx.response.send_modal(modal)
 
     @Serverutils.command(
         name="buy-giveaway", description="Buy a giveaway plan with HAZE Coins"
     )
+    @Serverutils.describe(days="How many days?", winners="How many winners", prizes="Add your own prizes if you want. Split each prize after ','", use_of_alt_link="Should an alt link be used (such as YT channels, Twitch channels, etc)")
     async def buy_giveaway(
         self,
         ctx: Interaction,
@@ -136,13 +136,14 @@ class ShopCog(GroupCog, name="shop"):
         use_of_pings:Optional[Literal["Everyone", "Here"]]="Giveaway Ping",
         use_of_alt_link:Optional[bool]=False,
     ):
-        await ctx.response.defer()
-        await ctx.followup.send("Please wait for your receipt to be generated")
-        receipt = await ReceiptGenerator().generate_receipt(ctx,
-            ctx.user, "Giveaway", tier, days=days, winners=winners,prizes=prizes.split(","), use_of_pings=use_of_pings, use_of_alt_link=use_of_alt_link
+        modal = AdInsertModal(
+            self.bot,
+            type="Autoad",
+            product=tier,
+            winners=winners,prizes=prizes, use_of_pings=use_of_pings, use_of_alt_link=use_of_alt_link,
+            days=days,
         )
-        file = File(fp=receipt, filename=f"giveaway_receipt.png")
-        await ctx.followup.send(file=file)
+        await ctx.response.send_modal(modal)
 
     @Serverutils.command(
         name="buy-premium", description="Buy a permanent Premium role with HAZE Coins"
@@ -160,13 +161,16 @@ class ShopCog(GroupCog, name="shop"):
         if receipt == None:
             return
 
-        await ctx.edit_original_response(file=receipt)
+        await ctx.edit_original_response(
+            content="Thank you for purchasing. The Premium Role has been given immediately to you", attachments=[receipt])
+        await ctx.user.add_roles(949733980951945306, "Bought Premium for life")
         receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
         await receiptchannel.send(file=receipt)
 
     @Serverutils.command(
-        name="buy-special_servers", description="Buy a special servers plan with HAZE Coins"
+        name="buy-special-servers", description="Buy a special servers plan with HAZE Coins"
     )
+    @Serverutils.describe(servers="Add some invites. Split each one with ','. Only the first 3 will be picked")
     async def buy_special_servers(self, ctx: Interaction, servers:str, days:Optional[Serverutils.Range[int, 30, 60]]=30):
         await ctx.response.defer()
         await ctx.followup.send("Please wait for your receipt to be generated")
@@ -176,11 +180,38 @@ class ShopCog(GroupCog, name="shop"):
         )
         if receipt==None:
             return        
-        servers = BytesIO(servers.encode("utf-8"))
-        servers = File(servers, filename="servers.txt")
-        await ctx.edit_original_response(file=receipt)
+
+        await ctx.edit_original_response(
+            content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered", attachments=[receipt])
         receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
-        await receiptchannel.send(files=[receipt, receipt])
+        await receiptchannel.send(file=receipt)
+
+    @Serverutils.command(
+        name="buy-youtube-notifier",
+        description="Buy a YouTube Notifier plan with HAZE Coins",
+    )
+    @Serverutils.describe(
+        servers="Add some channels. Split each one with ','. Only the first 3 will be picked"
+    )
+    async def buy_special_servers(
+        self,
+        ctx: Interaction,
+        channels: str,
+        days: Optional[Serverutils.Range[int, 30, 60]] = 30,
+    ):
+        await ctx.response.defer()
+        await ctx.followup.send("Please wait for your receipt to be generated")
+        receipt = await ReceiptGenerator().generate_receipt(
+            ctx.user, "YouTube Notifier", days=days, channels=channels)
+        if receipt == None:
+            return
+
+        await ctx.edit_original_response(
+            content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered",
+            attachments=[receipt],
+        )
+        receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
+        await receiptchannel.send(file=receipt)
 
 
 async def setup(bot:Bot):

@@ -41,31 +41,14 @@ class YesNoButtons(ui.View):
         self.stop()
 
 
-class AdModal(ui.Modal, title="Ad Modal"):
-    def __init__(self) -> None:
-        super().__init__()
-        self.advalue = ui.TextInput(
-            label="Ad",
-            placeholder="Insert your ad here. Make sure theres a permanent invite and no custom emojis",
-            required=True,
-            min_length=1,
-            max_length=2000,
-        )
-
-    async def on_submit(self, ctx: Interaction) -> None:
-        file = File(
-            BytesIO(self.advalue.value.encode("utf-8")), filename=f"{ctx.user}'s_ad.txt"
-        )
-
-
 class AutoadChannelMenu(ui.Select):
     def __init__(
         self, bot: Bot, tier: str, days: int, custom_webhook: bool = False
     ) -> None:
-        self.bot=bot
-        self.tier=tier
-        self.days=days
-        self.custom_webhook=custom_webhook
+        self.bot = bot
+        self.tier = tier
+        self.days = days
+        self.custom_webhook = custom_webhook
         super().__init__(
             placeholder="Select the channels",
             min_values=1,
@@ -98,9 +81,8 @@ class AutoadChannelMenu(ui.Select):
         )
 
     async def callback(self, ctx: Interaction):
-        channels = self.values
         modal = AdInsertModal(
-            self.bot, "Autoad", self.tier, self.custom_webhook, channels, self.days
+            self.bot, "Autoad", self.tier, self.custom_webhook, self.values, self.days
         )
         await ctx.response.send_modal(modal)
 
@@ -137,23 +119,26 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
         self.use_of_pings = use_of_pings
         self.use_of_alt_link = use_of_alt_link
 
-    ad = ui.TextInput(
-        label="Insert Ad",
-        placeholder="Place your ad here. Make sure to use permanent invites",
-        required=True,
-        min_length=40,
-        max_length=2000,
-    )
+        self.ad = ui.TextInput(
+            label="Insert Ad",
+            placeholder="Place your ad here. Make sure to use permanent invites",
+            required=True,
+            min_length=40,
+            max_length=2000,
+        )
+        self.add_item(self.ad)
 
     async def on_submit(self, ctx: Interaction) -> None:
         advert = File(BytesIO(self.ad.value.encode("utf-8")), filename="advert.txt")
+        receipt_generator = ReceiptGenerator()
+
         if self.type == "Autoad":
             await ctx.response.edit_message(
-                content="Please wait for your reciept to be generated",
+                content="Please wait for your receipt to be generated",
                 embed=None,
                 view=None,
             )
-            receipt = await ReceiptGenerator().generate_receipt(
+            receipt = await receipt_generator.generate_receipt(
                 ctx.user,
                 self.type,
                 self.tier,
@@ -161,10 +146,27 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
                 self.channels,
                 self.days,
             )
-            receipt = File(fp=receipt, filename=f"autoad_receipt.png")
-            receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
-            await receiptchannel.send(files=[receipt, advert])
-            await ctx.edit_original_response(
-                content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered",
-                attachments=[receipt],
+        elif self.type == "Giveaway":
+            await ctx.response.edit_message(
+                content="Please wait for your receipt to be generated"
             )
+            receipt = await receipt_generator.generate_receipt(
+                ctx.user,
+                self.type,
+                self.tier,
+                self.days,
+                winners=self.winners,
+                custom_prize=self.prizes,
+                use_alt_link=self.use_of_alt_link,
+                ping=self.use_of_pings,
+            )
+
+        if receipt is None:
+            return
+
+        receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
+        await receiptchannel.send(files=[receipt, advert])
+        await ctx.edit_original_response(
+            content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered",
+            attachments=[receipt],
+        )
