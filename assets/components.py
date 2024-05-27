@@ -2,7 +2,7 @@ from io import BytesIO
 from discord.ext.commands import Bot
 from discord import ui, ButtonStyle, Interaction, File, SelectOption
 
-from assets.receipt_generator.generator import ReceiptGenerator, generator
+from assets.receipt_generator.generator import ReceiptGenerator
 
 
 class Confirmation(ui.View):
@@ -58,24 +58,19 @@ class AutoadChannelMenu(ui.Select):
                     label=bot.get_channel(j).name, value=bot.get_channel(j).name
                 )
                 for j in [
-                    925790261240561717,
-                    950356056456986624,
-                    925790261240561718,
-                    925790261240561719,
-                    925790261240561720,
-                    925790261240561722,
-                    1081955520094687272,
-                    1081955734146777138,
-                    952139192505344021,
-                    925790261240561723,
-                    925790261437669387,
-                    925790261437669390,
-                    951385958924828713,
-                    925790261437669392,
-                    925790260997283851,
-                    925790260997283853,
-                    925790260997283855,
-                    949733907392253952,
+                    1241276362359050330,
+                    1241276387348844554,
+                    1239500814301532233,
+                    1239501940971274291,
+                    1239502571727487017,
+                    1239503912285765682,
+                    1239504433465790524,
+                    1239504190926094346,
+                    1239502832533635143,
+                    1239502264872472586,
+                    1239503470453723186,
+                    1239502181418143744,
+                    1240194116810178650,
                 ]
             ],
         )

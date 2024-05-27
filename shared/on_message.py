@@ -11,6 +11,7 @@ class OnMessageCog(Cog):
     @Cog.listener()
     async def on_message(self, message: Message):
         starboarda_channels = [
+            1228074075113652267,
             1003589695910973480,
             1110173625778196581,
             1054091901852209252,
@@ -133,15 +134,6 @@ class OnMessageCog(Cog):
             and len(message.attachments) >= 1
         ):
             await message.add_reaction(":mhxaLove:1174261737697050625")
-            return
-
-        if (
-            message.guild.id == 925790259160166460
-            and message.channel.id in advertising_channels
-        ):
-            credits = 10 if (datetime.weekday() >= 5) else 5
-            await Currency(message.author).add_credits(credits)
-            await message.add_reaction("<:HAZEcoin:1209238914041118721>")
             return
 
         await AutoMod(self.bot, message).process_automod()

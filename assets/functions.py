@@ -6,6 +6,7 @@ import re
 from typing import Literal, Optional
 from random import randint
 from discord.ext.commands import Context
+import ad_chan_rules
 
 from discord import (
     Color,
@@ -137,7 +138,7 @@ class Adwarn:
 
     async def add(self, member: Member, channel: TextChannel, reason: str):
         warn_id = self.make_id()
-        adwarn_channel = await member.guild.fetch_channel(925790260695281703)
+        adwarn_channel = await member.guild.fetch_channel(1239564619131912222)
         db.execute(
             "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
             (
@@ -230,7 +231,7 @@ class AutoMod:
         if not self.message.author.bot:
             content = self.message.content
             channel_id = self.message.channel.id
-            not_allowed_channels = [int(i) for i in self.jsondata["no_invites_allowed"]]
+            not_allowed_channels = ad_chan_rules.not_allowed
 
             if self.message.guild.id == 925790259160166460:
                 advertising_cat = await self.message.guild.fetch_channel(
@@ -265,41 +266,6 @@ class AutoMod:
             if (
                 "https://discord.gg/" or "https://discord.com/invite/"
             ) in content and channel_id in not_allowed_channels:
-                allowed_channels = [
-                    1048509171496144926,
-                    1055055791469645845,
-                    1045341985654964334,
-                    1040380792406298645,
-                    1003576509858058290,
-                    1037336353593114754,
-                    1040883460547559474,
-                    770263931334950912,
-                    1045342152726683748,
-                    925790259877412875,
-                    925790259877412877,
-                    925790259877412876,
-                    925790259877412878,
-                    925790259877412879,
-                    947936542561804348,
-                    949656142001348628,
-                    954696784263905290,
-                    1003970769036001330,
-                    980732864884781106,
-                    1055055791469645845,
-                    974028573893595149,
-                    974753944792358923,
-                    974760508240576553,
-                    991644325492568084,
-                    1003576509858058290,
-                    1055046171929878541,
-                    1058385832827949066,
-                    1059903781552267294,
-                    1086761697420783778,
-                    1153987641264586836,
-                    1181585427837227058,
-                    1059931943917076570,
-                ]
-                if self.message.channel.id not in allowed_channels:
                     await self.handle_advertising()
                     return
 
@@ -312,11 +278,12 @@ class AutoMod:
                 await self.message.delete()
 
     async def handle_advertising(self):
-        await self.message.delete()
-        if self.message.guild.id == 925790259160166460:
+        message=self.message
+        await message.delete()
+        if message.guild.id == 925790259160166460:
             await Adwarn(self.bot.user).add(
-                self.message.author,
-                self.message.channel.mention,
+                message.author,
+                message.channel.mention,
                 "**Incorrectly advertising** in non-Discord advertising channels",
             )
 

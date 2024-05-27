@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 from io import BytesIO
 
 from typing import Optional, Literal
-from discord import Color, Embed, File, Interaction, Member, Object
+from discord import Color, Embed, File, Interaction, Member, Object, app_commands as Serverutils
 from discord.ext.commands import Cog, Bot, GroupCog
-from discord.ext import commands as Serverutils
+
 from assets.receipt_generator.generator import ReceiptGenerator
 from config import hazead
 from assets.functions import Currency
@@ -191,7 +191,7 @@ class ShopCog(GroupCog, name="shop"):
         description="Buy a YouTube Notifier plan with HAZE Coins",
     )
     @Serverutils.describe(
-        servers="Add some channels. Split each one with ','. Only the first 3 will be picked"
+        channels="Add some channels. Split each one with ','. Only the first 3 will be picked"
     )
     async def buy_special_servers(
         self,

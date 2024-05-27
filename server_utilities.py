@@ -15,12 +15,6 @@ intents.guild_scheduled_events = False
 class ServerUtilities(Bot):
     async def setup_hook(self):
         await bot.load_extension("jishaku")
-        for filename in listdir("./HA"):
-            if filename.endswith(".py"):
-                await bot.load_extension(f"HA.{filename[:-3]}")
-                print(f"{filename} loaded")
-            else:
-                print(f"Unable to load {filename[:-3]}")
 
         for filename in listdir("./shared"):
             if filename.endswith(".py"):
@@ -28,13 +22,18 @@ class ServerUtilities(Bot):
                 print(f"{filename} loaded")
             else:
                 print(f"Unable to load {filename[:-3]}")
-
         for filename in listdir("./VHF"):
             if filename.endswith(".py"):
                 await bot.load_extension(f"VHF.{filename[:-3]}")
                 print(f"{filename} loaded")
             else:
-                print(f"Unable to load {filename[:-3]}")                
+                print(f"Unable to load {filename[:-3]}") 
+        for filename in listdir("./OAD"):
+            if filename.endswith(".py"):
+                await bot.load_extension(f"OAD.{filename[:-3]}")
+                print(f"{filename} loaded")
+            else:
+                print(f"Unable to load {filename[:-3]}")
 
 
 bot = ServerUtilities(

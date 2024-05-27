@@ -64,7 +64,7 @@ class AdwarnCog(GroupCog, name="adwarn"):
         if (current_time >= time) or (time == None):
             await Adwarn(ctx.user).add(member, channel, reason)
             await ctx.followup.send(
-                "Adwarn sent. Check https://ptb.discord.com/channels/925790259160166460/925790260695281703"
+                "Adwarn sent. Check https://canary.discord.com/channels/925790259160166460/1239564619131912222"
             )
             return
         await ctx.followup.send(f"Please wait <t:{time}:R> to adwarn the member")
@@ -87,19 +87,17 @@ class AdwarnCog(GroupCog, name="adwarn"):
         if check_warn is None:
             await ctx.followup.send("Invalid warn ID", ephemeral=True)
             return
-        
+
         await adwarn.remove(member, warn_id)
 
         embed = Embed(color=Color.green())
         embed.description = f"Your adwarn with Warn ID `{warn_id}` has been removed. You now have {adwarn.points(member)} points"
-        adwarn_channel = await member.guild.fetch_channel(925790260695281703)
+        adwarn_channel = await member.guild.fetch_channel(1239564619131912222)
         m=await adwarn_channel.send(member.mention, embed=embed)
 
         await ctx.followup.send(
                 "Warning revoked. Check {}".format(m.jump_url), ephemeral=True
             )
-
-
 
 
 async def setup(bot: Bot):
