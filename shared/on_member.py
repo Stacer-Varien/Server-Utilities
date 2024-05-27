@@ -18,16 +18,12 @@ class MemberCog(Cog):
                 f"{member.mention}\n\nHello and welcome to {member.guild.name}!\n"
                 "Before you can start advertising and chatting, please read the "
                 "<#925790259877412876> and <#925790259877412883> so you don't get in trouble."
-                " Now please, enjoy your stay and start advertising yourself!\n\n"
-                " **__Special Servers:__**\n"
-                "1. Orleans https://discord.gg/Vfa796yvNq\n"
-                "2. Gremory Castle https://rias.gg/discord\n"
-                "3. jeanne https://discord.gg/jeanne"
+                " Now please, enjoy your stay and start advertising yourself!"
             )
 
             embed = Embed(colour=Colour.blue())
 
-            embed.set_thumbnail(url=member.display_avatar)
+            embed.set_thumbnail(description=welcome, url=member.display_avatar)
 
             try:
                 await channel.send(welcome, embed=embed)

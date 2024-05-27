@@ -6,7 +6,7 @@ import re
 from typing import Literal, Optional
 from random import randint
 from discord.ext.commands import Context
-import ad_chan_rules
+from ad_chan_rules import not_allowed, allowed_ads
 
 from discord import (
     Color,
@@ -41,10 +41,7 @@ class Adwarn:
     def check_id(member: Member, warn_id: int):
         data = db.execute(
             "SELECT * FROM warnData WHERE user_id = ? AND warn_id = ?",
-            (
-                member.id,
-                warn_id,
-            ),
+            (member.id, warn_id),
         ).fetchone()
         db.commit()
         return data
@@ -55,8 +52,7 @@ class Adwarn:
 
     @staticmethod
     def make_new_time() -> datetime:
-        current_time = datetime.now()
-        return current_time + timedelta(minutes=30)
+        return datetime.now() + timedelta(minutes=30)
 
     @staticmethod
     def points(member: Member) -> int | None:
@@ -68,106 +64,61 @@ class Adwarn:
 
     async def punishment_rules(self, member: Member) -> str | None:
         points = self.points(member)
+        if points is None:
+            return None
+
+        punishments = [
+            (6, timedelta(hours=1), "timeout"),
+            (7, timedelta(hours=12), "timeout"),
+            (8, timedelta(days=1), "timeout"),
+            (9, None, "kick"),
+            (10, None, "ban"),
+        ]
+
         embed = Embed(color=Color.red())
 
-        if points <= 5:
-            return "No punishment applied"
+        for point, duration, action in punishments:
+            if points == point:
+                if action == "timeout":
+                    duration = datetime.now() + duration
+                    await member.edit(timed_out_until=duration)
+                    result = f"Put on timeout until <t:{round(duration.timestamp())}:f>"
+                elif action == "kick":
+                    await member.kick(reason="Reached 9 points")
+                    result = "Kick"
+                elif action == "ban":
+                    await member.ban(reason="Reached 10 points")
+                    result = "Permanent Ban"
 
-        if points == 6:
-            duration = datetime.now() + timedelta(hours=1)
-            await member.edit(timed_out_until=duration)
-            result = "Put on timeout until <t:{}:f>".format(round(duration.timestamp()))
-            embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
-                result.lower(), str(self.points(member))
-            )
-            try:
-                await member.send(embed=embed)
-            except:
-                pass
-            return result
+                embed.description = f"You have been **{result.lower()}** in HAZE Advertising for reaching {points} points"
+                try:
+                    await member.send(embed=embed)
+                except Exception as e:
+                    print(f"Failed to send embed to member: {e}")
+                return result
 
-        if points == 7:
-            duration = datetime.now() + timedelta(hours=12)
-            await member.edit(timed_out_until=duration)
-            result = "Put on timeout until <t:{}:f>".format(round(duration.timestamp()))
-            embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
-                result.lower(), str(self.points(member))
-            )
-            try:
-                await member.send(embed=embed)
-            except:
-                pass
-            return result
-
-        if points == 8:
-            duration = datetime.now() + timedelta(days=1)
-            await member.edit(timed_out_until=duration)
-            result = "Put on timeout until <t:{}:f>".format(round(duration.timestamp()))
-            embed.description = "You have been **{}** in HAZE Advertising for reaching {} points".format(
-                result.lower(), str(self.points(member))
-            )
-            try:
-                await member.send(embed=embed)
-            except:
-                pass
-            return result
-
-        if points == 9:
-            await member.kick(reason="Reached 9 points")
-            result = "Kick"
-            embed.description = "You have been **{}** from HAZE Advertising for reaching {} points".format(
-                result.lower(), str(self.points(member))
-            )
-            try:
-                await member.send(embed=embed)
-            except:
-                pass
-            return result
-
-        if points == 10:
-            await member.ban(reason="Reached 10 points")
-            result = "Permanent Ban"
-            embed.description = "You have been **{}** from HAZE Advertising for reaching {} points".format(
-                result.lower(), str(self.points(member))
-            )
-            try:
-                await member.send(embed=embed)
-            except:
-                pass
-            return result
+        return "No punishment applied"
 
     async def add(self, member: Member, channel: TextChannel, reason: str):
         warn_id = self.make_id()
         adwarn_channel = await member.guild.fetch_channel(1239564619131912222)
+        current_time = self.make_new_time()
+
         db.execute(
-            "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?,?,?,?)",
-            (
-                member.id,
-                self.moderator.id,
-                reason,
-                warn_id,
-            ),
+            "INSERT OR IGNORE INTO warnData (user_id, moderator_id, reason, warn_id) VALUES (?, ?, ?, ?)",
+            (member.id, self.moderator.id, reason, warn_id),
         )
         db.execute(
-            "INSERT OR IGNORE INTO warnData_2 (user_id, warn_point, time) VALUES (?,?,?)",
-            (
-                member.id,
-                1,
-                self.make_new_time(),
-            ),
+            "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?, ?, ?)",
+            (member.id, 1, current_time),
+        )
+        db.execute(
+            "UPDATE warnData_v2 SET warn_point = warn_point + 1, time = ? WHERE user_id = ?",
+            (current_time, member.id),
         )
         db.commit()
 
-        if (
-            db.execute(
-                "UPDATE warnData_v2 SET warn_point = warn_point + 1, time = ? WHERE user_id = ?",
-                (self.make_new_time(), member.id),
-            ).rowcount
-            == 0
-        ):
-            db.commit()
-        embed = Embed(color=Color.red())
-        embed.title = "You have been adwarned"
+        embed = Embed(color=Color.red(), title="You have been adwarned")
         embed.add_field(
             name="Channel where the incident happened",
             value=channel.mention,
@@ -181,30 +132,25 @@ class Adwarn:
         embed.set_footer(
             text="If you feel this warn was a mistake, please use `/appeal WARN_ID` or open a ticket"
         )
-        embed.set_thumbnail(url=member.display_avatar)
+        embed.set_thumbnail(url=member.display_avatar.url)
         await adwarn_channel.send(member.mention, embed=embed)
 
         def is_member(m: Message):
             return m.author == member
 
-        for i in member.guild.text_channels:
+        for channel in member.guild.text_channels:
             try:
-                await i.purge(limit=3, check=is_member)
-            except:
-                continue
-        return
+                await channel.purge(limit=3, check=is_member)
+            except Exception as e:
+                print(f"Failed to purge messages in {channel.name}: {e}")
 
     async def remove(self, member: Member, warn_id: int):
-        data = self.check_id(member, warn_id)
-        if not data:
+        if not self.check_id(member, warn_id):
             return
 
         db.execute(
             "DELETE FROM warnData WHERE user_id = ? AND warn_id = ?",
-            (
-                member.id,
-                warn_id,
-            ),
+            (member.id, warn_id),
         )
         db.execute(
             "UPDATE warnData_v2 SET warn_point = warn_point - 1 WHERE user_id = ?",
@@ -221,36 +167,23 @@ class AutoMod:
     def __init__(self, bot: Bot, message: Message):
         self.bot = bot
         self.message = message
-        self.advertising_cat_id = 925790260695281702
-        self.blacklist_channel_id = 951385958924828713
-
-    with open("assets/not_allowed.json", "r") as f:
-        jsondata: dict = loads("".join(f.readlines()))
 
     async def process_automod(self):
         if not self.message.author.bot:
             content = self.message.content
             channel_id = self.message.channel.id
-            not_allowed_channels = ad_chan_rules.not_allowed
 
             if self.message.guild.id == 925790259160166460:
-                advertising_cat = await self.message.guild.fetch_channel(
-                    self.advertising_cat_id
-                )
                 if (
-                    channel_id == advertising_cat.id
-                    and self.message.id
-                    in [
-                        i.id
-                        for i in advertising_cat.channels
-                        if i.id != self.blacklist_channel_id
-                    ]
+                    channel_id in allowed_ads
+                    and self.message.id in allowed_ads
+                    and channel_id not in not_allowed
                     and len(content) <= 40
                 ):
                     await self.handle_short_ad()
                     return
 
-                if self.message.id in [i.id for i in advertising_cat.channels] and (
+                if self.message.id in allowed_ads and (
                     match := re.search(
                         r"(discord\.gg/|discord\.com/invite/)([a-zA-Z0-9]+)", content
                     )
@@ -264,10 +197,14 @@ class AutoMod:
                     return
 
             if (
-                "https://discord.gg/" or "https://discord.com/invite/"
-            ) in content and channel_id in not_allowed_channels:
-                    await self.handle_advertising()
-                    return
+                any(
+                    url in content
+                    for url in ["https://discord.gg/", "https://discord.com/invite/"]
+                )
+                and channel_id in not_allowed
+            ):
+                await self.handle_advertising()
+                return
 
         if self.message.channel.id == 1041309643449827360:
             attachments = bool(self.message.attachments)
@@ -278,7 +215,7 @@ class AutoMod:
                 await self.message.delete()
 
     async def handle_advertising(self):
-        message=self.message
+        message = self.message
         await message.delete()
         if message.guild.id == 925790259160166460:
             await Adwarn(self.bot.user).add(
@@ -288,10 +225,11 @@ class AutoMod:
             )
 
     async def handle_short_ad(self):
-        await self.message.delete()
+        message=self.message
+        await message.delete()
         await Adwarn(self.bot.user).add(
-            self.message.author,
-            self.message.channel.mention,
+            message.author,
+            message.channel.mention,
             "Discord server ad contains less than **40 characters** (too short)",
         )
 
@@ -305,31 +243,34 @@ class AutoMod:
 
             await self.check_invite_expiration(invite)
 
-        except:
-            await self.message.delete()
+        except Exception:
+            message = self.message
+            await message.delete()
             await Adwarn(self.bot.user).add(
-                self.message.author,
-                self.message.channel.mention,
+                message.author,
+                message.channel.mention,
                 "Discord server invite is **invalid**",
             )
 
     async def check_invite_expiration(self, invite: Invite | PartialInviteGuild):
-        after_7_days = invite.created_at.now() + timedelta(days=7)
+        after_7_days = invite.created_at + timedelta(days=7)
         invite_expiration = invite.expires_at
 
-        if round(invite_expiration.timestamp()) < round(after_7_days.timestamp()):
+        if invite_expiration and invite_expiration < after_7_days:
+            message = self.message
             await self.message.delete()
             await Adwarn(self.bot.user).add(
-                self.message.author,
-                self.message.channel.mention,
+                message.author,
+                message.channel.mention,
                 "Discord server invite should not be valid for less than **7 days**",
             )
 
     async def handle_blacklisted_server(self):
-        await self.message.delete()
+        message = self.message
+        await message.delete()
         await Adwarn(self.bot.user).add(
-            self.message.author,
-            self.message.channel.mention,
+            message.author,
+            message.channel.mention,
             "Advertising a **blacklisted server**",
         )
 
@@ -344,56 +285,54 @@ class AutoMod:
 
 
 class Partner:
+    PARTNERSHIP_DATA = {
+        740584420645535775: {
+            "path": "/partnerships/orleans/{}.txt",
+            "role_id": 1051047558224543844,
+            "channel_id": 1040380792406298645,
+        },
+        925790259160166460: {
+            "path": "/partnerships/oad/{}.txt",
+            "role_id": 950354444669841428,
+            "channel_id": 1040380792406298645,
+        },
+    }
+
     def __init__(self, server: Guild):
         self.server = server
+        self.config = self.PARTNERSHIP_DATA.get(server.id)
 
     def check(self, member: Member) -> bool | None:
-        if self.server.id == 740584420645535775:
-            path = "/partnerships/orleans/{}.txt".format(member.id)
-            check = os.path.exists(path)
-            return True if check else None
-
-        elif self.server.id == 925790259160166460:
-            path = "/partnerships/hazeads/{}.txt".format(member.id)
-            check = os.path.exists(path)
-            return True if check else None
+        if self.config:
+            path = self.config["path"].format(member.id)
+            return os.path.exists(path) or None
 
     async def approve(self, ctx: Interaction, member: Member):
-        if self.server.id == 740584420645535775:
-            with open("partnerships/orleans/{}.txt".format(member.id), "r") as f:
-                content = "".join(f.readlines())
-            os.remove("partnerships/orleans/{}.txt".format(member.id))
-            partner_role = self.server.get_role(1051047558224543844)
-            if partner_role in member.roles:
-                pass
-            else:
+        if self.config:
+            path = self.config["path"].format(member.id)
+            with open(path, "r") as f:
+                content = f.read()
+            os.remove(path)
+
+            partner_role = self.server.get_role(self.config["role_id"])
+            if partner_role not in member.roles:
                 await member.add_roles(partner_role, reason="New Partner")
-            partner_channnel = await self.server.fetch_channel(1040380792406298645)
-            await partner_channnel.send(content=content)
-        elif self.server.id == 925790259160166460:
-            with open("partnerships/hazeads/{}.txt".format(member.id), "r") as f:
-                content = "".join(f.readlines())
-            os.remove("partnerships/hazeads/{}.txt".format(member.id))
-            partner_role = self.server.get_role(950354444669841428)
-            if partner_role in member.roles:
-                pass
-            else:
-                await member.add_roles(partner_role, reason="New Partner")
-            partner_channnel = await self.server.fetch_channel(1040380792406298645)
-            await partner_channnel.send(content=content)
-        await ctx.followup.send("Partnership approved")
+
+            partner_channel = await self.server.fetch_channel(self.config["channel_id"])
+            await partner_channel.send(content=content)
+            await ctx.followup.send("Partnership approved")
 
     async def deny(self, ctx: Interaction, member: Member, reason: str):
-        if self.server.id == 740584420645535775:
-            os.remove("partnerships/orleans/{}.txt".format(member.id))
-        elif self.server.id == 925790259160166460:
-            os.remove("partnerships/hazeads/{}.txt".format(member.id))
+        if self.config:
+            path = self.config["path"].format(member.id)
+            os.remove(path)
 
         try:
             await member.send(f"Your partnership request was denied because:\n{reason}")
             msg = "Partnership denied AND reason sent"
         except Forbidden:
             msg = "Partnership denied"
+
         await ctx.followup.send(msg)
 
 
@@ -611,7 +550,7 @@ class Currency:
         return int(data[0]) if data else 0
 
     async def add_credits(self, amount: int):
-        current_time=datetime.now()
+        current_time = datetime.now()
         cur = db.execute(
             "INSERT OR IGNORE INTO bankData (user_id, amount, claimed_date) VALUES (?,?,?)",
             (
