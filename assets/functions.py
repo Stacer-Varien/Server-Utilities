@@ -3,7 +3,7 @@ from json import loads
 import os
 from datetime import datetime, timedelta
 import re
-from typing import Literal, Optional
+from typing import List, Literal, Optional, Union
 from random import randint
 from discord.ext.commands import Context
 from ad_chan_rules import not_allowed, allowed_ads
@@ -337,10 +337,8 @@ class Partner:
 
 
 class Plans:
-    def __init__(self):
-        pass
-
-    def add(self, user: Member, until: int, plan: str, claimee: User, plan_id: int):
+    @staticmethod
+    def add(user: Member, until: int, plan: str, claimee: User, plan_id: int):
         db.execute(
             "INSERT OR IGNORE INTO planData (user_id, started, until, plans, set_by, plan_id) VALUES (?,?,?,?,?,?)",
             (
@@ -354,29 +352,24 @@ class Plans:
         )
         db.commit()
 
-    def get(self, buyer: Member, plan_id: int):
+    @staticmethod
+    def get(buyer: Member, plan_id: int) -> Optional[dict]:
         data = db.execute(
             "SELECT * FROM planData WHERE plan_id = ? AND user_id = ?",
-            (
-                plan_id,
-                buyer.id,
-            ),
+            (plan_id, buyer.id),
         ).fetchone()
+        return data
 
-        return data if data else None
-
-    def check(self) -> list | None:
+    @staticmethod
+    def check() -> Optional[List[dict]]:
         data = db.execute("SELECT * FROM planData").fetchall()
-        db.commit()
         return data if data else None
 
-    def remove(self, buyer: User, plan_id: int):
+    @staticmethod
+    def remove(buyer: User, plan_id: int):
         db.execute(
-            "DELETE FROM planData WHERE user_id = ? AND plan_id= ?",
-            (
-                buyer.id,
-                plan_id,
-            ),
+            "DELETE FROM planData WHERE user_id = ? AND plan_id = ?",
+            (buyer.id, plan_id),
         )
         db.commit()
 
@@ -386,12 +379,10 @@ class YouTube:
         self.channel = channel
 
     def get_latest_vid(self):
-        return (
-            db.execute(
-                "SELECT latest_video FROM youtube WHERE channel_id = ?", (self.channel,)
-            ).fetchone()[0]
-            or None
-        )
+        result = db.execute(
+            "SELECT latest_video FROM youtube WHERE channel_id = ?", (self.channel,)
+        ).fetchone()
+        return result[0] if result else None
 
     def update_video(self, new_video: str):
         db.execute(
@@ -401,15 +392,17 @@ class YouTube:
         db.commit()
 
     def get_channel(self):
-        return (
-            db.execute(
-                "SELECT channel_name FROM youtube WHERE channel_id = ?", (self.channel,)
-            ).fetchone()[0]
-            or None
-        )
+        result = db.execute(
+            "SELECT channel_name FROM youtube WHERE channel_id = ?", (self.channel,)
+        ).fetchone()
+        return result[0] if result else None
 
 
 class Verification:
+    VERIFY_ROLE_ID = 974760640742825984
+    MEMBER_ROLE_ID = 974760599487647815
+    UNTRUSTED_ROLE_ID = 974760534102650950
+
     def __init__(self) -> None:
         pass
 
@@ -420,50 +413,58 @@ class Verification:
         )
         db.commit()
 
-    def check_user(self, message: Message, member: Optional[Member] = None):
+    def check_user(self, message: Message) -> Optional[Member]:
         data = db.execute(
             "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
         ).fetchone()
         return message.guild.get_member(data[0]) if data else None
 
-    def check(self, message: Optional[Message] = None):
+    def check(self, message: Message) -> bool:
         member = self.check_user(message)
+        if not member:
+            return False
+
         data = db.execute(
             "SELECT * FROM verificationLog WHERE user = ? AND message_id = ?",
             (member.id, message.id),
         ).fetchone()
         db.commit()
 
-        verify_role = member.guild.get_role(974760640742825984)
+        verify_role = member.guild.get_role(self.VERIFY_ROLE_ID)
 
-        if data and (
-            (int(data[0]) == member.id and int(data[1]) == message.id)
-            or int(data[0]) == member.id
-        ):
+        if data:
             return True
 
         return verify_role in member.roles
 
     async def approve(self, message: Message):
         member = self.check_user(message)
+        if not member:
+            return
+
         db.execute(
             "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
             (member.id, message.id),
         )
         db.commit()
 
-        verify_role = member.guild.get_role(974760640742825984)
-        member_role = member.guild.get_role(974760599487647815)
-        untrusted = member.guild.get_role(974760534102650950)
+        verify_role = member.guild.get_role(self.VERIFY_ROLE_ID)
+        member_role = member.guild.get_role(self.MEMBER_ROLE_ID)
+        untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
 
         await member.add_roles(verify_role, reason="Successfully verified")
 
         if untrusted in member.roles:
-            await member.remove_roles(untrusted, "Successful forced verification")
-            await member.add_roles(member_role)
+            await member.remove_roles(
+                untrusted, reason="Successful forced verification"
+            )
+            await member.add_roles(member_role, reason="Add member role")
 
     async def deny(self, message: Message):
         member = self.check_user(message)
+        if not member:
+            return
+
         db.execute(
             "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
             (member.id, message.id),
@@ -471,11 +472,14 @@ class Verification:
         db.commit()
 
     async def force(self, member: Member):
-        untrusted = member.guild.get_role(974760534102650950)
+        untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
         for role in member.roles:
-            await member.remove_roles(role, "Removed due to forced verification")
-            await asyncio.sleep(1)
-        await member.add_roles(untrusted, "Force verification")
+            if role.id != untrusted.id:
+                await member.remove_roles(
+                    role, reason="Removed due to forced verification"
+                )
+                await asyncio.sleep(1)
+        await member.add_roles(untrusted, reason="Force verification")
 
 
 class Blacklist:
@@ -484,18 +488,16 @@ class Blacklist:
 
     def get_blacklisted_servers(self):
         data = db.execute("SELECT server_id FROM blacklistedServersData").fetchall()
-        return data
+        return [record[0] for record in data]
 
-    @staticmethod
-    async def add(server_id: str, reason: str):
+    async def add(self, server_id: str, reason: str):
         db.execute(
             "INSERT OR IGNORE INTO blacklistedServersData (server_id, reason) VALUES (?, ?)",
             (server_id, reason),
         )
         db.commit()
 
-    @staticmethod
-    async def remove(server_id: int):
+    async def remove(self, server_id: str):
         db.execute(
             "DELETE FROM blacklistedServersData WHERE server_id = ?", (server_id,)
         )
@@ -507,7 +509,7 @@ class Blacklist:
         invite_url: str,
         reason: str,
         action_message: str,
-        unblacklist=False,
+        unblacklist: bool = False,
     ):
         try:
             invite = await self.bot.fetch_invite(invite_url)
@@ -517,18 +519,18 @@ class Blacklist:
             embed.add_field(name="Name", value=invite.guild.name, inline=True)
             embed.add_field(name="ID", value=invite.guild.id, inline=True)
             embed.set_thumbnail(url=invite.guild.icon)
-            description_prefix = "# Reason of"
-            action_description = "Un" if unblacklist else ""
-            embed.description = (
-                f"{description_prefix} {action_description}blacklist:\n\n{reason}"
-            )
+
+            action_description = "Unblacklist" if unblacklist else "Blacklist"
+            embed.description = f"# Reason of {action_description}:\n\n{reason}"
+
             if unblacklist:
                 await self.remove(invite.guild.id)
-                await channel.send(embed=embed)
             else:
                 await self.add(invite.guild.id, reason)
-                await channel.send(embed=embed)
-        except:
+
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Error handling invite: {e}")
             await self._handle_invalid_invite(ctx)
 
     async def _handle_invalid_invite(self, ctx: Context):
@@ -542,78 +544,59 @@ class Currency:
         self.user = user
 
     @property
-    def get_balance(self) -> int:
+    def balance(self) -> int:
         data = db.execute(
             "SELECT amount FROM bankData WHERE user_id = ?", (self.user.id,)
         ).fetchone()
-
         return int(data[0]) if data else 0
 
     async def add_credits(self, amount: int):
-        current_time = datetime.now()
+        current_time = datetime.now() - timedelta(days=1)
         cur = db.execute(
             "INSERT OR IGNORE INTO bankData (user_id, amount, claimed_date) VALUES (?,?,?)",
-            (
-                self.user.id,
-                amount,
-                (current_time - timedelta(days=1)),
-            ),
+            (self.user.id, amount, current_time),
         )
         db.commit()
 
         if cur.rowcount == 0:
             db.execute(
                 "UPDATE bankData SET amount = amount + ? WHERE user_id = ?",
-                (
-                    amount,
-                    self.user.id,
-                ),
+                (amount, self.user.id),
             )
-
             db.commit()
 
     async def remove_credits(self, amount: int):
         db.execute(
             "UPDATE bankData SET amount = amount - ? WHERE user_id = ?",
-            (
-                amount,
-                self.user.id,
-            ),
+            (amount, self.user.id),
         )
-
         db.commit()
 
     async def give_daily(self):
-        next_claim = round((datetime.now() + timedelta(days=1)).timestamp())
-
-        credits = 200 if (datetime.today().weekday() >= 5) else 100
+        next_claim = datetime.now() + timedelta(days=1)
+        next_claim_timestamp = round(next_claim.timestamp())
+        credits = 200 if datetime.today().weekday() >= 5 else 100
 
         cur = db.execute(
             "INSERT OR IGNORE INTO bankData (user_id, amount, claimed_date) VALUES (?,?,?)",
-            (
-                self.user.id,
-                credits,
-                next_claim,
-            ),
+            (self.user.id, credits, next_claim_timestamp),
         )
         db.commit()
+
         if cur.rowcount == 0:
             db.execute(
                 "UPDATE bankData SET claimed_date = ?, amount = amount + ? WHERE user_id = ?",
-                (
-                    next_claim,
-                    credits,
-                    self.user.id,
-                ),
+                (next_claim_timestamp, credits, self.user.id),
             )
             db.commit()
 
     @property
-    def check_daily(self) -> int | Literal[True]:
+    def check_daily(self) -> Union[int, bool]:
         data = db.execute(
             "SELECT claimed_date FROM bankData WHERE user_id = ?", (self.user.id,)
         ).fetchone()
         db.commit()
-        if (data == None) or (int(data[0]) < round(datetime.now().timestamp())):
+
+        if data is None or int(data[0]) >= round(datetime.now().timestamp()):
             return True
         return int(data[0])

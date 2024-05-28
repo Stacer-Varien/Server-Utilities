@@ -1,11 +1,11 @@
 from re import search
 
 import requests
-from discord import SyncWebhook
+from discord import Message, SyncWebhook
 from discord.ext import tasks, commands
 
 from assets.functions import YouTube
-from config import HAZEADS, ORLEANS, WEBHOOK_URL_1, WEBHOOK_URL_2
+from config import ORLEANS, WEBHOOK_URL_1, WEBHOOK_URL_2
 
 CHANNEL_ID_1 = "UChzTbosoH1cba3fyA1H_fRQ"
 CHANNEL_ID_2 = "UCpocUkY2iwmDAWRboPTRy3Q"
@@ -17,7 +17,7 @@ class YTNotifier(commands.Cog):
         self.konekovibes.start()
         self.whitephoenix.start()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(hours=1)
     async def konekovibes(self):
         try:
             print(f"Now Checking For {CHANNEL_ID_1}")
@@ -45,7 +45,7 @@ class YTNotifier(commands.Cog):
         except:
             return
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(hours=1)
     async def whitephoenix(self):
         try:
             print(f"Now Checking For {CHANNEL_ID_2}")
@@ -66,8 +66,10 @@ class YTNotifier(commands.Cog):
                 channel_name = youtube.get_channel()
 
                 msg = f"{channel_name} just uploaded a new video!\nCheck it out: {latest_video_url}"
-                SyncWebhook.from_url(ORLEANS).send(f"<@&1045345555485823036>\n{msg}")
-                SyncWebhook.from_url(HAZEADS).send(msg)
+                webhook=SyncWebhook.from_url(ORLEANS)
+                m:Message=await webhook.send(f"<@&1045345555485823036>\n{msg}")
+                await m.publish()
+
                 print(f"{latest_video_url} found and posted")
         except:
             return

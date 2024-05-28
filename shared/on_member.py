@@ -3,7 +3,7 @@ from discord.ext.commands import Cog, Bot
 
 
 WELCOME_CHANNEL_ID = 925790259877412877
-HAZE_ADS = 925790259160166460
+OAD = 925790259160166460
 
 
 class MemberCog(Cog):
@@ -12,7 +12,7 @@ class MemberCog(Cog):
 
     @Cog.listener()
     async def on_member_join(self, member: Member):
-        if member.guild.id == HAZE_ADS:
+        if member.guild.id == OAD:
             channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
             welcome = (
                 f"{member.mention}\n\nHello and welcome to {member.guild.name}!\n"
@@ -33,7 +33,7 @@ class MemberCog(Cog):
     @Cog.listener()
     async def on_member_remove(self, member: Member):
         try:
-            if member.guild.id == HAZE_ADS:
+            if member.guild.id == OAD:
                 channel = self.bot.get_channel(WELCOME_CHANNEL_ID)
                 bye = f"{member} left us."
                 try:

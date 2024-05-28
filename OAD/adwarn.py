@@ -1,7 +1,5 @@
 from datetime import datetime
-
-from typing import List, Literal
-
+from typing import Literal
 from discord import (
     Color,
     Embed,
@@ -48,26 +46,33 @@ class AdwarnCog(GroupCog, name="adwarn"):
         ],
     ):
         await ctx.response.defer(ephemeral=True)
+
         if member == ctx.user:
-            failed_embed = Embed(description="You can't warn yourself")
-            await ctx.followup.send(embed=failed_embed, ephemeral=True)
+            await ctx.followup.send(
+                embed=Embed(description="You can't warn yourself"), ephemeral=True
+            )
             return
 
         if member.bot:
-            failed_embed = Embed(description="You can't warn a bot")
-            await ctx.followup.send(embed=failed_embed, ephemeral=True)
+            await ctx.followup.send(
+                embed=Embed(description="You can't warn a bot"), ephemeral=True
+            )
             return
 
         adwarn = Adwarn(ctx.user)
         current_time = round(datetime.now().timestamp())
-        time = adwarn.check_time(member)
-        if (current_time >= time) or (time == None):
-            await Adwarn(ctx.user).add(member, channel, reason)
+        warn_time = adwarn.check_time(member)
+
+        if warn_time is None or current_time >= warn_time:
+            await adwarn.add(member, channel, reason)
             await ctx.followup.send(
-                "Adwarn sent. Check https://canary.discord.com/channels/925790259160166460/1239564619131912222"
+                "Adwarn sent. Check https://canary.discord.com/channels/925790259160166460/1239564619131912222",
+                ephemeral=True,
             )
-            return
-        await ctx.followup.send(f"Please wait <t:{time}:R> to adwarn the member")
+        else:
+            await ctx.followup.send(
+                f"Please wait <t:{warn_time}:R> to adwarn the member", ephemeral=True
+            )
 
     @Serverutil.command(description="Remove an adwarn")
     @Serverutil.checks.has_any_role(
@@ -82,22 +87,25 @@ class AdwarnCog(GroupCog, name="adwarn"):
     )
     async def remove(self, ctx: Interaction, member: Member, warn_id: int):
         await ctx.response.defer(ephemeral=True)
-        adwarn=Adwarn()
-        check_warn = adwarn.check_id(member, warn_id)
-        if check_warn is None:
+
+        adwarn = Adwarn(ctx.user)
+        if not adwarn.check_id(member, warn_id):
             await ctx.followup.send("Invalid warn ID", ephemeral=True)
             return
 
         await adwarn.remove(member, warn_id)
 
         embed = Embed(color=Color.green())
-        embed.description = f"Your adwarn with Warn ID `{warn_id}` has been removed. You now have {adwarn.points(member)} points"
+        embed.description = (
+            f"Your adwarn with Warn ID `{warn_id}` has been removed. "
+            f"You now have {adwarn.points(member)} points"
+        )
         adwarn_channel = await member.guild.fetch_channel(1239564619131912222)
-        m=await adwarn_channel.send(member.mention, embed=embed)
+        message = await adwarn_channel.send(member.mention, embed=embed)
 
         await ctx.followup.send(
-                "Warning revoked. Check {}".format(m.jump_url), ephemeral=True
-            )
+            f"Warning revoked. Check {message.jump_url}", ephemeral=True
+        )
 
 
 async def setup(bot: Bot):
