@@ -8,7 +8,7 @@ from discord import (
 )
 from discord.ext.commands import GroupCog, Bot
 from assets.functions import Partner
-from config import hazead, orleans
+from config import oad, orleans
 
 partner_manager = 925790259319558155
 admins = 925790259319558157
@@ -121,4 +121,4 @@ class PartnerCog(GroupCog, name="partner"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(PartnerCog(bot), guilds=[Object(hazead), Object(orleans)])
+    await bot.add_cog(PartnerCog(bot), guilds=[Object(oad), Object(orleans)])

@@ -1,12 +1,11 @@
 import asyncio
-from json import loads
 import os
 from datetime import datetime, timedelta
 import re
-from typing import List, Literal, Optional, Union
+from typing import List, Optional, Union
 from random import randint
 from discord.ext.commands import Context
-from ad_chan_rules import not_allowed, allowed_ads
+from assets.ad_chan_rules import not_allowed, allowed_ads
 
 from discord import (
     Color,

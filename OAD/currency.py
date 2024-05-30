@@ -12,7 +12,7 @@ from discord import (
 from discord.ext.commands import Cog, Bot, GroupCog
 
 from assets.receipt_generator.generator import ReceiptGenerator
-from config import hazead
+from config import oad
 from assets.functions import Currency
 from assets.components import AdInsertModal, AutoAdChannelSelect
 
@@ -231,5 +231,5 @@ class ShopCog(GroupCog, name="shop"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(CurrencyCog(bot), guild=Object(hazead))
-    await bot.add_cog(ShopCog(bot), guild=Object(hazead))
+    await bot.add_cog(CurrencyCog(bot), guild=Object(oad))
+    await bot.add_cog(ShopCog(bot), guild=Object(oad))

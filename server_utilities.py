@@ -3,7 +3,7 @@ from os import listdir
 from discord import Intents, Object
 from discord.ext.commands import Bot, when_mentioned_or
 
-from config import TOKEN, orleans, hazead, vhf
+from config import TOKEN, orleans, oad, vhf
 
 intents = Intents().all()
 intents.presences = False
@@ -49,7 +49,7 @@ async def on_ready():
     print("Bot ID: {}".format(bot.user.id))
     for guild in [
         Object(id=orleans),
-        Object(id=hazead),
+        Object(id=oad),
         Object(id=vhf),
     ]:
         await bot.tree.sync(guild=guild)

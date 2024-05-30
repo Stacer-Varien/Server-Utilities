@@ -48,11 +48,14 @@ class VerificationCog(GroupCog, name="verification"):
 
         if data == approved:
             verification_type = "Successful" if approved else "Failed"
-            await Verification().approve_deny(message.author, approved)
+            if verification_type == "Successful":
+                await Verification().approve(message.author)
+            else:
+                await Verification().deny(message.author)
 
             try:
                 description_key = "approved" if approved else "denied"
-                embed.description = f"Hi {message.author}\n\nGlad to say that your verification {description_key} in {ctx.guild.name}!"
+                embed.description = f"Hi {message.author}\nWe have to say that your verification  has been {description_key} in {ctx.guild.name}!"
                 embed.set_footer(
                     text="Please remember that verification doesn't mean instant NSFW access. It is your choice to view it or not."
                 )
@@ -198,7 +201,7 @@ Due to this, **all** your roles have been removed, and you have received the <@&
             view = YesNoButtons()
             embed.description = "Have you read the steps and have met the requirements? If not, please do so."
             embed.set_footer(
-                text="Please remember that the buttons have a timeout of 10 minutes if there was no interaction"
+                text="Please remember that the buttons have a timeout of 10 minutes if there was no ctx"
             )
             await ctx.user.send(embed=embed, view=view)
             await view.wait()

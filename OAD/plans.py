@@ -12,7 +12,7 @@ from discord.ext.commands import GroupCog, Bot
 from humanfriendly import parse_timespan
 
 from assets.functions import Plans
-from config import hazead
+from config import oad
 
 planmanager = 956634941066739772
 
@@ -72,4 +72,4 @@ class PlanCog(GroupCog, name="plan"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(PlanCog(bot), guild=Object(hazead))
+    await bot.add_cog(PlanCog(bot), guild=Object(oad))

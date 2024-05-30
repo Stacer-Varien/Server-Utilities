@@ -11,7 +11,7 @@ from discord import (
 )
 from discord.ext.commands import GroupCog, Bot
 from assets.functions import Adwarn
-from config import hazead
+from config import oad
 
 
 class AdwarnCog(GroupCog, name="adwarn"):
@@ -109,4 +109,4 @@ class AdwarnCog(GroupCog, name="adwarn"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(AdwarnCog(bot), guild=Object(hazead))
+    await bot.add_cog(AdwarnCog(bot), guild=Object(oad))

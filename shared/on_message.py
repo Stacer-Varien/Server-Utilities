@@ -10,7 +10,7 @@ class OnMessageCog(Cog):
 
     @Cog.listener()
     async def on_message(self, message: Message):
-        starboarda_channels = [
+        starboarda_channels = {
             1228074075113652267,
             1003589695910973480,
             1110173625778196581,
@@ -78,8 +78,8 @@ class OnMessageCog(Cog):
             1194634102360522912,
             1194634486860763226,
             1115726593457926294,
-        ]
-        advertising_channels = [
+        }
+        advertising_channels = {
             1239494034007920680,
             1239497333658357771,
             1239493932811943936,
@@ -111,30 +111,32 @@ class OnMessageCog(Cog):
             1239505121465864202,
             1239505374361550889,
             1239505535662030860,
-        ]
+        }
+
         if (
             message.guild.id == 974028573893595146
             and message.channel.id in starboarda_channels
-            and len(message.attachments) >= 1
         ):
-            await message.add_reaction(":mhxaLove:1174261737697050625")
-            if message.channel.id in [
-                1115726593457926294,
-                1003589695910973480,
-                1110173625778196581,
-                1054091901852209252,
-                1054091728816181328,
-                1054091953433747539,
-                1082393894190321835,
-            ]:
-                await message.publish()
-                return
+            if len(message.attachments) >= 1:
+                await message.add_reaction(":mhxaLove:1174261737697050625")
+                if message.channel.id in {
+                    1115726593457926294,
+                    1003589695910973480,
+                    1110173625778196581,
+                    1054091901852209252,
+                    1054091728816181328,
+                    1054091953433747539,
+                    1082393894190321835,
+                }:
+                    await message.publish()
+                    return
+
         if (
             message.guild.id == 925790259160166460
             and message.channel.id in advertising_channels
         ):
             await Currency(message.author).add_credits(2)
-            if datetime.weekday() >= 5:
+            if datetime.today().weekday() >= 5:
                 await Currency(message.author).add_credits(3)
             await message.add_reaction("<:HAZEcoin:1209238914041118721>")
             return

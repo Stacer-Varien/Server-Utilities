@@ -3,7 +3,7 @@ from discord import Forbidden, Interaction, Member, Message, Object, Embed, Colo
 from discord.ext.commands import GroupCog, Bot
 from discord import app_commands as serverutil
 from assets.functions import Adwarn
-from config import hazead
+from config import oad
 
 
 class AppealCog(GroupCog, name="appeal"):
@@ -118,4 +118,4 @@ class AppealCog(GroupCog, name="appeal"):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(AppealCog(bot), guild=Object(hazead))
+    await bot.add_cog(AppealCog(bot), guild=Object(oad))

@@ -1,27 +1,27 @@
 from io import BytesIO
 from discord.ext.commands import Bot
-from discord import ui, ButtonStyle, Interaction, File, SelectOption
+from discord import User, ui, ButtonStyle, Interaction, File, SelectOption
 
 from assets.receipt_generator.generator import ReceiptGenerator
 
 
 class Confirmation(ui.View):
-    def __init__(self, author=None):
+    def __init__(self, author:User=None):
         super().__init__(timeout=600)
         self.value = None
         self.author = author
 
     @ui.button(label="Confirm", style=ButtonStyle.green)
-    async def confirm(self, button, ctx):
+    async def confirm(self, button: ui.Button, ctx: Interaction):
         self.value = True
         self.stop()
 
     @ui.button(label="Cancel", style=ButtonStyle.red)
-    async def cancel(self, button, ctx):
+    async def cancel(self, button: ui.Button, ctx: Interaction):
         self.value = False
         self.stop()
 
-    async def interaction_check(self, ctx):
+    async def ctx_check(self, ctx: Interaction) -> bool:
         return ctx.user.id == self.author.id
 
 
@@ -31,17 +31,17 @@ class YesNoButtons(ui.View):
         self.value = None
 
     @ui.button(label="Yes", style=ButtonStyle.green)
-    async def yes(self, button, ctx):
+    async def yes(self, button: ui.Button, ctx: Interaction):
         self.value = True
         self.stop()
 
     @ui.button(label="No", style=ButtonStyle.red)
-    async def no(self, button, ctx):
+    async def no(self, button: ui.Button, ctx: Interaction):
         self.value = False
         self.stop()
 
 
-class AutoadChannelMenu(ui.Select):
+class AutoAdChannelMenu(ui.Select):
     def __init__(
         self, bot: Bot, tier: str, days: int, custom_webhook: bool = False
     ) -> None:
@@ -49,30 +49,32 @@ class AutoadChannelMenu(ui.Select):
         self.tier = tier
         self.days = days
         self.custom_webhook = custom_webhook
+
+        options = [
+            SelectOption(label=bot.get_channel(ch_id).name, value=str(ch_id))
+            for ch_id in [
+                1241276362359050330,
+                1241276387348844554,
+                1239500814301532233,
+                1239501940971274291,
+                1239502571727487017,
+                1239503912285765682,
+                1239504433465790524,
+                1239504190926094346,
+                1239502832533635143,
+                1239502264872472586,
+                1239503470453723186,
+                1239502181418143744,
+                1240194116810178650,
+                1240196579466412052,
+            ]
+        ]
+
         super().__init__(
             placeholder="Select the channels",
             min_values=1,
             max_values=6,
-            options=[
-                SelectOption(
-                    label=bot.get_channel(j).name, value=bot.get_channel(j).name
-                )
-                for j in [
-                    1241276362359050330,
-                    1241276387348844554,
-                    1239500814301532233,
-                    1239501940971274291,
-                    1239502571727487017,
-                    1239503912285765682,
-                    1239504433465790524,
-                    1239504190926094346,
-                    1239502832533635143,
-                    1239502264872472586,
-                    1239503470453723186,
-                    1239502181418143744,
-                    1240194116810178650,
-                ]
-            ],
+            options=options,
         )
 
     async def callback(self, ctx: Interaction):
@@ -85,10 +87,10 @@ class AutoadChannelMenu(ui.Select):
 class AutoAdChannelSelect(ui.View):
     def __init__(self, bot: Bot, tier: str, days: int, custom_webhook: bool = False):
         super().__init__(timeout=180)
-        self.add_item(AutoadChannelMenu(bot, tier, days, custom_webhook))
+        self.add_item(AutoAdChannelMenu(bot, tier, days, custom_webhook))
 
 
-class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
+class AdInsertModal(ui.Modal):
     def __init__(
         self,
         bot: Bot,
@@ -102,7 +104,7 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
         use_of_pings: str = None,
         use_of_alt_link: bool = False,
     ) -> None:
-        super().__init__()
+        super().__init__(title="Ad Insert Modal")
         self.bot = bot
         self.type = type
         self.tier = tier
@@ -127,12 +129,13 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
         advert = File(BytesIO(self.ad.value.encode("utf-8")), filename="advert.txt")
         receipt_generator = ReceiptGenerator()
 
+        await ctx.response.edit_message(
+            content="Please wait for your receipt to be generated",
+            embed=None,
+            view=None,
+        )
+
         if self.type == "Autoad":
-            await ctx.response.edit_message(
-                content="Please wait for your receipt to be generated",
-                embed=None,
-                view=None,
-            )
             receipt = await receipt_generator.generate_receipt(
                 ctx.user,
                 self.type,
@@ -142,9 +145,6 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
                 self.days,
             )
         elif self.type == "Giveaway":
-            await ctx.response.edit_message(
-                content="Please wait for your receipt to be generated"
-            )
             receipt = await receipt_generator.generate_receipt(
                 ctx.user,
                 self.type,
@@ -159,8 +159,8 @@ class AdInsertModal(ui.Modal, title="Ad Insert Modal"):
         if receipt is None:
             return
 
-        receiptchannel = await ctx.guild.fetch_channel(1211673783774224404)
-        await receiptchannel.send(files=[receipt, advert])
+        receipt_channel = await ctx.guild.fetch_channel(1211673783774224404)
+        await receipt_channel.send(files=[receipt, advert])
         await ctx.edit_original_response(
             content="Thank you for purchasing. A copy of your receipt has been given to you. Please wait up to 36 hours for your product to be delivered",
             attachments=[receipt],
