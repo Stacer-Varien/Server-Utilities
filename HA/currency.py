@@ -38,7 +38,7 @@ class CurrencyCog(Cog):
         bank = Currency(ctx.user)
         tomorrow = round((datetime.now() + timedelta(days=1)).timestamp())
 
-        if bank.check_daily():
+        if bank.check_daily:
             await bank.give_daily()
 
             daily = Embed(
@@ -63,12 +63,13 @@ class CurrencyCog(Cog):
             daily.add_field(name="Next Daily:", value=f"<t:{tomorrow}:f>")
 
             await ctx.followup.send(embed=daily)
-        else:
-            cooldown = Embed(
-                description=f"You have already claimed your daily.\nYour next claim is <t:{bank.check_daily()}:R>",
+            return
+        
+        cooldown = Embed(
+                description=f"You have already claimed your daily.\nYour next claim is <t:{bank.check_daily}:R>",
                 color=Color.red(),
             )
-            await ctx.followup.send(embed=cooldown)
+        await ctx.followup.send(embed=cooldown)
 
     @Serverutils.command(description="Check your HAZE Coins balance")
     @Serverutils.checks.cooldown(1, 60, key=lambda i: (i.user.id))

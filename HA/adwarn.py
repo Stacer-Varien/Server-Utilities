@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 from discord import (
     Color,
     Embed,
@@ -44,6 +44,7 @@ class AdwarnCog(GroupCog, name="adwarn"):
             "NSFW ad, imagery or description",
             "Advertising in wrong channel",
         ],
+        notes: Optional[Serverutil.Range[str, 3]] = None,
     ):
         await ctx.response.defer(ephemeral=True)
 
@@ -64,7 +65,7 @@ class AdwarnCog(GroupCog, name="adwarn"):
         warn_time = adwarn.check_time(member)
 
         if warn_time is None or current_time >= warn_time:
-            await adwarn.add(member, channel, reason)
+            await adwarn.add(member, channel, reason, notes)
             await ctx.followup.send(
                 "Adwarn sent. Check https://canary.discord.com/channels/925790259160166460/1239564619131912222",
                 ephemeral=True,

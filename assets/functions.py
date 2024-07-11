@@ -11,6 +11,7 @@ from discord import (
     Color,
     Embed,
     Guild,
+    HTTPException,
     Interaction,
     Invite,
     Member,
@@ -98,7 +99,13 @@ class Adwarn:
 
         return "No punishment applied"
 
-    async def add(self, member: Member, channel: TextChannel, reason: str):
+    async def add(
+        self,
+        member: Member,
+        channel: TextChannel,
+        reason: str,
+        notes: Optional[str] = None,
+    ):
         warn_id = self.make_id()
         adwarn_channel = await member.guild.fetch_channel(1239564619131912222)
         current_time = self.make_new_time()
@@ -109,11 +116,11 @@ class Adwarn:
         )
         db.execute(
             "INSERT OR IGNORE INTO warnData_v2 (user_id, warn_point, time) VALUES (?, ?, ?)",
-            (member.id, 1, current_time),
+            (member.id, 1, round(current_time.timestamp())),
         )
         db.execute(
             "UPDATE warnData_v2 SET warn_point = warn_point + 1, time = ? WHERE user_id = ?",
-            (current_time, member.id),
+            (round(current_time.timestamp()), member.id),
         )
         db.commit()
 
@@ -128,10 +135,12 @@ class Adwarn:
         embed.add_field(name="Warn Points", value=self.points(member), inline=True)
         punishment = await self.punishment_rules(member)
         embed.add_field(name="Punishment", value=punishment, inline=True)
+        if notes:
+            embed.add_field(name="Notes", value=notes, inline=True)
         embed.set_footer(
             text="If you feel this warn was a mistake, please use `/appeal WARN_ID` or open a ticket"
         )
-        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_thumbnail(url=member.display_avatar)
         await adwarn_channel.send(member.mention, embed=embed)
 
         def is_member(m: Message):
@@ -140,7 +149,7 @@ class Adwarn:
         for channel in member.guild.text_channels:
             try:
                 await channel.purge(limit=3, check=is_member)
-            except Exception as e:
+            except (HTTPException, Forbidden) as e:
                 print(f"Failed to purge messages in {channel.name}: {e}")
 
     async def remove(self, member: Member, warn_id: int):
@@ -224,7 +233,7 @@ class AutoMod:
             )
 
     async def handle_short_ad(self):
-        message=self.message
+        message = self.message
         await message.delete()
         await Adwarn(self.bot.user).add(
             message.author,
