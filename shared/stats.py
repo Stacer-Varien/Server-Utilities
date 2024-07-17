@@ -50,42 +50,11 @@ class InfoCog(Cog):
 
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         embed.set_footer(
-            text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him or email to **zane544yt@protonmail.com**. By the way, its not for free...".format(
+            text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him or email to `jeannebot.discord@gmail.com`. By the way, its not for free...".format(
                 botowner
             )
         )
         await ctx.followup.send(embed=embed)
-
-    @Serverutil.command(description="Check if a bot is made by Stacer Varien")
-    async def validate_bot(self, ctx: Interaction, botid: str):
-        await ctx.response.defer()
-        with open("assets/mybots.json", "r") as f:
-            content = "".join(f.readlines())
-        if int(botid) == 1067838201185706056:
-            return
-
-        bot = await self.bot.fetch_user(int(botid))
-        botowner = await self.bot.fetch_user(597829930964877369)
-
-        parms = OrderedDict(
-            [
-                ("%botowner%", str(botowner)),
-                ("%bot%", str(bot)),
-                ("%bot.id%", str(bot.id)),
-                ("%botav%", str(bot.display_avatar)),
-            ]
-        )
-        if bot.bot:
-            try:
-                json = loads(replace_all(content, parms))
-
-                embed = Embed.from_dict(json[botid]["embeds"][0])
-            except KeyError:
-                json = loads(replace_all(content, parms))
-                embed = Embed.from_dict(json["notmine"]["embeds"][0])
-            await ctx.followup.send(embed=embed)
-            return
-        await ctx.followup.send("This is a user account, not a bot account")
 
 
 class BotTosCog(GroupCog, name="bot"):

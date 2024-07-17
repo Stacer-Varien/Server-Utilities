@@ -1,4 +1,4 @@
-from discord import Color, Embed, Emoji, Object, RawReactionActionEvent
+from discord import ButtonStyle, Color, Embed, Emoji, Object, RawReactionActionEvent, ui
 from discord.ext.commands import Bot, Cog
 from config import vhf
 
@@ -48,7 +48,7 @@ class ReactionCog(Cog):
                     ),
                     None,
                 )
-                if emoji and emoji.count in [3, 5]:
+                if emoji and (emoji.count >= 3):
                     with open(message_ids_file, "a") as f:
                         f.write(f"{message.id}\n")
                     starboard = await self.bot.fetch_channel(self.starboard_channel_id)
@@ -57,7 +57,8 @@ class ReactionCog(Cog):
                     for attachment in message.attachments:
                         if attachment.filename.endswith(("png", "jpeg", "gif", "jpg")):
                             embed = Embed(
-                                description=message.channel.mention, color=Color.pink()
+                                description=f"{message.channel.mention} by *{message.author}*\n\n{'' if message.content==('', None) else message.content[:100]}",
+                                color=Color.pink(),
                             )
                             embed.set_image(url=attachment.url)
                             embed.set_footer(
@@ -69,13 +70,22 @@ class ReactionCog(Cog):
                                 title=f"Videos from {message.channel.mention}",
                                 color=Color.pink(),
                             )
-                            video_embed.description = attachment.url
+                            video_embed.description = f"By *{message.author}*\n\n{'' if message.content==('', None) else message.content[:100]}\n\n{attachment.url}"
                             video_embed.set_footer(
                                 text=message.created_at.strftime("%d/%m/%Y %H:%M")
                             )
                             embeds.append(video_embed)
 
-                    await starboard.send(embeds=embeds)
+                    await starboard.send(
+                        embeds=embeds,
+                        view=ui.View().add_item(
+                            ui.Button(
+                                label="Jump to message",
+                                style=ButtonStyle.url,
+                                url=message.jump_url,
+                            )
+                        ),
+                    )
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):

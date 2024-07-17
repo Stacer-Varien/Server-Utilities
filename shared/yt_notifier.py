@@ -14,7 +14,7 @@ CHANNEL_ID_2 = "UCpocUkY2iwmDAWRboPTRy3Q"
 class YTNotifier(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.konekovibes.start()
+        #self.konekovibes.start()
         self.whitephoenix.start()
 
     @tasks.loop(hours=1)
@@ -67,8 +67,7 @@ class YTNotifier(commands.Cog):
 
                 msg = f"{channel_name} just uploaded a new video!\nCheck it out: {latest_video_url}"
                 webhook=SyncWebhook.from_url(ORLEANS)
-                m:Message=await webhook.send(f"<@&1045345555485823036>\n{msg}")
-                await m.publish()
+                await webhook.send(f"<@&1045345555485823036>\n{msg}")
 
                 print(f"{latest_video_url} found and posted")
         except:

@@ -28,9 +28,9 @@ class ServerUtilities(Bot):
                 print(f"{filename} loaded")
             else:
                 print(f"Unable to load {filename[:-3]}") 
-        for filename in listdir("./OAD"):
+        for filename in listdir("./HA"):
             if filename.endswith(".py"):
-                await bot.load_extension(f"OAD.{filename[:-3]}")
+                await bot.load_extension(f"HA.{filename[:-3]}")
                 print(f"{filename} loaded")
             else:
                 print(f"Unable to load {filename[:-3]}")

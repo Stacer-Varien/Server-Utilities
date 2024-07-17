@@ -5,7 +5,7 @@ import re
 from typing import List, Optional, Union
 from random import randint
 from discord.ext.commands import Context
-from assets.ad_chan_rules import not_allowed, allowed_ads
+from assets.ad_chan_rules import allowed_ads
 
 from discord import (
     Color,
@@ -184,8 +184,7 @@ class AutoMod:
             if self.message.guild.id == 925790259160166460:
                 if (
                     channel_id in allowed_ads
-                    and self.message.id in allowed_ads
-                    and channel_id not in not_allowed
+                    and self.message.channel.id in allowed_ads
                     and len(content) <= 40
                 ):
                     await self.handle_short_ad()
@@ -202,14 +201,15 @@ class AutoMod:
                     )
                     await self.check_invite(invite_url)
                     await self.check_invite(invite_url, check_blacklist=True)
-                    return
+                    
+                return
 
             if (
                 any(
                     url in content
                     for url in ["https://discord.gg/", "https://discord.com/invite/"]
                 )
-                and channel_id in not_allowed
+                and channel_id not in allowed_ads
             ):
                 await self.handle_advertising()
                 return
