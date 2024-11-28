@@ -13,6 +13,7 @@ class ReactionCog(Cog):
             "🎃": 1153989722327228486,
             "🧝": None,
             "🖐️": 1200443228395147295,
+            "🎄": 1311776856432836648,
         }
 
     async def handle_role_reaction(self, payload: RawReactionActionEvent):
