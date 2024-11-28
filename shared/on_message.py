@@ -1,8 +1,6 @@
-from datetime import datetime
-from discord import Message, TextChannel
+from discord import Message
 from discord.ext.commands import Cog, Bot
-from assets.functions import AutoMod, Currency
-from assets import ad_chan_rules
+from assets.functions import AutoMod
 
 class OnMessageCog(Cog):
     def __init__(self, bot: Bot):
