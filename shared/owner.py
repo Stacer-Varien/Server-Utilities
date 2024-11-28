@@ -100,46 +100,5 @@ class OwnerCog(Cog):
 Make sure private messages between **me and you are opened** or check the server if the database exists"""
                 await ctx.send(content, delete_after=10)
 
-
-
-
-    @group(aliases=["guild"], invoke_without_command=True)
-    @is_owner()
-    async def server(self, ctx: Context): 
-        ...
-
-
-    @server.command()
-    @is_owner()
-    async def blacklist(self, ctx: Context, invite_url: str, *, reason):
-        try:
-            blacklist_message = "This server has been blacklisted"
-            action_message = "Server Blacklisted"
-            await Blacklist(self.bot)._handle_blacklist_action(
-                ctx, invite_url, reason, action_message)            
-            await ctx.reply(blacklist_message, delete_after=5)
-            await ctx.message.delete()
-        except:
-            await Blacklist(self.bot)._handle_invalid_invite(ctx)
-
-
-    @server.command()
-    @is_owner()
-    async def unblacklist(self, ctx: Context, invite_url: str, reason):
-        try:
-            unblacklist_message = "This server has not been blacklisted"
-            action_message = "Server Unblacklisted"
-            await ctx.reply(unblacklist_message, delete_after=5)
-            await ctx.message.delete()
-
-            await Blacklist(self.bot)._handle_blacklist_action(
-                    ctx, invite_url, reason, action_message, unblacklist=True
-                    )
-        except:
-            await Blacklist(self.bot)._handle_invalid_invite(ctx)
-
-
-
-
 async def setup(bot: Bot):
     await bot.add_cog(OwnerCog(bot))

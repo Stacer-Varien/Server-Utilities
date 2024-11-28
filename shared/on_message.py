@@ -45,33 +45,10 @@ class OnMessageCog(Cog):
                                 1054091728816181328,
                                 1054091953433747539,
                                 1082393894190321835,
+                                1179067756918882386,
                             ]:
                                 await message.publish()
-                                return
-
-            ha = await self.bot.fetch_guild(925790259160166460)
-
-            if (message.guild == ha and message.channel.id):
-                categories_ha = [
-                    1239493037693075467,
-                    1239493114842972242,
-                    1239493175828152482,
-                ]
-                ha_ad_channels = [
-                    channel
-                    for category_id in categories_ha
-                    for channel in self.bot.get_channel(category_id).channels
-                ]
-                for channel in ha_ad_channels:
-                    if channel.id not in [
-                        1240196579466412052,
-                        1239569790947819622,
-                    ]:
-                        await Currency(message.author).add_credits(2)
-                        if datetime.today().weekday() >= 5:
-                            await Currency(message.author).add_credits(3)
-                        await message.add_reaction(":HAZECoin:")
-                        return        
+                                return 
 
 
 async def setup(bot: Bot):
