@@ -24,14 +24,17 @@ class InfoCog(Cog):
     @Serverutil.command(description="See the bot's status from development to now")
     async def stats(self, ctx: Interaction):
         await ctx.response.defer()
-        botowner = self.bot.application.owner
+        app_info = await self.bot.application_info()
+        botowner = app_info.owner
+        botowner_name = str(botowner) if botowner else "Unknown"
+        botowner_id = botowner.id if botowner else "Unknown"
         embed = Embed(title="Bot stats", color=Color.blue())
         embed.add_field(
             name="Developer",
-            value=f"• **Name:** {str(botowner)}\n• **ID:** {botowner.id}",
+            value=f"• **Name:** {botowner_name}\n• **ID:** {botowner_id}",
             inline=True,
         )
-        embed.add_field(name="Bot ID", value=self.bot.user.id, inline=True)
+        embed.add_field(name="Bot ID", value=str(self.bot.user.id), inline=True)
         embed.add_field(
             name="Creation Date",
             value=f"<t:{round(self.bot.user.created_at.timestamp())}:F>",
@@ -48,7 +51,7 @@ class InfoCog(Cog):
         uptime = str(timedelta(seconds=difference))
         embed.add_field(name="Uptime", value=f"{uptime} hours", inline=True)
 
-        embed.set_thumbnail(url=self.bot.user.display_avatar)
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.set_footer(
             text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him or email to `jeannebot.discord@gmail.com`. By the way, its not for free...".format(
                 botowner

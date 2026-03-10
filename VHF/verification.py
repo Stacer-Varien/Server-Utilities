@@ -1,4 +1,6 @@
-from json import loads
+from json import load
+from pathlib import Path
+import asyncio
 from discord import (
     Color,
     Embed,
@@ -43,54 +45,64 @@ class VerificationCog(GroupCog, name="verification"):
         self, ctx: Interaction, message: Message, approved: bool
     ):
         await ctx.response.defer(ephemeral=True)
-        data = Verification().check(message.author, message.id)
+        verification = Verification()
         embed = Embed(color=Color.random())
 
-        if data == approved:
-            verification_type = "Successful" if approved else "Failed"
-            if verification_type == "Successful":
-                await Verification().approve(message.author)
-            else:
-                await Verification().deny(message.author)
-
-            try:
-                description_key = "approved" if approved else "denied"
-                embed.description = f"Hi {message.author}\nWe have to say that your verification  has been {description_key} in {ctx.guild.name}!"
-                embed.set_footer(
-                    text="Please remember that verification doesn't mean instant NSFW access. It is your choice to view it or not."
-                )
-                await message.author.send(embed=embed)
-            except:
-                pass
-
-            verification_log = await self.bot.fetch_channel(991655158930997358)
-            verification_log_e = Embed(title=f"Verification Log ({verification_type})")
-            verification_log_e.add_field(
-                name="Member", value=message.author, inline=False
-            )
-            verification_log_e.add_field(
-                name="ID", value=message.author.id, inline=False
-            )
-            verification_log_e.add_field(
-                name=f"{verification_type} by", value=ctx.user, inline=False
-            )
-            verification_log_e.add_field(
-                name="Verifier ID", value=ctx.user.id, inline=False
-            )
-            verification_log_e.add_field(
-                name="Date and Time",
-                value=f"<t:{round(datetime.now().timestamp())}:F>",
-                inline=False,
-            )
-
-            embed.description = f"{message.author} has successfully been verified! This message will delete soon"
-            await ctx.followup.send(embed=embed)
-            await verification_log.send(embed=verification_log_e)
-            await message.delete(delay=5)
-        else:
+        if not verification.has_request_for_message(message):
             embed.description = "This member hasn't requested to verify yet..."
             embed.color = Color.red()
             await ctx.followup.send(embed=embed)
+            return
+
+        member = verification.get_request_member(message)
+        if not member:
+            embed.description = "Could not find the member for this verification request."
+            embed.color = Color.red()
+            await ctx.followup.send(embed=embed)
+            return
+
+        verification_type = "Successful" if approved else "Failed"
+        if approved:
+            await verification.approve(message)
+        else:
+            await verification.deny(message)
+
+        try:
+            description_key = "approved" if approved else "denied"
+            dm_embed = Embed(color=Color.random())
+            dm_embed.description = (
+                f"Hi {member}\nWe have to say that your verification has been "
+                f"{description_key} in {ctx.guild.name}!"
+            )
+            dm_embed.set_footer(
+                text="Please remember that verification doesn't mean instant NSFW access. It is your choice to view it or not."
+            )
+            await member.send(embed=dm_embed)
+        except Exception:
+            pass
+
+        verification_log = await self.bot.fetch_channel(991655158930997358)
+        verification_log_e = Embed(title=f"Verification Log ({verification_type})")
+        verification_log_e.add_field(name="Member", value=member, inline=False)
+        verification_log_e.add_field(name="ID", value=member.id, inline=False)
+        verification_log_e.add_field(
+            name=f"{verification_type} by", value=ctx.user, inline=False
+        )
+        verification_log_e.add_field(
+            name="Verifier ID", value=ctx.user.id, inline=False
+        )
+        verification_log_e.add_field(
+            name="Date and Time",
+            value=f"<t:{round(datetime.now().timestamp())}:F>",
+            inline=False,
+        )
+
+        embed.description = (
+            f"{member} has been {'approved' if approved else 'denied'}."
+        )
+        await ctx.followup.send(embed=embed)
+        await verification_log.send(embed=verification_log_e)
+        await message.delete(delay=5)
 
     @Serverutil.checks.has_any_role(977127630518226944, 1003586650498146344)
     async def approve_verification(self, ctx: Interaction, message: Message):
@@ -104,18 +116,20 @@ class VerificationCog(GroupCog, name="verification"):
     async def force_verification(self, ctx: Interaction, member: Member):
         await ctx.response.defer(ephemeral=True)
         embed = Embed(color=Color.red())
-        data = Verification().check(ctx.user)
+        verification = Verification()
+        has_request = verification.has_request_for_member(member)
+        is_verified = verification.is_verified(member)
 
-        if data == True:
+        if has_request:
             embed.description = f"{member} already requested an ID verification"
             await ctx.followup.send(embed=embed)
             return
-        elif data == False:
+        elif is_verified:
             embed.description = f"{member} was already verified..."
             await ctx.followup.send(embed=embed)
             return
 
-        await Verification().force(member)
+        await verification.force(member)
         verify_here = await member.guild.fetch_channel(1059903781552267294)
 
         embed.description = """
@@ -166,28 +180,40 @@ Due to this, **all** your roles have been removed, and you have received the <@&
         embed.description = f"Forced Verification notice sent to {member}"
         await ctx.followup.send(embed=embed)
         await verification_log.send(embed=verification_log_e)
-        await ctx.followup.send(embed=embed)
 
     @Serverutil.command(name="start", description="Start the verification process")
     async def start_verification(self, ctx: Interaction):
         await ctx.response.defer(ephemeral=True)
         embed = Embed()
-        data = Verification().check(ctx.user)
+        if ctx.guild is None:
+            embed.description = "This command can only be used in the server."
+            embed.color = Color.red()
+            await ctx.followup.send(embed=embed)
+            return
 
-        if data == True:
+        verification = Verification()
+        has_request = verification.has_request_for_member(ctx.user)
+        is_verified = verification.is_verified(ctx.user)
+
+        if has_request:
             embed.description = "You have already requested an ID verification"
             embed.color = Color.red()
             await ctx.followup.send(embed=embed)
             return
-        elif data == False:
+        elif is_verified:
             embed.description = "You are already verified..."
             embed.color = Color.red()
             await ctx.followup.send(embed=embed)
             return
 
         try:
-            with open("verification_process.json", "r") as f:
-                json_data = loads("".join(f.readlines()))
+            json_path = (
+                Path(__file__).resolve().parents[1]
+                / "assets"
+                / "verification_process.json"
+            )
+            with json_path.open("r", encoding="utf-8") as f:
+                json_data = load(f)
 
             dmmsg: Message = await ctx.user.send(
                 embed=Embed.from_dict(json_data["embeds"][0])
@@ -206,46 +232,64 @@ Due to this, **all** your roles have been removed, and you have received the <@&
             await ctx.user.send(embed=embed, view=view)
             await view.wait()
 
-            if view.value == True:
-                await ctx.edit_original_response(view=None)
-                new_requests = []
+            if view.value is not True:
+                embed.description = "Verification was cancelled or timed out. Please try again."
+                embed.color = Color.red()
+                await ctx.followup.send(embed=embed)
+                return
 
-                def check(m: Message):
-                    return m.author == ctx.user and m.attachments
+            await ctx.edit_original_response(view=None)
+            new_requests = []
 
-                for i in json_data["steps"]:
-                    embed.description = i
+            def check(m: Message):
+                return m.author == ctx.user and m.attachments
 
-                    try:
-                        msg: Message = await self.bot.wait_for(
-                            "message", check=check, timeout=600
-                        )
-                        image_url = [
-                            x.url
-                            for x in msg.attachments
-                            if x.url.endswith(("jpg", "png", "jpeg"))
-                        ][0]
-                        await ctx.edit_original_response(embed=embed)
-                        new_requests.append(image_url)
+            for i in json_data["steps"]:
+                embed.description = i
 
-                    except:
-                        embed.description = (
-                            "Invalid image format sent. Please restart the verification"
-                        )
-                        await ctx.edit_original_response(embed=embed)
-                        break
+                try:
+                    msg: Message = await self.bot.wait_for(
+                        "message", check=check, timeout=600
+                    )
+                    image_url = [
+                        x.url
+                        for x in msg.attachments
+                        if x.url.endswith(("jpg", "png", "jpeg"))
+                    ][0]
+                    await ctx.edit_original_response(embed=embed)
+                    new_requests.append(image_url)
 
-                embed.description = "Your verification request has been sent to authorized staff. Please make sure the images you have sent are not deleted as it will be unviewable from our side. You will be able to delete them once we have sent an outcome.\n\nThank you"
+                except asyncio.TimeoutError:
+                    embed.description = (
+                        "Timed out waiting for an image. Please restart the verification."
+                    )
+                    embed.color = Color.red()
+                    await ctx.edit_original_response(embed=embed)
+                    return
+                except Exception:
+                    embed.description = (
+                        "Invalid image format sent. Please restart the verification."
+                    )
+                    embed.color = Color.red()
+                    await ctx.edit_original_response(embed=embed)
+                    return
 
-                await ctx.edit_original_response(embed=embed)
-                verification_channel = await self.bot.fetch_channel(1055487338500857946)
-                images = "\n".join(new_requests)
+            embed.description = (
+                "Your verification request has been sent to authorized staff. Please "
+                "make sure the images you have sent are not deleted as it will be "
+                "unviewable from our side. You will be able to delete them once we "
+                "have sent an outcome.\n\nThank you"
+            )
 
-                request = (
-                    f"New request from {ctx.user} `{ctx.user.id}`\nImages: {images}"
-                )
-                m = await verification_channel.send(request)
-                await Verification().add_request(ctx.user, m)
+            await ctx.edit_original_response(embed=embed)
+            verification_channel = await self.bot.fetch_channel(1055487338500857946)
+            images = "\n".join(new_requests)
+
+            request = (
+                f"New request from {ctx.user} `{ctx.user.id}`\nImages: {images}"
+            )
+            m = await verification_channel.send(request)
+            await verification.add_request(ctx.user, m)
 
         except:
             embed.description = (

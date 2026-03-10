@@ -14,17 +14,17 @@ intents.guild_scheduled_events = False
 
 class ServerUtilities(Bot):
     async def setup_hook(self):
-        await bot.load_extension("jishaku")
+        await self.load_extension("jishaku")
 
         for filename in listdir("./shared"):
             if filename.endswith(".py"):
-                await bot.load_extension(f"shared.{filename[:-3]}")
+                await self.load_extension(f"shared.{filename[:-3]}")
                 print(f"{filename} loaded")
             else:
                 print(f"Unable to load {filename[:-3]}")
         for filename in listdir("./VHF"):
             if filename.endswith(".py"):
-                await bot.load_extension(f"VHF.{filename[:-3]}")
+                await self.load_extension(f"VHF.{filename[:-3]}")
                 print(f"{filename} loaded")
             else:
                 print(f"Unable to load {filename[:-3]}") 

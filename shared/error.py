@@ -19,21 +19,31 @@ class ErrorsCog(Cog):
     async def on_app_command_error(
         self, ctx: Interaction, error: Serverutil.AppCommandError
     ):
+        async def send_error(embed: Embed):
+            if ctx.response.is_done():
+                await ctx.followup.send(embed=embed, ephemeral=True)
+            else:
+                await ctx.response.send_message(embed=embed, ephemeral=True)
+
         if isinstance(error, Serverutil.MissingPermissions):
             embed = Embed(description=str(error), color=Color.red())
-            await ctx.channel.send(embed=embed)
+            await send_error(embed)
 
         elif isinstance(error, Serverutil.BotMissingPermissions):
             embed = Embed(description=str(error), color=Color.red())
-            await ctx.channel.send(embed=embed)
+            await send_error(embed)
 
-        elif isinstance(error, Serverutil.errors.NoPrivateMessage):
+        elif isinstance(error, Serverutil.NoPrivateMessage):
             embed = Embed(description=str(error), color=Color.red())
-            await ctx.channel.send(embed=embed)
+            await send_error(embed)
 
 
         elif isinstance(error, Serverutil.CommandOnCooldown):
-            pass
+            embed = Embed(
+                description=f"You're on cooldown. Try again in {error.retry_after:.1f}s.",
+                color=Color.red(),
+            )
+            await send_error(embed)
 
 
 

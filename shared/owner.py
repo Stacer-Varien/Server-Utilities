@@ -8,7 +8,7 @@ from discord.ext.commands import Cog, Bot, group, is_owner, guild_only, Context,
 from assets.functions import Blacklist
 
 def restart_bot():
-    execv(executable, ["python"] + argv)
+    execv(executable, [executable] + argv)
 
 class OwnerCog(Cog):
     def __init__(self, bot: Bot):
@@ -90,15 +90,18 @@ class OwnerCog(Cog):
     @command(aliases=["db", "database"])
     @is_owner()
     async def senddb(self, ctx: Context):
-        with open("database.db", "rb") as file:
-            try:
-                await ctx.author.send(file=File(file))
-            except Exception:
-                content = """
+        try:
+            with open("database.db", "rb") as file:
+                try:
+                    await ctx.author.send(file=File(file))
+                except Exception:
+                    content = """
 # ERROR!
 ## Failed to send database! 
 Make sure private messages between **me and you are opened** or check the server if the database exists"""
-                await ctx.send(content, delete_after=10)
+                    await ctx.send(content, delete_after=10)
+        except FileNotFoundError:
+            await ctx.send("Database file not found.", delete_after=10)
 
 async def setup(bot: Bot):
     await bot.add_cog(OwnerCog(bot))

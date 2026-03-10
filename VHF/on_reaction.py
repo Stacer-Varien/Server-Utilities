@@ -1,4 +1,13 @@
-from discord import ButtonStyle, Color, Embed, Emoji, Object, RawReactionActionEvent, ui
+from discord import (
+    ButtonStyle,
+    Color,
+    Embed,
+    Emoji,
+    Object,
+    PartialEmoji,
+    RawReactionActionEvent,
+    ui,
+)
 from discord.ext.commands import Bot, Cog
 from config import vhf
 
@@ -17,21 +26,41 @@ class ReactionCog(Cog):
         }
 
     async def handle_role_reaction(self, payload: RawReactionActionEvent):
-        if payload.channel_id == self.role_channel_id:
-            role_id = self.emoji_roles.get(str(payload.emoji))
-            if role_id:
-                role = payload.member.guild.get_role(role_id)
-                if role:
-                    if payload.event_type == "REACTION_ADD":
-                        await payload.member.add_roles(role)
-                    elif payload.event_type == "REACTION_REMOVE":
-                        await payload.member.remove_roles(role)
+        if payload.channel_id != self.role_channel_id:
+            return
+
+        role_id = self.emoji_roles.get(str(payload.emoji))
+        if not role_id:
+            return
+
+        guild = self.bot.get_guild(payload.guild_id)
+        if guild is None:
+            return
+
+        member = payload.member or guild.get_member(payload.user_id)
+        if member is None:
+            try:
+                member = await guild.fetch_member(payload.user_id)
+            except Exception:
+                return
+
+        role = guild.get_role(role_id)
+        if role is None:
+            return
+
+        if payload.event_type == "REACTION_ADD":
+            await member.add_roles(role)
+        elif payload.event_type == "REACTION_REMOVE":
+            await member.remove_roles(role)
 
     async def handle_starboard_reaction(self, payload: RawReactionActionEvent):
         if payload.channel_id != self.role_channel_id:
             message_ids_file = "message_ids.txt"
-            with open(message_ids_file, "r") as f:
-                message_ids = f.read().splitlines()
+            try:
+                with open(message_ids_file, "r") as f:
+                    message_ids = f.read().splitlines()
+            except FileNotFoundError:
+                message_ids = []
 
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
@@ -45,7 +74,8 @@ class ReactionCog(Cog):
                     (
                         i
                         for i in message.reactions
-                        if isinstance(i.emoji, Emoji) and i.emoji.name == emoji_name
+                        if isinstance(i.emoji, (Emoji, PartialEmoji))
+                        and i.emoji.name == emoji_name
                     ),
                     None,
                 )
@@ -54,11 +84,18 @@ class ReactionCog(Cog):
                         f.write(f"{message.id}\n")
                     starboard = await self.bot.fetch_channel(self.starboard_channel_id)
                     embeds = []
+                    content_preview = (message.content or "").strip()
+                    content_snippet = (
+                        f"\n\n{content_preview[:100]}" if content_preview else ""
+                    )
 
                     for attachment in message.attachments:
                         if attachment.filename.endswith(("png", "jpeg", "gif", "jpg")):
                             embed = Embed(
-                                description=f"{message.channel.mention} by *{message.author}*\n\n{'' if message.content==('', None) else message.content[:100]}",
+                                description=(
+                                    f"{message.channel.mention} by *{message.author}*"
+                                    f"{content_snippet}"
+                                ),
                                 color=Color.pink(),
                             )
                             embed.set_image(url=attachment.url)
@@ -71,22 +108,23 @@ class ReactionCog(Cog):
                                 title=f"Videos from {message.channel.mention}",
                                 color=Color.pink(),
                             )
-                            video_embed.description = f"By *{message.author}*\n\n{'' if message.content==('', None) else message.content[:100]}\n\n{attachment.url}"
+                            video_embed.description = (
+                                f"By *{message.author}*{content_snippet}\n\n{attachment.url}"
+                            )
                             video_embed.set_footer(
                                 text=message.created_at.strftime("%d/%m/%Y %H:%M")
                             )
                             embeds.append(video_embed)
 
-                    await starboard.send(
-                        embeds=embeds,
-                        view=ui.View().add_item(
-                            ui.Button(
-                                label="Jump to message",
-                                style=ButtonStyle.url,
-                                url=message.jump_url,
-                            )
-                        ),
+                    view = ui.View(timeout=None)
+                    view.add_item(
+                        ui.Button(
+                            label="Jump to message",
+                            style=ButtonStyle.url,
+                            url=message.jump_url,
+                        )
                     )
+                    await starboard.send(embeds=embeds, view=view)
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):

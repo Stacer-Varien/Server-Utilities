@@ -15,6 +15,9 @@ class AutoMod:
         self.message = message
 
     async def process_automod(self):
+        if self.message.guild is None:
+            return
+
         if not self.message.author.bot:
             content = self.message.content
             channel_id = self.message.channel.id
@@ -48,7 +51,11 @@ class AutoMod:
         try:
             invite = await self.bot.fetch_invite(invite_url)
 
-            if check_blacklist and invite.id in self.get_blacklisted_servers:
+            if (
+                check_blacklist
+                and invite.guild
+                and invite.guild.id in self.get_blacklisted_servers
+            ):
                 await self.handle_blacklisted_server()
                 return
 
@@ -84,38 +91,44 @@ class Verification:
         )
         db.commit()
 
-    def check_user(self, message: Message) -> Optional[Member]:
+    def get_request_member(self, message: Message) -> Optional[Member]:
+        if message.guild is None:
+            return None
         data = db.execute(
             "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
         ).fetchone()
         return message.guild.get_member(data[0]) if data else None
 
-    def check(self, message: Message) -> bool:
-        member = self.check_user(message)
-        if not member:
-            return False
+    def check_user(self, message: Message) -> Optional[Member]:
+        return self.get_request_member(message)
 
+    def has_request_for_message(self, message: Message) -> bool:
         data = db.execute(
-            "SELECT * FROM verificationLog WHERE user = ? AND message_id = ?",
-            (member.id, message.id),
+            "SELECT 1 FROM verificationLog WHERE message_id = ?", (message.id,)
         ).fetchone()
-        db.commit()
+        return data is not None
 
+    def has_request_for_member(self, member: Member) -> bool:
+        data = db.execute(
+            "SELECT 1 FROM verificationLog WHERE user = ?", (member.id,)
+        ).fetchone()
+        return data is not None
+
+    def is_verified(self, member: Member) -> bool:
         verify_role = member.guild.get_role(self.VERIFY_ROLE_ID)
+        return bool(verify_role and verify_role in member.roles)
 
-        if data:
-            return True
-
-        return verify_role in member.roles
+    def check(self, message: Message) -> bool:
+        return self.has_request_for_message(message)
 
     async def approve(self, message: Message):
-        member = self.check_user(message)
+        member = self.get_request_member(message)
         if not member:
             return
 
         db.execute(
-            "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
-            (member.id, message.id),
+            "DELETE FROM verificationLog WHERE message_id = ?",
+            (message.id,),
         )
         db.commit()
 
@@ -123,29 +136,35 @@ class Verification:
         member_role = member.guild.get_role(self.MEMBER_ROLE_ID)
         untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
 
-        await member.add_roles(verify_role, reason="Successfully verified")
+        if verify_role:
+            await member.add_roles(verify_role, reason="Successfully verified")
 
-        if untrusted in member.roles:
+        if untrusted and untrusted in member.roles:
             await member.remove_roles(
                 untrusted, reason="Successful forced verification"
             )
-            await member.add_roles(member_role, reason="Add member role")
+            if member_role:
+                await member.add_roles(member_role, reason="Add member role")
 
     async def deny(self, message: Message):
-        member = self.check_user(message)
+        member = self.get_request_member(message)
         if not member:
             return
 
         db.execute(
-            "DELETE FROM verificationLog WHERE user = ? AND message_id = ?",
-            (member.id, message.id),
+            "DELETE FROM verificationLog WHERE message_id = ?",
+            (message.id,),
         )
         db.commit()
 
     async def force(self, member: Member):
         untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
+        if not untrusted:
+            return
         for role in member.roles:
-            if role.id != untrusted.id:
+            if role.is_default() or role.id == untrusted.id:
+                continue
+            else:
                 await member.remove_roles(
                     role, reason="Removed due to forced verification"
                 )
