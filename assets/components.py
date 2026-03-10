@@ -1,6 +1,4 @@
-from io import BytesIO
-from discord.ext.commands import Bot
-from discord import User, ui, ButtonStyle, Interaction, File, SelectOption
+from discord import User, ui, ButtonStyle, Interaction
 
 
 class Confirmation(ui.View):

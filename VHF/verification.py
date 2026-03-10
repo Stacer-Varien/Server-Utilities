@@ -10,7 +10,7 @@ from discord import (
     Object,
     app_commands as Serverutil,
 )
-from discord.ext.commands import Bot, GroupCog, Cog
+from discord.ext.commands import Bot, GroupCog
 from assets.components import YesNoButtons
 from assets.functions import Verification
 from datetime import datetime, timedelta
@@ -160,7 +160,7 @@ Due to this, **all** your roles have been removed, and you have received the <@&
 
         try:
             await member.send(embed=embed)
-        except:
+        except Exception:
             await verify_here.send(content=member.mention, embed=embed)
 
         verification_log = await self.bot.fetch_channel(991655158930997358)
@@ -291,7 +291,7 @@ Due to this, **all** your roles have been removed, and you have received the <@&
             m = await verification_channel.send(request)
             await verification.add_request(ctx.user, m)
 
-        except:
+        except Exception:
             embed.description = (
                 "Please have your DMs temporarily opened to start the verification"
             )

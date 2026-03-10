@@ -1,6 +1,4 @@
-from collections import OrderedDict
 from datetime import timedelta
-from json import loads
 from sys import version_info as py_version
 from time import time
 from discord import app_commands as Serverutil, __version__ as discord_version

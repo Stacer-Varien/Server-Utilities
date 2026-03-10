@@ -2,10 +2,9 @@ from os import execv
 from sys import executable, argv
 from typing import Literal, Optional
 
-from discord import Color, Embed, File, Activity, Object, ActivityType, HTTPException
+from discord import Embed, File, Activity, Object, ActivityType, HTTPException
 from discord.ext.commands import Cog, Bot, group, is_owner, guild_only, Context, Greedy, command
 
-from assets.functions import Blacklist
 
 def restart_bot():
     execv(executable, [executable] + argv)
@@ -41,12 +40,12 @@ class OwnerCog(Cog):
     @is_owner()
     async def clear(self, ctx: Context):
         await self.bot.change_presence(activity=None)
-        await ctx.send(f"I have cleared my activity")
+        await ctx.send("I have cleared my activity")
 
     @command(aliases=["restart", "refresh"])
     @is_owner()
     async def update(self, ctx: Context):
-        await ctx.send(f"Now updating")
+        await ctx.send("Now updating")
         restart_bot()
 
     @command()
