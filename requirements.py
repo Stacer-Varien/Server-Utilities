@@ -1,15 +1,8 @@
-import os
-import platform
+from pathlib import Path
+from subprocess import check_call
+from sys import executable
 
-pip = "install -U pip"
-packages = "install -U discord.py requests python-dotenv humanfriendly datetime jishaku"
+ROOT = Path(__file__).resolve().parent
 
-pack = [pip, packages]
-
-if platform.system() == "Linux":
-    for i in pack:
-        os.system("python3 -m pip " + i)
-
-elif platform.system() == "Windows":
-    for i in pack:
-        os.system("python.exe -m pip " + i)
+check_call([executable, "-m", "pip", "install", "--upgrade", "pip"])
+check_call([executable, "-m", "pip", "install", "-r", ROOT / "requirements.txt"])

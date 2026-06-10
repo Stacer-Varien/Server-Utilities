@@ -1,13 +1,26 @@
 from os import execv
 from sys import executable, argv
 from typing import Literal, Optional
+import asyncio
 
 from discord import Embed, File, Activity, Object, ActivityType, HTTPException
-from discord.ext.commands import Cog, Bot, group, is_owner, guild_only, Context, Greedy, command
+from discord.ext.commands import (
+    Cog,
+    Bot,
+    group,
+    is_owner,
+    guild_only,
+    Context,
+    Greedy,
+    command,
+)
+
+from config import DATABASE_PATH
 
 
 def restart_bot():
     execv(executable, [executable] + argv)
+
 
 class OwnerCog(Cog):
     def __init__(self, bot: Bot):
@@ -22,8 +35,12 @@ class OwnerCog(Cog):
         )
         await ctx.send(embed=embed)
 
-    async def set_activity(self, ctx: Context, activity_type: ActivityType, activity: str):
-        await self.bot.change_presence(activity=Activity(type=activity_type, name=activity))
+    async def set_activity(
+        self, ctx: Context, activity_type: ActivityType, activity: str
+    ):
+        await self.bot.change_presence(
+            activity=Activity(type=activity_type, name=activity)
+        )
         await ctx.send(f"I am now {activity_type.name.lower()} `{activity}`")
 
     @activity.command(aliases=["playing"])
@@ -42,10 +59,11 @@ class OwnerCog(Cog):
         await self.bot.change_presence(activity=None)
         await ctx.send("I have cleared my activity")
 
-    @command(aliases=["restart", "refresh"])
+    @command(name="restart", aliases=["update", "refresh"])
     @is_owner()
-    async def update(self, ctx: Context):
-        await ctx.send("Now updating")
+    async def restart(self, ctx: Context):
+        await ctx.send("Restarting")
+        await asyncio.sleep(1)
         restart_bot()
 
     @command()
@@ -90,10 +108,10 @@ class OwnerCog(Cog):
     @is_owner()
     async def senddb(self, ctx: Context):
         try:
-            with open("database.db", "rb") as file:
+            with DATABASE_PATH.open("rb") as file:
                 try:
                     await ctx.author.send(file=File(file))
-                except Exception:
+                except HTTPException:
                     content = """
 # ERROR!
 ## Failed to send database! 
@@ -101,6 +119,7 @@ Make sure private messages between **me and you are opened** or check the server
                     await ctx.send(content, delete_after=10)
         except FileNotFoundError:
             await ctx.send("Database file not found.", delete_after=10)
+
 
 async def setup(bot: Bot):
     await bot.add_cog(OwnerCog(bot))

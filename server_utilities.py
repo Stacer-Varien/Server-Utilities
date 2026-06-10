@@ -1,37 +1,45 @@
-from os import listdir
+import logging
 
 from discord import Intents, Object
 from discord.ext.commands import Bot, when_mentioned_or
 
-from config import TOKEN, orleans, vhf
+from config import BASE_DIR, TOKEN, vhf
 
-intents = Intents().all()
-intents.presences = False
-intents.voice_states = False
-intents.auto_moderation = False
-intents.guild_scheduled_events = False
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+
+def build_intents() -> Intents:
+    intents = Intents.none()
+    intents.guilds = True
+    intents.members = True
+    intents.guild_messages = True
+    intents.dm_messages = True
+    intents.guild_reactions = True
+    intents.message_content = True
+    return intents
 
 
 class ServerUtilities(Bot):
     async def setup_hook(self):
         await self.load_extension("jishaku")
 
-        for filename in listdir("./shared"):
-            if filename.endswith(".py"):
-                await self.load_extension(f"shared.{filename[:-3]}")
-                print(f"{filename} loaded")
-            else:
-                print(f"Unable to load {filename[:-3]}")
-        for filename in listdir("./VHF"):
-            if filename.endswith(".py"):
-                await self.load_extension(f"VHF.{filename[:-3]}")
-                print(f"{filename} loaded")
-            else:
-                print(f"Unable to load {filename[:-3]}") 
+        for package in ("shared", "VHF"):
+            for path in sorted((BASE_DIR / package).glob("*.py")):
+                extension = f"{package}.{path.stem}"
+                await self.load_extension(extension)
+                logger.info("Loaded extension %s", extension)
+
+        await self.tree.sync()
+        await self.tree.sync(guild=Object(id=vhf))
+        logger.info("Synced global commands and VHF guild commands")
 
 
 bot = ServerUtilities(
-    intents=intents,
+    intents=build_intents(),
     command_prefix=when_mentioned_or("su!", "SU!", "Su!", "su", "SU", "sU"),
 )
 bot.remove_command("help")
@@ -39,13 +47,12 @@ bot.remove_command("help")
 
 @bot.event
 async def on_ready():
-    print("Connected to bot: {}".format(bot.user.name))
-    print("Bot ID: {}".format(bot.user.id))
-    for guild in [
-        Object(id=orleans),
-        Object(id=vhf),
-    ]:
-        await bot.tree.sync(guild=guild)
+    logger.info("Connected as %s (%s)", bot.user, bot.user.id)
 
 
-bot.run(TOKEN)
+if __name__ == "__main__":
+    if not TOKEN:
+        raise SystemExit(
+            "Missing Discord token. Set DISCORD_TOKEN in the environment or .env file."
+        )
+    bot.run(TOKEN, log_handler=None)

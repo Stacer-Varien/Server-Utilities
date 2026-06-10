@@ -9,12 +9,6 @@ from discord.ext.commands import Cog, Bot, GroupCog
 start_time = time()
 
 
-def replace_all(text: str, dic: dict):
-    for i, j in dic.items():
-        text = text.replace(i, j)
-    return text
-
-
 class InfoCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -47,14 +41,10 @@ class InfoCog(Cog):
         current_time = time()
         difference = int(round(current_time - start_time))
         uptime = str(timedelta(seconds=difference))
-        embed.add_field(name="Uptime", value=f"{uptime} hours", inline=True)
+        embed.add_field(name="Uptime", value=uptime, inline=True)
 
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        embed.set_footer(
-            text="I am the legacy version of the cousin bot, HazeBot developed by {}. If you wish to have a bot made by him, please DM him or email to `jeannebot.discord@gmail.com`. By the way, its not for free...".format(
-                botowner
-            )
-        )
+        embed.set_footer(text=f"Server Utilities, maintained by {botowner_name}")
         await ctx.followup.send(embed=embed)
 
 

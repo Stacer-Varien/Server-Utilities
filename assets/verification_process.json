@@ -8,7 +8,7 @@
             "fields": [
                 {
                     "name": "Benefits of Being ID Verified",
-                    "value": "1. Trusted status in the server.\n2. Granted the Member (ID Verified) (ID verified) role."
+                    "value": "1. Trusted status in the server.\n2. Granted the Member (ID Verified) role."
                 },
                 {
                     "name": "Note",
@@ -16,7 +16,7 @@
                 },
                 {
                     "name": "Requirements",
-                    "value": "Your ID book/card, driver's license, or passport\nA piece of paper\nPen"
+                    "value": "Your ID book/card, leaner's/driver's license, or passport\nA piece of paper\nPen"
                 },
                 {
                     "name": "Verified in Another Server",
@@ -28,7 +28,7 @@
                 },
                 {
                     "name": "Data Handling",
-                    "value": "Pictures and documents are deleted after successful or denied verification."
+                    "value": "The staff review message is deleted after an outcome. You should also delete your own DM uploads after receiving the result."
                 }
             ]
         }

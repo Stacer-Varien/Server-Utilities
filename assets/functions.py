@@ -1,7 +1,7 @@
-import asyncio
 from typing import Optional
 
 from discord import (
+    HTTPException,
     Member,
     Message,
 )
@@ -14,38 +14,39 @@ class AutoMod:
         self.bot = bot
         self.message = message
 
-    async def process_automod(self):
+    async def process_automod(self) -> bool:
         if self.message.guild is None:
-            return
+            return False
 
-        if not self.message.author.bot:
-            content = self.message.content
-            channel_id = self.message.channel.id
+        content = self.message.content
+        channel_id = self.message.channel.id
 
-            if any(
-                url in content
-                for url in ["https://discord.gg/", "https://discord.com/invite/"]
-            ) and channel_id not in [
-                925790259160166460,
-                1040380792406298645,
-                1101129617017950288,
-                1003576509858058290,
-                1086733654476197978,
-            ]:
-                await self.handle_advertising()
-                return
+        if any(
+            url in content.lower() for url in ("discord.gg/", "discord.com/invite/")
+        ) and channel_id not in [
+            925790259160166460,
+            1040380792406298645,
+            1101129617017950288,
+            1003576509858058290,
+            1086733654476197978,
+        ]:
+            return await self.handle_advertising()
 
         if self.message.channel.id == 1041309643449827360:
-            attachments = bool(self.message.attachments)
-            content = bool(self.message.content)
-            stickers = bool(self.message.stickers)
+            if not self.message.attachments:
+                return await self.delete_message()
 
-            if (content and not attachments) or (not content and stickers):
-                await self.message.delete()
+        return False
 
-    async def handle_advertising(self):
-        message = self.message
-        await message.delete()
+    async def delete_message(self) -> bool:
+        try:
+            await self.message.delete()
+        except HTTPException:
+            return False
+        return True
+
+    async def handle_advertising(self) -> bool:
+        return await self.delete_message()
 
     async def check_invite(self, invite_url: str, check_blacklist=False):
         try:
@@ -59,12 +60,11 @@ class AutoMod:
                 await self.handle_blacklisted_server()
                 return
 
-        except Exception:
+        except HTTPException:
             return
 
     async def handle_blacklisted_server(self):
-        message = self.message
-        await message.delete()
+        await self.delete_message()
 
     @property
     def get_blacklisted_servers(self):
@@ -94,10 +94,14 @@ class Verification:
     def get_request_member(self, message: Message) -> Optional[Member]:
         if message.guild is None:
             return None
+        user_id = self.get_request_user_id(message)
+        return message.guild.get_member(user_id) if user_id else None
+
+    def get_request_user_id(self, message: Message) -> Optional[int]:
         data = db.execute(
             "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
         ).fetchone()
-        return message.guild.get_member(data[0]) if data else None
+        return data[0] if data else None
 
     def check_user(self, message: Message) -> Optional[Member]:
         return self.get_request_member(message)
@@ -121,23 +125,19 @@ class Verification:
     def check(self, message: Message) -> bool:
         return self.has_request_for_message(message)
 
-    async def approve(self, message: Message):
-        member = self.get_request_member(message)
+    async def approve(self, message: Message, member: Optional[Member] = None):
+        member = member or self.get_request_member(message)
         if not member:
             return
-
-        db.execute(
-            "DELETE FROM verificationLog WHERE message_id = ?",
-            (message.id,),
-        )
-        db.commit()
 
         verify_role = member.guild.get_role(self.VERIFY_ROLE_ID)
         member_role = member.guild.get_role(self.MEMBER_ROLE_ID)
         untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
 
-        if verify_role:
-            await member.add_roles(verify_role, reason="Successfully verified")
+        if verify_role is None:
+            raise RuntimeError("The configured verification role does not exist.")
+
+        await member.add_roles(verify_role, reason="Successfully verified")
 
         if untrusted and untrusted in member.roles:
             await member.remove_roles(
@@ -146,30 +146,38 @@ class Verification:
             if member_role:
                 await member.add_roles(member_role, reason="Add member role")
 
-    async def deny(self, message: Message):
-        member = self.get_request_member(message)
-        if not member:
-            return
+        self.remove_request(message)
 
+    async def deny(self, message: Message):
+        self.remove_request(message)
+
+    def remove_request(self, message: Message):
         db.execute(
             "DELETE FROM verificationLog WHERE message_id = ?",
             (message.id,),
         )
         db.commit()
 
-    async def force(self, member: Member):
+    async def force(self, member: Member) -> bool:
         untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
         if not untrusted:
-            return
-        for role in member.roles:
-            if role.is_default() or role.id == untrusted.id:
-                continue
-            else:
-                await member.remove_roles(
-                    role, reason="Removed due to forced verification"
-                )
-                await asyncio.sleep(1)
+            return False
+
+        bot_member = member.guild.me
+        removable_roles = [
+            role
+            for role in member.roles
+            if not role.is_default()
+            and role.id != untrusted.id
+            and bot_member is not None
+            and role < bot_member.top_role
+        ]
+        if removable_roles:
+            await member.remove_roles(
+                *removable_roles, reason="Removed due to forced verification"
+            )
         await member.add_roles(untrusted, reason="Force verification")
+        return True
 
 
 class Blacklist:
