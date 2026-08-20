@@ -1,7 +1,9 @@
+from io import BytesIO
 from os import execv
 from sys import executable, argv
 from typing import Literal, Optional
 import asyncio
+import json
 
 from discord import Embed, File, Activity, Object, ActivityType, HTTPException
 from discord.ext.commands import (
@@ -15,7 +17,7 @@ from discord.ext.commands import (
     command,
 )
 
-from config import DATABASE_PATH
+from config import db
 
 
 def restart_bot():
@@ -107,18 +109,16 @@ class OwnerCog(Cog):
     @command(aliases=["db", "database"])
     @is_owner()
     async def senddb(self, ctx: Context):
+        backup = json.dumps(await db.export_data(), indent=2).encode("utf-8")
         try:
-            with DATABASE_PATH.open("rb") as file:
-                try:
-                    await ctx.author.send(file=File(file))
-                except HTTPException:
-                    content = """
-# ERROR!
-## Failed to send database! 
-Make sure private messages between **me and you are opened** or check the server if the database exists"""
-                    await ctx.send(content, delete_after=10)
-        except FileNotFoundError:
-            await ctx.send("Database file not found.", delete_after=10)
+            await ctx.author.send(
+                file=File(BytesIO(backup), filename="server_utilities_backup.json")
+            )
+        except HTTPException:
+            await ctx.send(
+                "I could not send the database backup. Make sure private messages are open.",
+                delete_after=10,
+            )
 
 
 async def setup(bot: Bot):

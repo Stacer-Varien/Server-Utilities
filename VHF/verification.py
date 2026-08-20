@@ -53,7 +53,7 @@ class VerificationCog(GroupCog, name="verification"):
         if message.guild is None:
             return None
 
-        user_id = verification.get_request_user_id(message)
+        user_id = await verification.get_request_user_id(message)
         if user_id is None:
             return None
 
@@ -73,7 +73,7 @@ class VerificationCog(GroupCog, name="verification"):
         verification = Verification()
         embed = Embed(color=Color.random())
 
-        if not verification.has_request_for_message(message):
+        if not await verification.has_request_for_message(message):
             embed.description = "This member hasn't requested verification yet."
             embed.color = Color.red()
             await ctx.followup.send(embed=embed, ephemeral=True)
@@ -159,7 +159,7 @@ class VerificationCog(GroupCog, name="verification"):
         embed = Embed(color=Color.red())
         verification = Verification()
 
-        if verification.has_request_for_member(member):
+        if await verification.has_request_for_member(member):
             embed.description = f"{member} already requested an ID verification."
             await ctx.followup.send(embed=embed, ephemeral=True)
             return
@@ -252,7 +252,7 @@ All removable roles have been removed and the untrusted role has been added.
             return
 
         verification = Verification()
-        if verification.has_request_for_member(ctx.user):
+        if await verification.has_request_for_member(ctx.user):
             embed.description = "You have already requested an ID verification."
             await ctx.edit_original_response(embed=embed)
             return

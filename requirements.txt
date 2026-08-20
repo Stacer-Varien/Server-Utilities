@@ -1,3 +1,4 @@
-discord.py
-jishaku
-python-dotenv
+discord.py==2.7.1
+jishaku==2.7.5
+python-dotenv==1.2.3
+asyncpg==0.31.0
