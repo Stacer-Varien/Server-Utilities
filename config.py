@@ -29,6 +29,10 @@ db.executescript(
         message_id INTEGER PRIMARY KEY,
         starboard_message_id INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS legacyStarboardPosts (
+        message_id INTEGER PRIMARY KEY
+    );
     """
 )
 db.commit()

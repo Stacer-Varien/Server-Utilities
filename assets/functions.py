@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from discord import (
@@ -10,6 +11,11 @@ from config import db
 
 
 class AutoMod:
+    INVITE_PATTERN = re.compile(
+        r"(?:https?://)?(?:discord\.gg|discord\.com/invite)/[A-Za-z0-9-]+",
+        re.IGNORECASE,
+    )
+
     def __init__(self, bot: Bot, message: Message):
         self.bot = bot
         self.message = message
@@ -21,16 +27,25 @@ class AutoMod:
         content = self.message.content
         channel_id = self.message.channel.id
 
-        if any(
-            url in content.lower() for url in ("discord.gg/", "discord.com/invite/")
-        ) and channel_id not in [
-            925790259160166460,
-            1040380792406298645,
-            1101129617017950288,
-            1003576509858058290,
-            1086733654476197978,
-        ]:
-            return await self.handle_advertising()
+        invite_urls = [
+            match.group(0)
+            if match.group(0).lower().startswith(("http://", "https://"))
+            else f"https://{match.group(0)}"
+            for match in self.INVITE_PATTERN.finditer(content)
+        ]
+        if invite_urls:
+            for invite_url in invite_urls:
+                if await self.check_invite(invite_url, check_blacklist=True):
+                    return True
+
+            if channel_id not in [
+                925790259160166460,
+                1040380792406298645,
+                1101129617017950288,
+                1003576509858058290,
+                1086733654476197978,
+            ]:
+                return await self.handle_advertising()
 
         if self.message.channel.id == 1041309643449827360:
             if not self.message.attachments:
@@ -48,7 +63,7 @@ class AutoMod:
     async def handle_advertising(self) -> bool:
         return await self.delete_message()
 
-    async def check_invite(self, invite_url: str, check_blacklist=False):
+    async def check_invite(self, invite_url: str, check_blacklist=False) -> bool:
         try:
             invite = await self.bot.fetch_invite(invite_url)
 
@@ -57,14 +72,15 @@ class AutoMod:
                 and invite.guild
                 and invite.guild.id in self.get_blacklisted_servers
             ):
-                await self.handle_blacklisted_server()
-                return
+                return await self.handle_blacklisted_server()
 
         except HTTPException:
-            return
+            pass
 
-    async def handle_blacklisted_server(self):
-        await self.delete_message()
+        return False
+
+    async def handle_blacklisted_server(self) -> bool:
+        return await self.delete_message()
 
     @property
     def get_blacklisted_servers(self):
@@ -84,12 +100,13 @@ class Verification:
     def __init__(self) -> None:
         pass
 
-    async def add_request(self, member: Member, message: Message):
-        db.execute(
+    async def add_request(self, member: Member, message: Message) -> bool:
+        cursor = db.execute(
             "INSERT OR IGNORE INTO verificationLog (user, message_id) VALUES (?, ?)",
             (member.id, message.id),
         )
         db.commit()
+        return cursor.rowcount == 1
 
     def get_request_member(self, message: Message) -> Optional[Member]:
         if message.guild is None:
@@ -137,14 +154,19 @@ class Verification:
         if verify_role is None:
             raise RuntimeError("The configured verification role does not exist.")
 
-        await member.add_roles(verify_role, reason="Successfully verified")
+        if member_role is None:
+            raise RuntimeError("The configured member role does not exist.")
+
+        await member.add_roles(
+            verify_role,
+            member_role,
+            reason="Successfully verified",
+        )
 
         if untrusted and untrusted in member.roles:
             await member.remove_roles(
                 untrusted, reason="Successful forced verification"
             )
-            if member_role:
-                await member.add_roles(member_role, reason="Add member role")
 
         self.remove_request(message)
 

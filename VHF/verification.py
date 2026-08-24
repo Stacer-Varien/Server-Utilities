@@ -361,7 +361,22 @@ All removable roles have been removed and the untrusted role has been added.
                 content=f"New request from {ctx.user} `{ctx.user.id}`",
                 embed=request_embed,
             )
-            await verification.add_request(ctx.user, request)
+            if not await verification.add_request(ctx.user, request):
+                try:
+                    await request.delete()
+                except HTTPException:
+                    logger.warning(
+                        "Could not remove duplicate verification request %s",
+                        request.id,
+                    )
+
+                embed.description = (
+                    "You already have a verification request pending. "
+                    "Please wait for staff to review it."
+                )
+                await prompt.edit(embed=embed)
+                await ctx.edit_original_response(embed=embed)
+                return
         except HTTPException:
             logger.exception("Could not submit verification for member %s", ctx.user.id)
             embed.description = (

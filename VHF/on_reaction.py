@@ -36,21 +36,30 @@ class ReactionCog(Cog):
 
     def migrate_starboard_ids(self):
         legacy_path = BASE_DIR / "message_ids.txt"
-        if not legacy_path.exists():
-            return
+        if legacy_path.exists():
+            message_ids = [
+                int(value.strip())
+                for value in legacy_path.read_text(encoding="utf-8").splitlines()
+                if value.strip().isdigit()
+            ]
+            db.executemany(
+                """
+                INSERT OR IGNORE INTO legacyStarboardPosts (message_id)
+                VALUES (?)
+                """,
+                ((message_id,) for message_id in message_ids),
+            )
 
-        message_ids = [
-            int(value)
-            for value in legacy_path.read_text(encoding="utf-8").splitlines()
-            if value.isdigit()
-        ]
-        db.executemany(
+        # Older versions used starboard_message_id=0 as a placeholder because
+        # message_ids.txt only contains source-message IDs. Preserve those IDs
+        # without pretending that 0 is a real Discord message ID.
+        db.execute(
             """
-            INSERT OR IGNORE INTO starboardPosts (message_id, starboard_message_id)
-            VALUES (?, 0)
-            """,
-            ((message_id,) for message_id in message_ids),
+            INSERT OR IGNORE INTO legacyStarboardPosts (message_id)
+            SELECT message_id FROM starboardPosts WHERE starboard_message_id = 0
+            """
         )
+        db.execute("DELETE FROM starboardPosts WHERE starboard_message_id = 0")
         db.commit()
 
     async def handle_role_reaction(self, payload: RawReactionActionEvent):
@@ -104,6 +113,11 @@ class ReactionCog(Cog):
                 "SELECT 1 FROM starboardPosts WHERE message_id = ?",
                 (payload.message_id,),
             ).fetchone()
+            if not already_posted:
+                already_posted = db.execute(
+                    "SELECT 1 FROM legacyStarboardPosts WHERE message_id = ?",
+                    (payload.message_id,),
+                ).fetchone()
             if already_posted:
                 return
 
