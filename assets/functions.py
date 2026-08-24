@@ -55,7 +55,7 @@ class AutoMod:
             if (
                 check_blacklist
                 and invite.guild
-                and invite.guild.id in await self.get_blacklisted_servers()
+                and invite.guild.id in self.get_blacklisted_servers
             ):
                 await self.handle_blacklisted_server()
                 return
@@ -66,8 +66,14 @@ class AutoMod:
     async def handle_blacklisted_server(self):
         await self.delete_message()
 
-    async def get_blacklisted_servers(self):
-        return await db.get_blacklisted_server_ids()
+    @property
+    def get_blacklisted_servers(self):
+        return [
+            record[0]
+            for record in db.execute(
+                "SELECT server_id FROM blacklistedServersData"
+            ).fetchall()
+        ]
 
 
 class Verification:
@@ -79,35 +85,48 @@ class Verification:
         pass
 
     async def add_request(self, member: Member, message: Message):
-        await db.add_verification_request(member.id, message.id)
+        db.execute(
+            "INSERT OR IGNORE INTO verificationLog (user, message_id) VALUES (?, ?)",
+            (member.id, message.id),
+        )
+        db.commit()
 
-    async def get_request_member(self, message: Message) -> Optional[Member]:
+    def get_request_member(self, message: Message) -> Optional[Member]:
         if message.guild is None:
             return None
-        user_id = await self.get_request_user_id(message)
+        user_id = self.get_request_user_id(message)
         return message.guild.get_member(user_id) if user_id else None
 
-    async def get_request_user_id(self, message: Message) -> Optional[int]:
-        return await db.get_request_user_id(message.id)
+    def get_request_user_id(self, message: Message) -> Optional[int]:
+        data = db.execute(
+            "SELECT user FROM verificationLog WHERE message_id = ?", (message.id,)
+        ).fetchone()
+        return data[0] if data else None
 
-    async def check_user(self, message: Message) -> Optional[Member]:
-        return await self.get_request_member(message)
+    def check_user(self, message: Message) -> Optional[Member]:
+        return self.get_request_member(message)
 
-    async def has_request_for_message(self, message: Message) -> bool:
-        return await db.has_request_for_message(message.id)
+    def has_request_for_message(self, message: Message) -> bool:
+        data = db.execute(
+            "SELECT 1 FROM verificationLog WHERE message_id = ?", (message.id,)
+        ).fetchone()
+        return data is not None
 
-    async def has_request_for_member(self, member: Member) -> bool:
-        return await db.has_request_for_user(member.id)
+    def has_request_for_member(self, member: Member) -> bool:
+        data = db.execute(
+            "SELECT 1 FROM verificationLog WHERE user = ?", (member.id,)
+        ).fetchone()
+        return data is not None
 
     def is_verified(self, member: Member) -> bool:
         verify_role = member.guild.get_role(self.VERIFY_ROLE_ID)
         return bool(verify_role and verify_role in member.roles)
 
-    async def check(self, message: Message) -> bool:
-        return await self.has_request_for_message(message)
+    def check(self, message: Message) -> bool:
+        return self.has_request_for_message(message)
 
     async def approve(self, message: Message, member: Optional[Member] = None):
-        member = member or await self.get_request_member(message)
+        member = member or self.get_request_member(message)
         if not member:
             return
 
@@ -127,13 +146,17 @@ class Verification:
             if member_role:
                 await member.add_roles(member_role, reason="Add member role")
 
-        await self.remove_request(message)
+        self.remove_request(message)
 
     async def deny(self, message: Message):
-        await self.remove_request(message)
+        self.remove_request(message)
 
-    async def remove_request(self, message: Message):
-        await db.remove_verification_request(message.id)
+    def remove_request(self, message: Message):
+        db.execute(
+            "DELETE FROM verificationLog WHERE message_id = ?",
+            (message.id,),
+        )
+        db.commit()
 
     async def force(self, member: Member) -> bool:
         untrusted = member.guild.get_role(self.UNTRUSTED_ROLE_ID)
@@ -161,11 +184,19 @@ class Blacklist:
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
-    async def get_blacklisted_servers(self):
-        return await db.get_blacklisted_server_ids()
+    def get_blacklisted_servers(self):
+        data = db.execute("SELECT server_id FROM blacklistedServersData").fetchall()
+        return [record[0] for record in data]
 
     async def add(self, server_id: str, reason: str):
-        await db.add_blacklisted_server(int(server_id), reason)
+        db.execute(
+            "INSERT OR IGNORE INTO blacklistedServersData (server_id, reason) VALUES (?, ?)",
+            (server_id, reason),
+        )
+        db.commit()
 
     async def remove(self, server_id: str):
-        await db.remove_blacklisted_server(int(server_id))
+        db.execute(
+            "DELETE FROM blacklistedServersData WHERE server_id = ?", (server_id,)
+        )
+        db.commit()

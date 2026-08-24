@@ -12,7 +12,7 @@ from discord import (
 )
 from discord.ext.commands import Bot, Cog
 
-from config import db, vhf
+from config import BASE_DIR, db, vhf
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,26 @@ class ReactionCog(Cog):
             "🎄": 1311776856432836648,
         }
         self.starboard_lock = asyncio.Lock()
+        self.migrate_starboard_ids()
+
+    def migrate_starboard_ids(self):
+        legacy_path = BASE_DIR / "message_ids.txt"
+        if not legacy_path.exists():
+            return
+
+        message_ids = [
+            int(value)
+            for value in legacy_path.read_text(encoding="utf-8").splitlines()
+            if value.isdigit()
+        ]
+        db.executemany(
+            """
+            INSERT OR IGNORE INTO starboardPosts (message_id, starboard_message_id)
+            VALUES (?, 0)
+            """,
+            ((message_id,) for message_id in message_ids),
+        )
+        db.commit()
 
     async def handle_role_reaction(self, payload: RawReactionActionEvent):
         if (
@@ -80,7 +100,11 @@ class ReactionCog(Cog):
             return
 
         async with self.starboard_lock:
-            if await db.has_starboard_post(payload.message_id):
+            already_posted = db.execute(
+                "SELECT 1 FROM starboardPosts WHERE message_id = ?",
+                (payload.message_id,),
+            ).fetchone()
+            if already_posted:
                 return
 
             try:
@@ -147,7 +171,14 @@ class ReactionCog(Cog):
                 logger.exception("Could not send message %s to starboard", message.id)
                 return
 
-            await db.record_starboard_post(message.id, starboard_message.id)
+            db.execute(
+                """
+                INSERT INTO starboardPosts (message_id, starboard_message_id)
+                VALUES (?, ?)
+                """,
+                (message.id, starboard_message.id),
+            )
+            db.commit()
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):

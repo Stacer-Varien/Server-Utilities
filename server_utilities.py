@@ -3,7 +3,7 @@ import logging
 from discord import Intents, Object
 from discord.ext.commands import Bot, when_mentioned_or
 
-from config import BASE_DIR, DATABASE_URL, TOKEN, db, vhf
+from config import BASE_DIR, TOKEN, vhf
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,8 +25,6 @@ def build_intents() -> Intents:
 
 class ServerUtilities(Bot):
     async def setup_hook(self):
-        await db.connect()
-
         await self.load_extension("jishaku")
 
         for package in ("shared", "VHF"):
@@ -38,12 +36,6 @@ class ServerUtilities(Bot):
         await self.tree.sync()
         await self.tree.sync(guild=Object(id=vhf))
         logger.info("Synced global commands and VHF guild commands")
-
-    async def close(self):
-        try:
-            await super().close()
-        finally:
-            await db.close()
 
 
 bot = ServerUtilities(
@@ -62,9 +54,5 @@ if __name__ == "__main__":
     if not TOKEN:
         raise SystemExit(
             "Missing Discord token. Set DISCORD_TOKEN in the environment or .env file."
-        )
-    if not DATABASE_URL:
-        raise SystemExit(
-            "Missing database URL. Set DATABASE_URL to a Neon Postgres connection string."
         )
     bot.run(TOKEN, log_handler=None)
